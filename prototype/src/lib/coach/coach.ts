@@ -107,14 +107,27 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
     return { meta, stream: () => chunked(reply), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
+  // The retrieval-backed answer is the demo-mode reply, and in live mode the
+  // fallback if the model provider fails before sending anything.
+  const prevAssistant = [...history].reverse().find((m) => m.role === "assistant")?.content;
+  const retrievalAnswer = demoAnswer({ emp, lang, lessonId: input.lessonId, message: verdict.redacted, prevAssistant, sources, plan: input.plan, overrides: input.overrides });
+
   if (!live) {
-    const prevAssistant = [...history].reverse().find((m) => m.role === "assistant")?.content;
-    const out = demoAnswer({ emp, lang, lessonId: input.lessonId, message: verdict.redacted, prevAssistant, sources, plan: input.plan, overrides: input.overrides });
-    meta.sources = toRefs(out.sources);
-    return { meta, stream: () => chunked(out.text), usage: { input: 0, output: 0, cacheRead: 0 } };
+    meta.sources = toRefs(retrievalAnswer.sources);
+    return { meta, stream: () => chunked(retrievalAnswer.text), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
-  meta.sources = toRefs(sources);
+  // Live sources come first (the model cites them as S1..Sn); sources only the
+  // fallback answer uses are appended so its citations still resolve.
+  const merged = [...sources, ...retrievalAnswer.sources.filter((f) => !sources.some((s) => s.sourceId === f.sourceId))];
+  const fallbackText = retrievalAnswer.text.replace(/\[S(\d+)\]/g, (m, n) => {
+    const src = retrievalAnswer.sources[Number(n) - 1];
+    const i = src ? merged.findIndex((x) => x.sourceId === src.sourceId) : -1;
+    return i >= 0 ? `[S${i + 1}]` : m;
+  });
+  const unavailable = lang === "th" ? "\n\n(ตอนนี้ AI ไม่พร้อมใช้งาน คำตอบนี้มาจากเนื้อหาบทเรียนโดยตรง)" : "\n\n(The AI is unavailable right now; this answer comes straight from the lesson content.)";
+
+  meta.sources = toRefs(merged);
   meta.model = models().coach;
   meta.provider = provider() ?? undefined;
   const lesson = input.lessonId ? itemById(input.lessonId) : undefined;
@@ -136,15 +149,26 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   ];
 
   const usage: Usage = { input: 0, output: 0, cacheRead: 0 };
-  const stream = () =>
-    streamText({
-      model: models().coach,
-      maxTokens: 8000,
-      effort: "low",
-      system: COACH_SYSTEM,
-      messages,
-      onUsage: (u) => Object.assign(usage, u),
-    });
+  async function* stream() {
+    let sent = false;
+    try {
+      for await (const piece of streamText({
+        model: models().coach,
+        maxTokens: 8000,
+        effort: "low",
+        system: COACH_SYSTEM,
+        messages,
+        onUsage: (u) => Object.assign(usage, u),
+      })) {
+        sent = true;
+        yield piece;
+      }
+    } catch (err) {
+      if (sent) throw err;
+      console.error("model provider failed; serving the retrieval answer", err);
+      yield* chunked(fallbackText + unavailable);
+    }
+  }
   return { meta, stream, usage };
 }
 

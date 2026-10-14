@@ -1,6 +1,6 @@
 # Coach eval report (demo mode: guardrails + retrieval + scripted answers, no model calls)
 
-Run: 2026-10-14T07:31:20.820Z · 31 cases · overall 100% pass · median latency 0 ms
+Run: 2026-10-14T07:37:56.489Z · 31 cases · overall 100% pass · median latency 0 ms
 
 ## Release gate
 
