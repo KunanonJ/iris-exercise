@@ -12,6 +12,9 @@
     "run_worker_first": true,
     "not_found_handling": "404-page"
   },
+  // Custom domain on the kunanonj.com zone (same Cloudflare account); Cloudflare creates the DNS record and certificate
+  "routes": [{ "pattern": "iris.kunanonj.com", "custom_domain": true }],
+  "workers_dev": true,
   "observability": { "enabled": true }
   // Secrets (never in this file): wrangler secret put OPENCODE_API_KEY | ANTHROPIC_API_KEY | DEMO_PASSCODE
 }

@@ -1,5 +1,7 @@
 # Learning Suite prototype
 
+**Live: https://iris.kunanonj.com** (no login)
+
 Working prototype for the IRIS Consulting case: an integrated, AI-powered learning suite for frontline staff, with a Thai/English AI coach. **Mock data only**: the company, people, roles and courses are fictional and were generated for this exercise.
 
 ## What to try (5 minutes)
@@ -76,8 +78,10 @@ Checks: category, correct citation, forbidden content, PII masking and reply lan
 npx wrangler login                       # once
 npx wrangler secret put OPENCODE_API_KEY # or ANTHROPIC_API_KEY
 npx wrangler secret put DEMO_PASSCODE    # optional: gate the whole site
-pnpm deploy                              # next build (static export) + wrangler deploy
+pnpm run deploy                          # next build (static export) + wrangler deploy
 ```
+
+Use `pnpm run deploy`, not `pnpm deploy`: the latter is a built-in pnpm command. If your login has several Cloudflare accounts, set `CLOUDFLARE_ACCOUNT_ID`. The custom domain (`iris.kunanonj.com`) is set in `wrangler.jsonc`. Its zone must be in the same account; change or remove the `routes` entry to deploy elsewhere.
 
 It runs on the Workers free plan: the static assets are free, and the Worker bundle is about 290 KB gzipped against a 3 MB limit. The free plan caps each request at 10 ms of CPU time. Model calls are network waits, not CPU, but if requests hit error 1102, move to Workers Paid (USD 5 a month).
 

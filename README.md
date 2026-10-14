@@ -2,6 +2,8 @@
 
 Kunanon Jarat's case response for the Digital & AI Solution Product Manager role. The task: launch an integrated, AI-powered learning suite (skill assessment, AI learning paths, a Thai/English AI coach, an impact dashboard and manager approvals) for 12,000 of the fictional Siam Pinnacle Group's 45,000 employees, in 12 weeks.
 
+**Live prototype: https://iris.kunanonj.com**
+
 **Mock data only.** The company, people, roles and courses are fictional and were generated for this exercise.
 
 ## What's here
