@@ -3,16 +3,17 @@
 // checks, and in live mode adds an LLM judge for groundedness and Thai quality.
 // Run: pnpm eval          (live if a key is in .dev.vars or the environment)
 //      pnpm eval --demo   (force demo mode)
+//      pnpm eval --only=G12,H02   (re-check a few cases; writes report-*-subset.md)
 
 // Same secrets file wrangler uses for local dev.
 for (const f of [".dev.vars", ".env.local"]) if (existsSync(f)) process.loadEnvFile(f);
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { z } from "zod";
 import { askCoach } from "../src/lib/coach/coach";
-import { retrieve } from "../src/lib/coach/retrieval";
+import { passageFor } from "../src/lib/coach/retrieval";
 import { generateJSON, isLive, models, provider } from "../src/lib/ai";
-import { rulesPlan } from "../src/lib/plan-rules";
-import { employeeById } from "../src/lib/skills";
+import { planForPrompt, rulesPlan } from "../src/lib/plan-rules";
+import { employeeById, profileForPrompt } from "../src/lib/skills";
 
 interface Case {
   id: string;
@@ -39,6 +40,9 @@ const PRICES: Record<string, [number, number, number]> = {
   // OpenCode gateway list prices (opencode.ai docs, Oct 2026); free models cost 0
   "kimi-k2.6": [0.95, 4, 0],
   "deepseek-v4.1-flash": [0.3, 1.2, 0],
+  // Workers AI list prices; free within the 10,000 neurons/day allowance
+  "@cf/aisingapore/gemma-sea-lion-v4-27b-it": [0.351, 0.555, 0],
+  "@cf/qwen/qwen3-30b-a3b-fp8": [0.051, 0.335, 0],
 };
 
 const JudgeSchema = z.object({
@@ -49,13 +53,13 @@ const JudgeSchema = z.object({
   notes: z.string(),
 });
 
-async function judge(c: Case, answer: string, sourcesText: string) {
+async function judge(c: Case, answer: string, sourcesText: string, employeeContext: string) {
   return generateJSON({
     model: models().judge,
     maxTokens: 4000,
     effort: "medium",
-    system: "You grade answers from a workplace learning coach for a Thai company. Be strict about grounding: any course, date, rule or number not in the sources is a failure, unless it comes from the employee's own profile.",
-    messages: [{ role: "user", content: `<question lang="${c.lang}">${c.q}</question>\n<sources>\n${sourcesText || "(none)"}\n</sources>\n<answer>\n${answer}\n</answer>` }],
+    system: "You grade answers from a workplace learning coach for a Thai company. Be strict about grounding: any course, date, rule or number must come from the sources or from the employee context (their own role, skill levels, gaps and plan). Facts from either are grounded; anything else is a failure. General encouragement and a suggested next step are fine. Citations use the [S#] labels shown in <sources>. The reply must be in the language of the question, not the employee's usual language.",
+    messages: [{ role: "user", content: `<question lang="${c.lang}">${c.q}</question>\n<employee_context>\n${employeeContext}\n</employee_context>\n<sources>\n${sourcesText || "(none)"}\n</sources>\n<answer>\n${answer}\n</answer>` }],
     schema: JudgeSchema,
     shape: '{"grounded": boolean, "helpful": number 1-5, "language_ok": boolean, "thai_quality": number 0-5, "notes": string}',
   });
@@ -64,7 +68,8 @@ async function judge(c: Case, answer: string, sourcesText: string) {
 async function main() {
   const forceDemo = process.argv.includes("--demo");
   const live = isLive() && !forceDemo;
-  const cases = JSON.parse(readFileSync("evals/cases.json", "utf8")) as Case[];
+  const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7).split(",");
+  const cases = (JSON.parse(readFileSync("evals/cases.json", "utf8")) as Case[]).filter((c) => !only || only.includes(c.id));
   const emp = employeeById("E0001")!;
   const plan = { ...rulesPlan(emp), status: "approved" as const };
   const rows: string[] = [];
@@ -86,7 +91,8 @@ async function main() {
       if (c.expect.cite.some((id) => citedIds.includes(id))) stats.citeOk++;
       else fails.push(`cited ${citedIds.join(",") || "nothing"} want ${c.expect.cite.join("|")}`);
     }
-    if (c.expect.mustContainAny && !c.expect.mustContainAny.some((k) => r.text.toLowerCase().includes(k.toLowerCase()))) fails.push(`missing any of: ${c.expect.mustContainAny.join(" / ")}`);
+    const norm = r.text.toLowerCase().replace(/[\u2018\u2019]/g, "'");
+    if (c.expect.mustContainAny && !c.expect.mustContainAny.some((k) => norm.includes(k.toLowerCase()))) fails.push(`missing any of: ${c.expect.mustContainAny.join(" / ")}`);
     if (c.expect.mustNotMatch && new RegExp(c.expect.mustNotMatch, "i").test(r.text)) fails.push(`matched forbidden /${c.expect.mustNotMatch}/`);
     if (c.expect.pii && !r.pii.includes(c.expect.pii)) fails.push(`pii ${c.expect.pii} not redacted`);
     const langOk = c.lang === "th" ? /[฀-๿]/.test(r.text) : !/[฀-๿]{20,}/.test(r.text);
@@ -95,8 +101,10 @@ async function main() {
 
     let judged = "";
     if (live && r.category === "in_scope") {
-      const srcText = retrieve(c.q, c.lang, { pinned: c.lessonId ? [c.lessonId] : [] }).map((s) => `[${s.sourceId}] ${s.text}`).join("\n");
-      const j = await judge(c, r.text, srcText);
+      // Same numbering the coach saw, so [S1] in the answer matches [S1] here.
+      const srcText = r.sources.map((s) => `[S${s.n}] (${s.sourceId}) ${passageFor(s.sourceId, c.lang)}`).join("\n");
+      const ctx = `${profileForPrompt(emp)}${c.plan ? `\nApproved plan:\n${planForPrompt(plan, c.lang)}` : ""}`;
+      const j = await judge(c, r.text, srcText, ctx);
       if (j) {
         stats.judged++;
         if (j.grounded) stats.grounded++;
@@ -162,7 +170,7 @@ async function main() {
     "",
     "Production gate uses 300-500 cases per persona and BU, with native-speaker SME review of a sample each release.",
   ].join("\n");
-  const out = `evals/report-${live ? "live" : "demo"}.md`;
+  const out = `evals/report-${live ? "live" : "demo"}${only ? "-subset" : ""}.md`;
   writeFileSync(out, md);
   console.log(`\n${pct(stats.pass, stats.cases)} pass. Report: ${out}`);
 }

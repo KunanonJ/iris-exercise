@@ -22,6 +22,8 @@ export function shortlist(emp: Employee, overrides?: Record<string, Level>) {
         score: (item.content ? 3 : 0) + (item.format === "project" ? 1 : 0) + item.skills.filter((s) => s.skillId !== gap.skillId && gapSkills.has(s.skillId)).length,
       }))
       .sort((a, b) => b.score - a.score)
+      // Prefer items with real lesson content; generic catalogue entries only fill gaps that have none.
+      .filter((x, _, all) => x.item.content || !all.some((y) => y.item.content))
       .slice(0, 3)
       .map((x) => x.item);
     return { gap, items };

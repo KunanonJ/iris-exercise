@@ -110,3 +110,4 @@ export function retrieve(query: string, lang: Lang, opts: { k?: number; pinned?:
 }
 
 export const passageCount = PASSAGES.length;
+export const passageFor = (sourceId: string, lang: Lang) => PASSAGES.find((p) => p.sourceId === sourceId && p.lang === lang)?.text ?? "";

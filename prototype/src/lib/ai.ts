@@ -1,14 +1,16 @@
-// Provider layer. Two backends:
-//   anthropic: Claude API directly (official SDK; structured outputs, caching, refusal fallbacks)
-//   opencode:  OpenCode's model gateway (https://opencode.ai/inference/v1). Claude and some Qwen
-//              models speak the Anthropic Messages format there; Kimi, DeepSeek, GLM, MiniMax and
-//              the free models speak OpenAI-style chat completions.
-// Picked by AI_PROVIDER, else by whichever key is set. No key = demo mode.
+// Provider layer. Three backends:
+//   anthropic:  Claude API directly (official SDK; structured outputs, caching, refusal fallbacks)
+//   opencode:   OpenCode's model gateway (https://opencode.ai/inference/v1). Claude and some Qwen
+//               models speak the Anthropic Messages format there; Kimi, DeepSeek, GLM and MiniMax
+//               speak OpenAI-style chat completions. (Its free tier is app-only, not API.)
+//   workers-ai: Cloudflare Workers AI, free daily allowance. The Worker uses its AI binding; Node
+//               scripts use the OpenAI-compatible REST endpoint with CLOUDFLARE_API_TOKEN.
+// Picked by AI_PROVIDER, else by whichever key is set. Nothing configured = demo mode.
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type { z } from "zod";
 
-export type Provider = "anthropic" | "opencode";
+export type Provider = "anthropic" | "opencode" | "workers-ai";
 export type Effort = "low" | "medium" | "high";
 export interface Usage {
   input: number;
@@ -27,10 +29,19 @@ export interface ChatArgs {
 // Read lazily: on Cloudflare Workers process.env is filled per request context.
 const env = (k: string) => (typeof process !== "undefined" ? process.env?.[k] : undefined) || undefined;
 
+type AIBinding = { run(model: string, inputs: Record<string, unknown>): Promise<unknown> };
+let aiBinding: AIBinding | null = null;
+/** Called by the Worker on each request with env.AI. */
+export function setAIBinding(b: AIBinding | undefined) {
+  aiBinding = b ?? null;
+}
+const workersAIReady = () => Boolean(aiBinding || (env("CLOUDFLARE_API_TOKEN") && env("CLOUDFLARE_ACCOUNT_ID")));
+
 export function provider(): Provider | null {
   if (env("DEMO_MODE") === "1") return null;
   const forced = env("AI_PROVIDER");
   if (forced === "anthropic" || forced === "opencode") return forced;
+  if (forced === "workers-ai") return workersAIReady() ? forced : null;
   if (env("ANTHROPIC_API_KEY") || env("ANTHROPIC_AUTH_TOKEN")) return "anthropic";
   if (env("OPENCODE_API_KEY")) return "opencode";
   return null;
@@ -38,16 +49,22 @@ export function provider(): Provider | null {
 
 export const isLive = () => provider() !== null;
 
+// SEA-LION v4 (AI Singapore, tuned for Southeast Asian languages) gave the most natural Thai of
+// the free-allowance models we tried; Qwen3 judges, so the coach is not grading itself.
+const SEA_LION = "@cf/aisingapore/gemma-sea-lion-v4-27b-it";
+const DEFAULTS: Record<Provider, { strong: string; classifier: string; judge: string }> = {
+  anthropic: { strong: "claude-opus-5-5", classifier: "claude-haiku-5-5", judge: "claude-sonnet-5-5" },
+  opencode: { strong: "claude-sonnet-5-5", classifier: "claude-haiku-5-5", judge: "claude-sonnet-5-5" },
+  "workers-ai": { strong: SEA_LION, classifier: SEA_LION, judge: "@cf/qwen/qwen3-30b-a3b-fp8" },
+};
+
 export function models() {
-  const p = provider();
-  // Anthropic direct defaults to Opus 5.5 for coaching and paths. Via OpenCode the default is
-  // Sonnet 5.5; switch to a cheaper or free gateway model with COACH_MODEL and re-run the eval.
-  const strong = p === "opencode" ? "claude-sonnet-5-5" : "claude-opus-5-5";
+  const d = DEFAULTS[provider() ?? "anthropic"];
   return {
-    coach: env("COACH_MODEL") ?? strong,
-    path: env("PATH_MODEL") ?? env("COACH_MODEL") ?? strong,
-    classifier: env("CLASSIFIER_MODEL") ?? "claude-haiku-5-5",
-    judge: env("JUDGE_MODEL") ?? "claude-sonnet-5-5",
+    coach: env("COACH_MODEL") ?? d.strong,
+    path: env("PATH_MODEL") ?? env("COACH_MODEL") ?? d.strong,
+    classifier: env("CLASSIFIER_MODEL") ?? d.classifier,
+    judge: env("JUDGE_MODEL") ?? d.judge,
   };
 }
 
@@ -84,6 +101,7 @@ export async function* streamText(a: ChatArgs): AsyncGenerator<string> {
   const p = provider();
   if (!p) throw new Error("No AI provider configured");
   if (p === "anthropic") yield* streamAnthropicDirect(a);
+  else if (p === "workers-ai") yield* streamWorkersAI(a);
   else if (opencodeStyle(a.model) === "messages") yield* streamOpencodeMessages(a);
   else yield* streamOpencodeChat(a);
 }
@@ -116,10 +134,18 @@ async function* streamOpencodeMessages(a: ChatArgs) {
   if (final.stop_reason === "refusal") yield REFUSED;
 }
 
+// OpenAI-style /chat/completions: OpenCode, or Workers AI over REST (Node scripts).
+function chatTarget() {
+  return provider() === "workers-ai"
+    ? { base: `https://api.cloudflare.com/client/v4/accounts/${env("CLOUDFLARE_ACCOUNT_ID")}/ai/v1`, key: env("CLOUDFLARE_API_TOKEN"), name: "Workers AI" }
+    : { base: OPENCODE_BASE(), key: env("OPENCODE_API_KEY"), name: "OpenCode" };
+}
+
 async function chatCompletions(a: ChatArgs, stream: boolean) {
-  const res = await fetch(`${OPENCODE_BASE()}/chat/completions`, {
+  const t = chatTarget();
+  const res = await fetch(`${t.base}/chat/completions`, {
     method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${env("OPENCODE_API_KEY")}` },
+    headers: { "content-type": "application/json", authorization: `Bearer ${t.key}` },
     body: JSON.stringify({
       model: a.model,
       max_tokens: a.maxTokens,
@@ -128,15 +154,32 @@ async function chatCompletions(a: ChatArgs, stream: boolean) {
       messages: [{ role: "system", content: a.system }, ...a.messages],
     }),
   });
-  if (!res.ok) throw new Error(`OpenCode ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) throw new Error(`${t.name} ${res.status}: ${(await res.text()).slice(0, 300)}`);
   return res;
 }
 
-type ChatChunk = { choices?: { delta?: { content?: string | null } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } };
+// Workers AI streams either OpenAI-style chunks or legacy {"response": "..."} chunks.
+type ChatChunk = {
+  response?: string;
+  choices?: { delta?: { content?: string | null } }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number };
+};
 
 async function* streamOpencodeChat(a: ChatArgs) {
-  const res = await chatCompletions(a, true);
-  const reader = res.body!.getReader();
+  yield* readSSE((await chatCompletions(a, true)).body!, a);
+}
+
+async function* streamWorkersAI(a: ChatArgs) {
+  if (!aiBinding) {
+    yield* streamOpencodeChat(a); // REST transport, same wire format
+    return;
+  }
+  const out = await aiBinding.run(a.model, { messages: [{ role: "system", content: a.system }, ...a.messages], max_tokens: a.maxTokens, stream: true });
+  yield* readSSE(out as ReadableStream<Uint8Array>, a);
+}
+
+async function* readSSE(body: ReadableStream<Uint8Array>, a: ChatArgs) {
+  const reader = body.getReader();
   const dec = new TextDecoder();
   let buf = "";
   for (;;) {
@@ -152,7 +195,7 @@ async function* streamOpencodeChat(a: ChatArgs) {
       if (data === "[DONE]") return;
       try {
         const chunk = JSON.parse(data) as ChatChunk;
-        const text = chunk.choices?.[0]?.delta?.content;
+        const text = chunk.choices?.[0]?.delta?.content ?? chunk.response;
         if (text) yield text;
         if (chunk.usage) a.onUsage?.({ input: chunk.usage.prompt_tokens ?? 0, output: chunk.usage.completion_tokens ?? 0, cacheRead: 0 });
       } catch {
@@ -186,7 +229,14 @@ export async function generateJSON<T>(a: Omit<ChatArgs, "onUsage"> & { schema: z
   const system = `${a.system}\n\nReply with ONLY one JSON object, no prose and no code fences, with this shape:\n${a.shape}`;
   for (let attempt = 0; attempt < 2; attempt++) {
     let text = "";
-    if (opencodeStyle(a.model) === "messages") {
+    if (p === "workers-ai" && aiBinding) {
+      const out = (await aiBinding.run(a.model, { messages: [{ role: "system", content: system }, ...a.messages], max_tokens: a.maxTokens })) as {
+        response?: unknown;
+        choices?: { message?: { content?: string } }[];
+      };
+      const r = out.choices?.[0]?.message?.content ?? out.response;
+      text = typeof r === "string" ? r : JSON.stringify(r ?? "");
+    } else if (p === "opencode" && opencodeStyle(a.model) === "messages") {
       const res = await opencodeMessages().messages.create({ model: a.model, max_tokens: a.maxTokens, system, messages: a.messages });
       for (const b of res.content) if (b.type === "text") text += b.text;
     } else {

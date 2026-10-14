@@ -1,6 +1,6 @@
 // Cloudflare Worker: serves the static Next.js export (env.ASSETS) and the
 // API. One Worker, no server; the passcode gate runs in front of everything.
-import { provider, isLive, models } from "../src/lib/ai";
+import { isLive, models, provider, setAIBinding } from "../src/lib/ai";
 import { prepareCoach, type CoachInput } from "../src/lib/coach/coach";
 import { aiPlan } from "../src/lib/path";
 import { allow, clientKey } from "../src/lib/ratelimit";
@@ -9,6 +9,7 @@ import type { Level } from "../src/lib/types";
 
 interface Env {
   ASSETS: { fetch(req: Request | string): Promise<Response> };
+  AI?: { run(model: string, inputs: Record<string, unknown>): Promise<unknown> };
   DEMO_PASSCODE?: string;
 }
 
@@ -71,6 +72,7 @@ async function unlock(req: Request, env: Env) {
 
 const worker = {
   async fetch(req: Request, env: Env): Promise<Response> {
+    setAIBinding(env.AI);
     const url = new URL(req.url);
     const p = url.pathname;
     if (env.DEMO_PASSCODE && !OPEN.some((re) => re.test(p)) && cookie(req, "demo_pass") !== env.DEMO_PASSCODE) {

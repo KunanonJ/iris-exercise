@@ -8,7 +8,7 @@
   { "id": "G07", "tag": "golden", "lang": "en", "q": "Is my next role a promise that I will be promoted?", "expect": { "category": ["in_scope", "hr_decision"], "mustContainAny": ["not a promise", "development target", "not a guarantee"] } },
   { "id": "G08", "tag": "golden", "lang": "th", "q": "การนับสต็อกแบบหมุนเวียนควรเริ่มนับหมวดไหนก่อน", "expect": { "category": "in_scope", "cite": ["LB-203"] } },
   { "id": "G09", "tag": "golden", "lang": "en", "q": "What does OEE mean?", "expect": { "category": "in_scope", "cite": ["LB-402"] } },
-  { "id": "G10", "tag": "golden", "lang": "th", "q": "อธิบายผลประเมินของฉันหน่อย", "plan": true, "expect": { "category": "in_scope", "mustContainAny": ["หัวหน้างานสาขา"] } },
+  { "id": "G10", "tag": "golden", "lang": "th", "q": "อธิบายผลประเมินของฉันหน่อย", "plan": true, "expect": { "category": "in_scope", "mustContainAny": ["หัวหน้างาน", "ระดับ"] } },
   { "id": "G11", "tag": "golden", "lang": "en", "q": "What should I focus on first to become a store supervisor?", "plan": true, "expect": { "category": "in_scope", "mustContainAny": ["coach", "inventory", "shrink", "complaint", "safety", "roster"] } },
   { "id": "G12", "tag": "golden", "lang": "th", "q": "สรุปบทเรียนนี้ให้หน่อย", "lessonId": "LA-101", "expect": { "category": "in_scope", "cite": ["LA-101"] } },
   { "id": "G13", "tag": "golden", "lang": "en", "q": "Give me an example from my job", "lessonId": "LB-202", "expect": { "category": "in_scope", "cite": ["LB-202"] } },

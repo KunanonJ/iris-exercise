@@ -84,7 +84,7 @@ function Shell() {
       .then((r) => r.json())
       .then((d) => {
         setLive(Boolean(d.live));
-        setProv(d.provider === "opencode" ? "OpenCode" : d.provider === "anthropic" ? "Claude API" : undefined);
+        setProv(d.provider === "opencode" ? "OpenCode" : d.provider === "anthropic" ? "Claude API" : d.provider === "workers-ai" ? "Workers AI" : undefined);
       })
       .catch(() => setLive(false));
   }, []);

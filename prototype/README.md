@@ -33,22 +33,36 @@ Without a key the app runs in **demo mode**. Guardrails, retrieval, the rules-ba
 
 ## AI providers
 
-One provider layer (`src/lib/ai.ts`) with two backends. It is chosen by `AI_PROVIDER`, otherwise by whichever key is set.
+One provider layer (`src/lib/ai.ts`) with three backends. It is chosen by `AI_PROVIDER`, otherwise by whichever key is set.
 
-| Provider | Key | Default models | Notes |
+| Provider | Setup | Default models | Notes |
 |---|---|---|---|
-| **OpenCode** gateway (`https://opencode.ai/inference/v1`) | `OPENCODE_API_KEY` | coach and path `claude-sonnet-5-5`, classifier `claude-haiku-5-5` | Claude and Qwen models use the gateway's Anthropic-format `/messages`. Kimi, DeepSeek, GLM, MiniMax and the free models (e.g. `big-pickle`) use `/chat/completions`. Switch with `COACH_MODEL=kimi-k2.6` and so on. |
+| **Cloudflare Workers AI** (free; the live demo uses this) | `AI_PROVIDER=workers-ai`. The Worker uses its `AI` binding; Node scripts need `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` | coach, path and classifier `@cf/aisingapore/gemma-sea-lion-v4-27b-it` (SEA-LION v4, tuned for Southeast Asian languages); judge `@cf/qwen/qwen3-30b-a3b-fp8` | 10,000 neurons/day free, about 60-70 coach messages. When the allowance runs out, the coach falls back to retrieval answers. |
+| **OpenCode** gateway (`https://opencode.ai/inference/v1`) | `OPENCODE_API_KEY` (needs credits and model access) | coach and path `claude-sonnet-5-5`, classifier `claude-haiku-5-5` | Claude and Qwen use the gateway's Anthropic-format `/messages`; Kimi, DeepSeek, GLM and MiniMax use `/chat/completions`. OpenCode's free models only work inside the OpenCode app, not over its API. |
 | **Anthropic** (Claude API) | `ANTHROPIC_API_KEY` | coach and path `claude-opus-5-5`, classifier `claude-haiku-5-5` | Adds structured outputs, prompt caching and server-side refusal fallback. |
 
-On OpenCode, structured results (the classifier, the path, the judge) are requested as JSON and validated against the same zod schemas. One retry is allowed, then the app falls back to the rules engine.
+On OpenCode and Workers AI, structured results (the classifier, the path, the judge) are requested as JSON and validated against the same zod schemas. One retry is allowed, then the app falls back to the rules engine. If any provider fails before replying, the coach serves the retrieval answer with an "AI unavailable" note.
 
-Before switching to a cheaper model, run `pnpm eval` on it. Some free gateway models may use prompts for training, so use them only with mock data.
+Before you switch the coach to another model, run `pnpm eval` on it.
+
+**Live eval on the free model** (`evals/report-live.md`):
+
+| Check | Result |
+|---|---|
+| Overall | 90% |
+| Red-team cases handled safely | 100% |
+| Thai quality (LLM judge) | 4.09 / 5 |
+| Correct citations | 92% |
+| Grounded (LLM judge) | 83%, below the 95% gate |
+
+Three fixes made after that run (`report-live-subset.md`): lesson-only sources, no extra courses, and citing only existing sources. By the release gate, production would stay on Claude.
 
 ## Evals
 
 ```bash
 pnpm eval          # live if a key is in .dev.vars, otherwise demo mode
 pnpm eval --demo   # deterministic layers only, no model calls, free
+pnpm eval --only=G12,H02   # re-check a few cases (writes report-*-subset.md)
 ```
 
 There are 31 cases in `evals/cases.json`, in Thai and English:
@@ -76,7 +90,7 @@ Checks: category, correct citation, forbidden content, PII masking and reply lan
 
 ```bash
 npx wrangler login                       # once
-npx wrangler secret put OPENCODE_API_KEY # or ANTHROPIC_API_KEY
+npx wrangler secret put OPENCODE_API_KEY # optional; the default provider is Workers AI (free, no key)
 npx wrangler secret put DEMO_PASSCODE    # optional: gate the whole site
 pnpm run deploy                          # next build (static export) + wrangler deploy
 ```

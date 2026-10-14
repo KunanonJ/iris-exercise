@@ -29,7 +29,12 @@ function decodeMeta(b64: string | null): CoachMeta | undefined {
 }
 
 function Rendered({ text, onCite }: { text: string; onCite: (n: number) => void }) {
-  const clean = text.replace(/⁣/g, "");
+  // Models sometimes emit Markdown despite the prompt; the chat shows plain text.
+  const clean = text
+    .replace(/\u2063/g, "")
+    .replace(/\*\*|__/g, "")
+    .replace(/^[ \t]*[*-][ \t]+/gm, "• ")
+    .replace(/^#{1,6}[ \t]+/gm, "");
   const parts = clean.split(/(\[S\d+\])/g);
   return (
     <>

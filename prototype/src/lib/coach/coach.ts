@@ -47,6 +47,7 @@ export interface Prepared {
   usage: Usage; // filled once the stream completes (live mode)
 }
 
+const LESSON_REQUEST = /(summar|this lesson|example|explain this|สรุป|บทเรียนนี้|ยกตัวอย่าง|ตัวอย่าง)/i;
 const CATEGORIES = ["in_scope", "other_person_data", "hr_decision", "wellbeing", "crisis", "off_topic", "injection"] as const;
 const ClassifierSchema = z.object({ category: z.enum(CATEGORIES), reason: z.string() });
 
@@ -88,16 +89,22 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
 
   const prevUser = [...history].reverse().slice(1).find((m) => m.role === "user");
   const query = `${verdict.redacted} ${prevUser ? prevUser.content.slice(0, 200) : ""}`;
-  const sources = retrieve(query, lang, {
+  const retrieved = retrieve(query, lang, {
     pinned: input.lessonId ? [input.lessonId] : [],
     boost: input.plan?.steps.map((s) => s.itemId) ?? [],
   });
+  // Chat beside a lesson: "summarise this" / "give an example" is about that lesson only,
+  // so the model gets only that passage and cannot drift to a neighbouring one.
+  const lessonRequest = input.lessonId && LESSON_REQUEST.test(last.content);
+  const sources = lessonRequest ? retrieved.filter((s) => s.sourceId === input.lessonId) : retrieved;
 
   let category = verdict.category;
   let classifier: Category | undefined;
   if (live && category === "in_scope") {
     classifier = await classify(verdict.redacted);
-    if (classifier) category = stricter(category, classifier);
+    // "Off-topic" never overrides a question that matched approved content (e.g. "SBI คืออะไร").
+    // The other categories (colleague data, pay, wellbeing, crisis, injection) always win.
+    if (classifier && !(classifier === "off_topic" && sources.length > 0)) category = stricter(category, classifier);
   }
 
   const meta: CoachMeta = { mode: live ? "live" : "demo", lang, category, rule: verdict.rule, classifier, sources: [], pii: verdict.piiFound };
@@ -144,6 +151,7 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
         lesson: lesson ? `${lesson.id}: ${lesson.title[lang]}` : undefined,
         sources,
         message: verdict.redacted,
+        lang,
       }),
     },
   ];
