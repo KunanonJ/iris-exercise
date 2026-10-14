@@ -37,13 +37,18 @@ function About({ onClose }: { onClose: () => void }) {
         ],
         [
           "ทำงานจริง",
+          "ฐานข้อมูล Cloudflare D1 (SQLite)",
+          "จัดเก็บ 5 ตารางจริง (employees, assessments, plans, approvals, coach_logs) บน Cloudflare D1 และซิงก์ข้ามบทบาท",
+        ],
+        [
+          "ทำงานจริง",
           "การอนุมัติของหัวหน้า",
           "ผลประเมิน แผน และโปรเจกต์ พร้อม SLA และการส่งต่อ",
         ],
         [
           "จำลอง",
           "HR, LMS, SSO, LINE",
-          "ข้อมูลพนักงานและคลังการเรียนรู้เป็นข้อมูลจำลองที่สร้างด้วยสคริปต์",
+          "ระบบ HR ต้นทางและ SSO ภายนอกจำลองผ่านข้อมูล Seed ในฐานข้อมูล D1",
         ],
       ]
     : [
@@ -69,13 +74,18 @@ function About({ onClose }: { onClose: () => void }) {
         ],
         [
           "Real",
+          "Cloudflare D1 (SQLite) database",
+          "Persists 5 relational tables (employees, assessments, plans, approvals, coach_logs) across Employee, Manager, and HR portals",
+        ],
+        [
+          "Real",
           "Manager approvals",
           "Assessment, plan and project sign-off with SLA and escalation",
         ],
         [
           "Mocked",
-          "HR system, LMSs, SSO, LINE",
-          "Employees and catalogue are generated mock data",
+          "External HRIS, LMSs, SSO, LINE",
+          "Upstream HRIS & SSO identity providers are simulated via seeded D1 records",
         ],
       ];
   return (
@@ -220,6 +230,18 @@ function Shell() {
                 </button>
               ))}
             </div>
+
+            {s.dbMeta?.connected && (
+              <Badge
+                tone="ok"
+                className="max-md:hidden"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-ok" />
+                <span>
+                  D1 SQL · {s.dbMeta.tables.employees} emp / {s.dbMeta.tables.approvals} queue
+                </span>
+              </Badge>
+            )}
 
             {live !== undefined && (
               <Badge tone={live ? "ok" : "warn"} className="max-sm:hidden">

@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "iris-learning-suite",
+  "account_id": "187ab61ed9dbc6e616cb23e6b95aa8f1",
   "main": "worker/index.ts",
   "compatibility_date": "2026-06-01",
   // nodejs_compat also fills process.env with vars and secrets (dates >= 2025-04-01)
@@ -15,6 +16,14 @@
   // Custom domain on the kunanonj.com zone (same Cloudflare account); Cloudflare creates the DNS record and certificate
   "routes": [{ "pattern": "iris.kunanonj.com", "custom_domain": true }],
   "workers_dev": true,
+  // Cloudflare D1 relational SQLite database (APAC)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "iris-learning-suite-db",
+      "database_id": "3dc3d1f7-0ac0-4cec-ab8f-6d8bcc71570d"
+    }
+  ],
   // Free models: Workers AI (10,000 neurons/day free). Switch with AI_PROVIDER=opencode | anthropic
   "ai": { "binding": "AI" },
   "vars": { "AI_PROVIDER": "workers-ai" },

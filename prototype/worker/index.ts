@@ -2,6 +2,7 @@
 // API. One Worker, no server; the passcode gate runs in front of everything.
 import { isLive, models, provider, setAIBinding } from "../src/lib/ai";
 import { prepareCoach, type CoachInput } from "../src/lib/coach/coach";
+import { getDbMeta, loadSharedState, saveSharedState, seedDatabase, type D1Database, type SharedStatePayload } from "../src/lib/db";
 import { aiPlan } from "../src/lib/path";
 import { allow, clientKey } from "../src/lib/ratelimit";
 import { employeeById } from "../src/lib/skills";
@@ -10,6 +11,7 @@ import type { Level } from "../src/lib/types";
 interface Env {
   ASSETS: { fetch(req: Request | string): Promise<Response> };
   AI?: { run(model: string, inputs: Record<string, unknown>): Promise<unknown> };
+  DB?: D1Database;
   DEMO_PASSCODE?: string;
 }
 
@@ -79,7 +81,25 @@ const worker = {
       return p.startsWith("/api/") ? json({ error: "Locked" }, 401) : Response.redirect(new URL("/unlock", url).toString(), 302);
     }
     try {
-      if (p === "/api/status" && req.method === "GET") return json({ live: isLive(), provider: provider(), models: isLive() ? models() : null });
+      if (p === "/api/status" && req.method === "GET") {
+        const dbMeta = env.DB ? await getDbMeta(env.DB) : null;
+        return json({ live: isLive(), provider: provider(), models: isLive() ? models() : null, db: Boolean(env.DB), dbMeta });
+      }
+      if (p === "/api/state" && req.method === "GET") {
+        if (!env.DB) return json({ dbMeta: { connected: false, engine: "localStorage" } });
+        return json(await loadSharedState(env.DB));
+      }
+      if (p === "/api/state" && req.method === "POST") {
+        if (!env.DB) return json({ ok: false, dbMeta: { connected: false, engine: "localStorage" } });
+        const body = (await req.json()) as SharedStatePayload;
+        const dbMeta = await saveSharedState(env.DB, body);
+        return json({ ok: true, dbMeta });
+      }
+      if (p === "/api/state/reset" && req.method === "POST") {
+        if (!env.DB) return json({ ok: false, dbMeta: { connected: false, engine: "localStorage" } });
+        await seedDatabase(env.DB);
+        return json(await loadSharedState(env.DB));
+      }
       if (p === "/api/coach" && req.method === "POST") return await coach(req);
       if (p === "/api/path" && req.method === "POST") return await path(req);
       if (p === "/api/unlock" && req.method === "POST") return await unlock(req, env);

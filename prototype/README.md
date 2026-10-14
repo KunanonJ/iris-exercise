@@ -25,9 +25,21 @@ Requires Node 20+ and pnpm.
 ```bash
 pnpm install
 cp .dev.vars.example .dev.vars   # optional: configure Workers AI, OpenCode or Anthropic
-pnpm dev                         # UI on http://localhost:3000, API (Worker) on :8787
+npx wrangler d1 execute iris-learning-suite-db --local --file=db/schema.sql
+pnpm dev                         # UI on http://localhost:3000, API (Worker + D1) on :8787
 pnpm preview                     # production-like: static build + Worker on http://localhost:8787
 ```
+
+## Database (Cloudflare D1 SQLite)
+
+The prototype persists state in a **Cloudflare D1** relational SQLite database (`iris-learning-suite-db`, schema in [`db/schema.sql`](db/schema.sql), repository in [`src/lib/db.ts`](src/lib/db.ts)) across 5 tables:
+- `employees` (213 seeded Siam Pinnacle Group employees across 5 BUs)
+- `assessments` (self-assessment, anchor quiz, manager calibration, and overrides)
+- `plans` (70-20-10 learning path steps, status, rationale, and project evidence)
+- `approvals` (manager approval inbox with SLA due dates and escalation status)
+- `coach_logs` (grounded AI Coach conversation history per employee and lesson)
+
+Every Employee $\rightarrow$ Manager $\rightarrow$ HR action syncs via `GET/POST /api/state`, and clicking **Reset demo (`รีเซ็ตเดโม`)** calls `POST /api/state/reset` to cleanly re-seed all 5 D1 tables.
 
 Without a key the app runs in **demo mode**. Guardrails, retrieval, the rules-based path and the approvals all work, and the coach gives scripted, retrieval-backed answers. With a key, the coach, the guardrail classifier and the path generator call a model.
 

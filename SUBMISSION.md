@@ -23,7 +23,7 @@
 >
 > 1. **12-Slide Presentation Deck (PDF):** `IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf`
 > 2. **Working Prototype (Live Link + Source Code):** **[https://iris.kunanonj.com](https://iris.kunanonj.com)** *(GitHub: [github.com/KunanonJ/iris-exercise](https://github.com/KunanonJ/iris-exercise))*
->    - **Role-Separated Login (1-tap evaluator access or pre-filled credentials):**
+>    - **Role-Separated Login + Live Cloudflare D1 SQLite Database (`employees`, `assessments`, `plans`, `approvals`, `coach_logs`):**
 >      - **Employee (`พนักงาน`):** `E0001` / PIN `1120` (*Somchai Jaidee · Senior Store Associate · LINE OA SSO*)
 >      - **Manager (`หัวหน้า`):** `E0002` / PIN `2240` (*Malee Suksan · Store Manager · Corporate SSO*)
 >      - **HR & Leaders (`HR และผู้บริหาร`):** `E9001` / PIN `9001` (*Arunee Srisuk · HRBP · Microsoft Entra ID SSO*)

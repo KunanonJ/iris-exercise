@@ -1,11 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useReducer, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer, useRef, type ReactNode } from "react";
 import { itemById } from "@/data/catalog";
 import { rulesPlan } from "@/lib/plan-rules";
 import { directReports, employeeById } from "@/lib/skills";
 import type { Approval, Lang, LearningPlan, Level } from "@/lib/types";
 import type { CoachMeta } from "@/lib/coach/coach";
+import type { DbMeta, SharedStatePayload } from "@/lib/db";
 
 export const HERO = "E0001";
 export const MANAGER = "E0002";
@@ -38,6 +39,7 @@ export interface State {
   approvals: Approval[];
   evidence: Record<string, string>;
   chats: Record<string, ChatMsg[]>;
+  dbMeta?: DbMeta;
   toast?: string;
 }
 
@@ -75,6 +77,7 @@ export function initialState(): State {
 
 export type Action =
   | { type: "set"; patch: Partial<State> }
+  | { type: "hydrateDb"; payload: SharedStatePayload }
   | { type: "login"; persona: Persona }
   | { type: "logout"; nextPersona?: Persona; handoffNotice?: "fromEmployee" }
   | { type: "submitAssessment"; self: Record<string, Level>; quiz: Record<string, Level> }
@@ -92,6 +95,17 @@ function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "set":
       return { ...s, ...a.patch };
+    case "hydrateDb":
+      return {
+        ...s,
+        assessment: a.payload.assessment ?? s.assessment,
+        overrides: a.payload.overrides ?? s.overrides,
+        plan: a.payload.plan,
+        approvals: a.payload.approvals ?? s.approvals,
+        evidence: a.payload.evidence ?? s.evidence,
+        chats: a.payload.chats ?? s.chats,
+        dbMeta: a.payload.dbMeta ?? s.dbMeta,
+      };
     case "login":
       return {
         ...s,
@@ -252,22 +266,100 @@ function reducer(s: State, a: Action): State {
 const Ctx = createContext<{ s: State; dispatch: (a: Action) => void } | null>(null);
 const KEY = "learning-suite-demo-v2";
 
+const DB_SYNC_ACTIONS = new Set<Action["type"]>([
+  "submitAssessment",
+  "decideAssessment",
+  "setPlan",
+  "submitPlan",
+  "decidePlan",
+  "stepStatus",
+  "submitProject",
+  "decideProject",
+  "chat",
+]);
+
+function extractShared(s: State): SharedStatePayload {
+  return {
+    assessment: s.assessment,
+    overrides: s.overrides,
+    plan: s.plan,
+    approvals: s.approvals,
+    evidence: s.evidence,
+    chats: s.chats,
+  };
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [s, dispatch] = useReducer(reducer, undefined, initialState);
+  const [s, rawDispatch] = useReducer(reducer, undefined, initialState);
   const loaded = useRef(false);
+  const pendingSync = useRef(false);
+
+  const pullFromD1 = useCallback(() => {
+    fetch("/api/state")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: SharedStatePayload | null) => {
+        if (d?.dbMeta?.connected) {
+          rawDispatch({ type: "hydrateDb", payload: d });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) dispatch({ type: "set", patch: { ...JSON.parse(raw), toast: undefined } });
+      if (raw) rawDispatch({ type: "set", patch: { ...JSON.parse(raw), toast: undefined } });
     } catch {}
     loaded.current = true;
-  }, []);
+    pullFromD1();
+  }, [pullFromD1]);
+
   useEffect(() => {
     if (!loaded.current) return;
     try {
       localStorage.setItem(KEY, JSON.stringify(s));
     } catch {}
+    if (pendingSync.current) {
+      pendingSync.current = false;
+      fetch("/api/state", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(extractShared(s)),
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((res) => {
+          if (res?.dbMeta) rawDispatch({ type: "set", patch: { dbMeta: res.dbMeta } });
+        })
+        .catch(() => {});
+    }
   }, [s]);
+
+  const dispatch = useCallback(
+    (a: Action) => {
+      if (a.type === "reset") {
+        try {
+          localStorage.removeItem(KEY);
+        } catch {}
+        rawDispatch(a);
+        fetch("/api/state/reset", { method: "POST" })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d: SharedStatePayload | null) => {
+            if (d?.dbMeta?.connected) rawDispatch({ type: "hydrateDb", payload: d });
+          })
+          .catch(() => {});
+        return;
+      }
+      if (DB_SYNC_ACTIONS.has(a.type)) {
+        pendingSync.current = true;
+      }
+      rawDispatch(a);
+      if (a.type === "login") {
+        pullFromD1();
+      }
+    },
+    [pullFromD1]
+  );
+
   return <Ctx.Provider value={{ s, dispatch }}>{children}</Ctx.Provider>;
 }
 
