@@ -18,7 +18,7 @@ function About({ onClose }: { onClose: () => void }) {
         [
           "ทำงานจริง",
           "แยกพอร์ทัลเข้าสู่ระบบ 3 บทบาท (RBAC)",
-          "พนักงาน (E0001 · LINE SSO), หัวหน้างาน (E0002 · Corp SSO) และ HR/ผู้บริหาร (E9001 · Entra ID) แยกเซสชันและสิทธิ์ข้อมูลตาม PDPA",
+          "พนักงาน (E0001 · LINE SSO), หัวหน้างาน (E0002 · Google Workspace SSO) และ HR/ผู้บริหาร (E9001 · Google Workspace SSO) แยกเซสชันและสิทธิ์ข้อมูลตาม PDPA",
         ],
         [
           "ทำงานจริง",
@@ -55,7 +55,7 @@ function About({ onClose }: { onClose: () => void }) {
         [
           "Real",
           "Role-separated login portals (RBAC)",
-          "Employee (E0001 · LINE SSO), Manager (E0002 · Corp SSO), and HR & Leaders (E9001 · Entra ID) authenticate into isolated PDPA-scoped sessions",
+          "Employee (E0001 · LINE SSO), Manager (E0002 · Google Workspace SSO), and HR & Leaders (E9001 · Google Workspace SSO) authenticate into isolated PDPA-scoped sessions",
         ],
         [
           "Real",

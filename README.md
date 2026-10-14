@@ -49,8 +49,8 @@
 Try it live at **[https://iris.kunanonj.com](https://iris.kunanonj.com)**:
 - Sign in via the **Role-Based Login Portal** (pre-filled demo credentials or **1-Tap Evaluator Quick Login**):
   - **Employee (`พนักงาน`):** `E0001` / PIN `1120` (*Somchai Jaidee · LINE OA SSO*)
-  - **Manager (`หัวหน้า`):** `E0002` / PIN `2240` (*Malee Suksan · Corporate SSO*)
-  - **HR & Leaders (`HR และผู้บริหาร`):** `E9001` / PIN `9001` (*Arunee Srisuk · Microsoft Entra ID SSO*)
+  - **Manager (`หัวหน้า`):** `E0002` / PIN `2240` (*Malee Suksan · Google Workspace SSO*)
+  - **HR & Leaders (`HR และผู้บริหาร`):** `E9001` / PIN `9001` (*Arunee Srisuk · Google Workspace SSO*)
 
 ![Role-Separated Login Portal](docs/screenshots/0-role-login-th.png)
 
@@ -105,7 +105,7 @@ Try it live at **[https://iris.kunanonj.com](https://iris.kunanonj.com)**:
 
 ### 3. Enterprise Architecture, Data Model & Thailand PDPA (`Slides 7–8`)
 - **System Integration Pattern:**
-  - **SSO (Microsoft Entra ID / Okta):** OIDC/SAML 2.0 login; LINE Official Account links via rich menu $\rightarrow$ OIDC silent re-auth so frontline workers open their plan in 1 tap.
+  - **SSO (Google Workspace / Cloud Identity OIDC & SAML 2.0):** Corporate Google SSO for office staff, managers, and HR/leaders; LINE Official Account links via rich menu $\rightarrow$ OIDC silent re-auth so frontline workers open their plan in 1 tap.
   - **HRIS (SuccessFactors / Workday):** Nightly SFTP/OData delta sync of active employees, org hierarchy, job roles, and manager assignments.
   - **LMS A (Corporate/Retail) & LMS B (Plant Safety/SOP):** Catalogue metadata & transcripts synced into the Learning Suite's search index; learners deep-link into LMS A/B for formal courses (`LTI 1.3` / SSO URL), and completion webhooks/nightly deltas update plan progress.
 - **Core Data Model (`prototype/src/lib/types.ts` — 9 Entities):**

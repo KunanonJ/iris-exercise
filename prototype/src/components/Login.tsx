@@ -61,10 +61,10 @@ export const ROLE_ACCOUNTS: Record<Persona, RoleAccountConfig> = {
     email: "malee.s@company.co.th",
     pin: "2240",
     ssoLabel: {
-      th: "เข้าสู่ระบบด้วย Corporate SSO (Manager)",
-      en: "Continue with Corporate SSO (Manager)",
+      th: "เข้าสู่ระบบด้วย Google Workspace SSO (Manager)",
+      en: "Continue with Google Workspace SSO (Manager)",
     },
-    ssoBadge: "Corporate SSO",
+    ssoBadge: "Google SSO",
     ssoTone: "corp",
     portalTitle: { th: "พอร์ทัลหัวหน้างานและผู้จัดการสาขา", en: "People Manager Portal" },
     portalSub: {
@@ -94,10 +94,10 @@ export const ROLE_ACCOUNTS: Record<Persona, RoleAccountConfig> = {
     email: "arunee.s@company.co.th",
     pin: "9001",
     ssoLabel: {
-      th: "เข้าสู่ระบบด้วย Microsoft Entra ID (SSO)",
-      en: "Continue with Microsoft Entra ID (SSO)",
+      th: "เข้าสู่ระบบด้วย Google Workspace SSO (HR / Exec)",
+      en: "Continue with Google Workspace SSO (HR / Exec)",
     },
-    ssoBadge: "Entra ID SSO",
+    ssoBadge: "Google SSO",
     ssoTone: "entra",
     portalTitle: { th: "พอร์ทัล HR และผู้บริหารหน่วยธุรกิจ", en: "HR & BU Executive Portal" },
     portalSub: {

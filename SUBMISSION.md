@@ -25,8 +25,8 @@
 > 2. **Working Prototype (Live Link + Source Code):** **[https://iris.kunanonj.com](https://iris.kunanonj.com)** *(GitHub: [github.com/KunanonJ/iris-exercise](https://github.com/KunanonJ/iris-exercise))*
 >    - **Role-Separated Login + Live Cloudflare D1 SQLite Database (`employees`, `assessments`, `plans`, `approvals`, `coach_logs`):**
 >      - **Employee (`พนักงาน`):** `E0001` / PIN `1120` (*Somchai Jaidee · Senior Store Associate · LINE OA SSO*)
->      - **Manager (`หัวหน้า`):** `E0002` / PIN `2240` (*Malee Suksan · Store Manager · Corporate SSO*)
->      - **HR & Leaders (`HR และผู้บริหาร`):** `E9001` / PIN `9001` (*Arunee Srisuk · HRBP · Microsoft Entra ID SSO*)
+>      - **Manager (`หัวหน้า`):** `E0002` / PIN `2240` (*Malee Suksan · Store Manager · Google Workspace SSO*)
+>      - **HR & Leaders (`HR และผู้บริหาร`):** `E9001` / PIN `9001` (*Arunee Srisuk · HRBP · Google Workspace SSO*)
 > 3. **Supporting 36-Month Financial & AI Cost Model (Excel):** `cost-model.xlsx` (7 tabs, 100% live formulas, zero formula errors)
 >
 > ### Summary of Core Calls
@@ -54,9 +54,9 @@
 - **The CHRO's mandate is a closed loop:** *"know which skills their role needs, where they stand, and what to do next, with a coach that helps them every day."* Launching assessment without a path or coach turns the Week-12 launch into an HR compliance exercise with zero daily learner value.
 - **What "thin" means in practice:** We cut high-schedule-risk features (no native iOS/Android app, no LMS migration, no SCORM player rewrite, no 360 peer reviews, no compensation linkage) while keeping the core loop complete end to end.
 
-### Q3. How do frontline factory and store workers log in if they don't have corporate emails or Microsoft Entra ID accounts?
+### Q3. How do frontline factory and store workers log in if they don't have corporate Google Workspace accounts?
 - **Dual authentication pattern (Slide 7 & Live Prototype `Login.tsx`):**
-  - **Office staff, Managers (`E0002`), and HR/Leaders (`E9001`):** Authenticate via Corporate IdP (`SAML 2.0 / OIDC` with MFA).
+  - **Office staff, Managers (`E0002`), and HR/Leaders (`E9001`):** Authenticate via **Google Workspace / Cloud Identity SSO** (`OIDC / SAML 2.0` with MFA).
   - **Frontline staff (`E0001`):** Authenticate via **LINE Login (LIFF / OIDC)** or **Employee ID + SMS OTP**, bound once on first login against `employee_id` + date of birth/phone suffix from the nightly HR extract. Subsequent taps from a LINE Official Account nudge open their session in one tap.
 
 ### Q4. How do you guarantee the AI doesn't hallucinate non-existent courses, wrong company policies, or inappropriate HR promises?
