@@ -1,0 +1,84 @@
+// Rules engine for learning paths (no model calls, safe to import on the
+// client). Shortlists approved catalogue items per skill gap and builds a
+// deterministic plan; the AI layer in path.ts only re-sequences this shortlist.
+import { CATALOG, itemById } from "../data/catalog";
+import { roleById, skillById } from "../data/taxonomy";
+import { nextRoleGaps } from "./skills";
+import type { Employee, Gap, LearningItem, LearningPlan, Level, PlanStep } from "./types";
+
+export const PLAN_START = "2026-10-26";
+export const MAX_STEPS = 8;
+const FORMAT_ORDER = { video: 0, workshop: 1, project: 2 } as const;
+
+export function shortlist(emp: Employee, overrides?: Record<string, Level>) {
+  const gaps = nextRoleGaps(emp, overrides);
+  const gapSkills = new Set(gaps.map((g) => g.skillId));
+  return gaps.map((gap) => {
+    const items = CATALOG.filter((item) =>
+      item.skills.some((s) => s.skillId === gap.skillId && s.targetLevel > gap.current && s.targetLevel <= gap.required),
+    )
+      .map((item) => ({
+        item,
+        score: (item.content ? 3 : 0) + (item.format === "project" ? 1 : 0) + item.skills.filter((s) => s.skillId !== gap.skillId && gapSkills.has(s.skillId)).length,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((x) => x.item);
+    return { gap, items };
+  });
+}
+
+const weekOf = (date: string) => Math.max(1, Math.min(12, Math.floor((Date.parse(date) - Date.parse(PLAN_START)) / (7 * 864e5)) + 1));
+
+function rationale(gap: Gap, item: LearningItem, targetRole: { en: string; th: string }) {
+  const s = skillById(gap.skillId);
+  const why = {
+    video: { en: "Short video you can watch on a break.", th: "วิดีโอสั้น ดูได้ช่วงพัก" },
+    workshop: { en: "Practise with others in person; needs manager approval.", th: "ฝึกกับผู้อื่นในห้องเรียน ต้องให้หัวหน้าอนุมัติ" },
+    project: { en: "Apply it on the job; your manager signs off the evidence.", th: "นำไปใช้จริงในงาน หัวหน้าเป็นผู้อนุมัติหลักฐาน" },
+  }[item.format];
+  return {
+    en: `Builds ${s.name.en} from L${gap.current} to L${gap.required}${gap.critical ? `, a critical skill for ${targetRole.en}` : ""}. ${why.en}`,
+    th: `พัฒนา${s.name.th}จากระดับ ${gap.current} เป็น ${gap.required}${gap.critical ? ` ซึ่งเป็นทักษะสำคัญของตำแหน่ง${targetRole.th}` : ""} ${why.th}`,
+  };
+}
+
+export function rulesPlan(emp: Employee, overrides?: Record<string, Level>): LearningPlan {
+  const target = roleById(emp.nextRoleId!);
+  const chosen: { gap: Gap; item: LearningItem }[] = [];
+  for (const { gap, items } of shortlist(emp, overrides)) {
+    const learn = items.find((i) => i.format === "video");
+    const apply = items.find((i) => i.format !== "video");
+    for (const item of [learn, apply]) if (item && !chosen.some((c) => c.item.id === item.id)) chosen.push({ gap, item });
+  }
+  const picked = chosen.slice(0, MAX_STEPS);
+  const steps: PlanStep[] = picked.map(({ gap, item }, i) => ({
+    itemId: item.id,
+    skillId: gap.skillId,
+    order: i + 1,
+    week: item.sessions?.[0] ? weekOf(item.sessions[0].date) : Math.min(12, 1 + Math.floor((i * 12) / Math.max(1, picked.length))),
+    rationale: rationale(gap, item, target.title),
+    status: "todo",
+  }));
+  steps.sort((a, b) => a.week - b.week || FORMAT_ORDER[itemById(a.itemId)!.format] - FORMAT_ORDER[itemById(b.itemId)!.format]);
+  steps.forEach((s, i) => (s.order = i + 1));
+  return {
+    employeeId: emp.id,
+    targetRoleId: target.id,
+    status: "draft",
+    steps,
+    summary: {
+      en: `A 12-week path to ${target.title.en}: critical gaps first, each skill learned by video then applied on the job.`,
+      th: `เส้นทาง 12 สัปดาห์สู่ตำแหน่ง${target.title.th}: เริ่มจากทักษะสำคัญก่อน เรียนจากวิดีโอแล้วนำไปใช้จริงในงาน`,
+    },
+    generatedBy: "rules",
+  };
+}
+
+export const planForPrompt = (plan: LearningPlan | undefined, lang: "th" | "en") =>
+  plan?.steps
+    .map((s) => {
+      const item = itemById(s.itemId);
+      return item ? `${s.order}. [${s.status}] week ${s.week}: ${item.title[lang]} (${item.format}, ${item.minutes} min)` : "";
+    })
+    .join("\n");

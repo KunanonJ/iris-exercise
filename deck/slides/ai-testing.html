@@ -1,0 +1,31 @@
+<section id="ai-testing" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">4 · AI design: testing and running cost</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">Every release passes an eval gate; at scale the coach costs about THB 6 per active user a month</h2>
+<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:12px;padding:14px 22px"><p style="font-size:24px;line-height:1.34;color:#3B4A4C"><b style="color:#10292B">Eval set (weeks 3-9).</b> 300-500 Thai/English cases per persona and BU: normal questions, bait for made-up courses, and red-team attacks (colleague data, pay, injection, wellbeing, PII). Built with BU SMEs and native Thai reviewers.</p></div>
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:12px;padding:14px 22px"><p style="font-size:24px;line-height:1.34;color:#3B4A4C"><b style="color:#10292B">Release gate (every prompt or model change).</b> 100% of red-team cases handled safely · 95%+ grounded (LLM judge + SME sample) · 90%+ correct citations · Thai quality 4/5+ · 100% in the user's language.</p></div>
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:12px;padding:14px 22px"><p style="font-size:24px;line-height:1.34;color:#3B4A4C"><b style="color:#10292B">Friendly pilot (weeks 9-10).</b> 300-500 users give thumbs up or down; SMEs review flagged answers every week.</p></div>
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:12px;padding:14px 22px"><p style="font-size:24px;line-height:1.34;color:#3B4A4C"><b style="color:#10292B">In production.</b> We track escalation rate, "no source" rate, CSAT and cost per user, with a weekly sample review.</p></div>
+<div style="background:#FDF1E2;border-radius:12px;padding:16px 22px"><p style="font-size:24px;line-height:1.34;color:#5A3A12"><b>Proof from the prototype:</b> a 31-case harness runs the real code path. It caught a Thai bug: the name นภา matched inside แผนภายใน (no spaces in Thai), which blocked a normal question. Fixed with word-boundary rules; now 31 of 31 pass.</p></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#10292B;border-radius:16px;padding:28px 30px;color:#F2F5F4">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#5FC2C0">Running cost</p>
+<div style="display:flex;align-items:baseline;gap:16px"><p style="font-family:'Source Serif 4', Georgia, serif;font-size:96px;font-weight:600;line-height:1;color:#F2F5F4">THB 6</p><p style="font-size:24px;line-height:1.3;color:#A9C3C1">per coach active user per month, with a 30% buffer</p></div>
+<table style="font-size:24px;color:#E3ECEB">
+<tr><th style="width:46%;text-align:left;color:#A9C3C1">Coach model</th><th style="width:27%;text-align:right;color:#5FC2C0">Sonnet 5.5</th><th style="width:27%;text-align:right;color:#A9C3C1">Opus 5.5</th></tr>
+<tr><td>Per message</td><td style="text-align:right">$0.010</td><td style="text-align:right">$0.020</td></tr>
+<tr><td>Per user per month</td><td style="text-align:right">THB 6</td><td style="text-align:right">THB 11</td></tr>
+<tr><td>Per year, 45,000 staff</td><td style="text-align:right">THB 1.3M</td><td style="text-align:right">THB 2.6M</td></tr>
+<tr><td>Share of run cost</td><td style="text-align:right">10%</td><td style="text-align:right">18%</td></tr>
+</table>
+<p style="font-size:24px;line-height:1.34;color:#A9C3C1">Assumes 45% monthly active, 12 messages each, prompt caching, Haiku 5.5 for guardrails and nudges, Batch API for paths.</p>
+<p style="font-size:24px;line-height:1.34;color:#F2A65A"><b>Rule:</b> move to the cheaper model only if it passes the same gate. People, not tokens, drive the run cost.</p>
+</div>
+</div>
+<div style="position:absolute;left:112px;right:112px;bottom:40px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#66767A">Anthropic list prices, Oct 2026; Vertex/Bedrock partner pricing is covered by the buffer · details in the cost model</p>
+<p style="font-size:24px;color:#66767A">6</p>
+</div>
+<aside>No benchmark ranks frontier models on Thai today, so we build our own eval set with the client's SMEs. The gate decides the model. Cost is small either way: even on Opus the coach is under a fifth of run cost.</aside>
+</section>

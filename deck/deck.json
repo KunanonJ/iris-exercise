@@ -1,0 +1,22 @@
+{
+  "v": 4,
+  "createdOnFiles": { "v": 1, "at": "2026-10-14T07:30:00Z" },
+  "lists": "css",
+  "title": "Learning Suite Launch Plan",
+  "cover": "summary",
+  "order": ["summary", "cohort", "scope", "journeys", "ai-design", "ai-testing", "architecture", "data-privacy", "plan", "risks", "business", "prototype"],
+  "sections": {
+    "s1": { "description": "The answer on one page", "start": "summary" },
+    "s2": { "description": "Product: who goes first, what goes live, and the key journeys", "start": "cohort" },
+    "s3": { "description": "AI design: how the path engine and coach work, stay safe, are tested and what they cost", "start": "ai-design" },
+    "s4": { "description": "Technology: architecture, integration, data model, PDPA and security", "start": "architecture" },
+    "s5": { "description": "Delivery: 12-week plan, critical path, risks and scaling", "start": "plan" },
+    "s6": { "description": "Business: cost, pricing and value; then the prototype", "start": "business" }
+  },
+  "faces": {
+    "source-serif-4": { "family": "Source Serif 4", "href": "https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400..700&display=swap" },
+    "ibm-plex-sans": { "family": "IBM Plex Sans", "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" },
+    "ibm-plex-sans-thai": { "family": "IBM Plex Sans Thai", "href": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600&display=swap" }
+  },
+  "designSystems": []
+}

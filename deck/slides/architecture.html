@@ -1,0 +1,64 @@
+<section id="architecture" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">5 · Technology</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">Integrate, don't replace: a skills layer on top of the HR system and both LMSs</h2>
+<div style="display:grid;grid-template-columns:1.62fr 1fr;gap:28px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;gap:10px;align-items:stretch">
+<p style="width:150px;font-size:24px;font-weight:600;color:#66767A;padding:12px 0">Channels</p>
+<div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+<p style="font-size:24px;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">Mobile web (PWA)</p>
+<p style="font-size:24px;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">LINE OA + LIFF</p>
+<p style="font-size:24px;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">Desktop / Teams</p>
+</div>
+</div>
+<div style="display:flex;gap:10px;align-items:stretch">
+<p style="width:150px;font-size:24px;font-weight:600;color:#66767A;padding:12px 0">Identity</p>
+<div style="flex:1;display:grid;grid-template-columns:1fr 1.4fr;gap:10px">
+<p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">Corporate IdP: SAML/OIDC + MFA</p>
+<p style="font-size:24px;line-height:1.3;background:#FDF1E2;border:1px solid #E8C9A3;border-radius:10px;padding:12px 14px">Frontline: LINE Login or employee ID + OTP, matched to the HR record</p>
+</div>
+</div>
+<div style="display:flex;gap:10px;align-items:stretch">
+<p style="width:150px;font-size:24px;font-weight:600;color:#0E6B70;padding:12px 0">Learning Suite</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#0E6B70;border-radius:12px;padding:12px">
+<p style="font-size:24px;color:#E3F1F1">Built by IRIS · hosted in a Thailand cloud region</p>
+<div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:8px">
+<p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Skills and assessment</p>
+<p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Path engine</p>
+<p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Coach and guardrails</p>
+<p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Approvals and SLA</p>
+<p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Analytics and dashboards</p>
+</div>
+</div>
+</div>
+<div style="display:flex;gap:10px;align-items:stretch">
+<p style="width:150px;font-size:24px;font-weight:600;color:#66767A;padding:12px 0">Data</p>
+<div style="flex:1;display:grid;grid-template-columns:repeat(4, 1fr);gap:10px">
+<p style="font-size:24px;line-height:1.25;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">Postgres + pgvector</p>
+<p style="font-size:24px;line-height:1.25;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">xAPI record store</p>
+<p style="font-size:24px;line-height:1.25;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">File storage</p>
+<p style="font-size:24px;line-height:1.25;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px">Audit log</p>
+</div>
+</div>
+<div style="display:flex;gap:10px;align-items:stretch">
+<p style="width:150px;font-size:24px;font-weight:600;color:#66767A;padding:12px 0">Connects to</p>
+<div style="flex:1;display:grid;grid-template-columns:1fr 1.3fr 1.1fr;gap:10px">
+<p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>HR system:</b> nightly changes to people, positions and manager lines</p>
+<p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>LMS A + B:</b> catalogue and completions via API or xAPI; launch by SSO deep link or LTI 1.3; CSV fallback</p>
+<p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>Claude on Vertex AI</b> (Singapore, in-region), pseudonymised prompts</p>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:14px;padding:18px 22px"><h3 style="font-size:28px;font-weight:600;color:#0E6B70">Build (IRIS IP, reused across clients)</h3><p style="font-size:24px;line-height:1.34;color:#3B4A4C">Skills graph and assessment, path engine, coach and guardrails, approvals, dashboards, eval harness</p></div>
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:14px;padding:18px 22px"><h3 style="font-size:28px;font-weight:600;color:#10292B">Configure (client already has)</h3><p style="font-size:24px;line-height:1.34;color:#3B4A4C">IdP / SSO, both LMSs, HR exports, LINE OA, BI tool, cloud landing zone</p></div>
+<div style="background:#FDFDFB;border:1px solid #D7DFDE;border-radius:14px;padding:18px 22px"><h3 style="font-size:28px;font-weight:600;color:#10292B">Buy</h3><p style="font-size:24px;line-height:1.34;color:#3B4A4C">LLM API (enterprise terms, no training on client data), managed database, monitoring, SMS gateway, pen test</p></div>
+<div style="background:#ECF2F1;border-radius:14px;padding:18px 22px"><p style="font-size:24px;line-height:1.34;color:#3B4A4C"><b>Why not buy a skills platform?</b> Procurement, security review and data migration don't fit in 12 weeks. IRIS's method is the differentiator, and integrating keeps exit options open.</p></div>
+</div>
+</div>
+<div style="position:absolute;left:112px;right:112px;bottom:40px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#66767A">Claude models are not served in-region in Thailand today; Vertex AI Singapore is the nearest in-region option</p>
+<p style="font-size:24px;color:#66767A">7</p>
+</div>
+<aside>The HR system stays the source of truth for people and org; both LMSs stay the source of truth for content and completions. We read from them on a schedule and launch content by deep link, so nothing is migrated in 12 weeks. Frontline identity is the integration most likely to surprise us, which is why it is called out in amber.</aside>
+</section>

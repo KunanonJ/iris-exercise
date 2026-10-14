@@ -1,0 +1,589 @@
+{
+ "note": "Illustrative mock data for the case exercise. Not real.",
+ "pilot": {
+  "headcount": 12000,
+  "rd": 8500,
+  "pk": 3500,
+  "roles": 18
+ },
+ "funnel": [
+  {
+   "week": 0,
+   "invited": 1000,
+   "activated": 851,
+   "assessed": 490,
+   "approved": 298,
+   "planActive": 166
+  },
+  {
+   "week": 1,
+   "invited": 6000,
+   "activated": 2221,
+   "assessed": 1140,
+   "approved": 693,
+   "planActive": 381
+  },
+  {
+   "week": 2,
+   "invited": 12000,
+   "activated": 4639,
+   "assessed": 2489,
+   "approved": 1523,
+   "planActive": 808
+  },
+  {
+   "week": 3,
+   "invited": 12000,
+   "activated": 7484,
+   "assessed": 4457,
+   "approved": 2930,
+   "planActive": 1631
+  },
+  {
+   "week": 4,
+   "invited": 12000,
+   "activated": 9225,
+   "assessed": 6324,
+   "approved": 4635,
+   "planActive": 2872
+  },
+  {
+   "week": 5,
+   "invited": 12000,
+   "activated": 10191,
+   "assessed": 7698,
+   "approved": 6081,
+   "planActive": 4296
+  },
+  {
+   "week": 6,
+   "invited": 12000,
+   "activated": 10307,
+   "assessed": 8375,
+   "approved": 6999,
+   "planActive": 5398
+  },
+  {
+   "week": 7,
+   "invited": 12000,
+   "activated": 10396,
+   "assessed": 8805,
+   "approved": 7668,
+   "planActive": 6057
+  },
+  {
+   "week": 8,
+   "invited": 12000,
+   "activated": 10586,
+   "assessed": 8830,
+   "approved": 7817,
+   "planActive": 6240
+  }
+ ],
+ "heatmap": [
+  {
+   "bu": "RD",
+   "cells": [
+    {
+     "category": "core",
+     "baseline": 0.43,
+     "now": 0.51
+    },
+    {
+     "category": "technical",
+     "baseline": 0.54,
+     "now": 0.58
+    },
+    {
+     "category": "leadership",
+     "baseline": 0.46,
+     "now": 0.5
+    }
+   ]
+  },
+  {
+   "bu": "PK",
+   "cells": [
+    {
+     "category": "core",
+     "baseline": 0.52,
+     "now": 0.59
+    },
+    {
+     "category": "technical",
+     "baseline": 0.56,
+     "now": 0.64
+    },
+    {
+     "category": "leadership",
+     "baseline": 0.44,
+     "now": 0.51
+    }
+   ]
+  },
+  {
+   "bu": "BM",
+   "cells": [
+    {
+     "category": "core",
+     "baseline": null,
+     "now": null
+    },
+    {
+     "category": "technical",
+     "baseline": null,
+     "now": null
+    },
+    {
+     "category": "leadership",
+     "baseline": null,
+     "now": null
+    }
+   ]
+  },
+  {
+   "bu": "CH",
+   "cells": [
+    {
+     "category": "core",
+     "baseline": null,
+     "now": null
+    },
+    {
+     "category": "technical",
+     "baseline": null,
+     "now": null
+    },
+    {
+     "category": "leadership",
+     "baseline": null,
+     "now": null
+    }
+   ]
+  },
+  {
+   "bu": "CS",
+   "cells": [
+    {
+     "category": "core",
+     "baseline": null,
+     "now": null
+    },
+    {
+     "category": "technical",
+     "baseline": null,
+     "now": null
+    },
+    {
+     "category": "leadership",
+     "baseline": null,
+     "now": null
+    }
+   ]
+  }
+ ],
+ "business": {
+  "rd": {
+   "label": {
+    "en": "Store shrink % vs supervisor readiness",
+    "th": "อัตราการสูญหาย % เทียบความพร้อมของหัวหน้างาน"
+   },
+   "kpi": {
+    "en": "Shrink %",
+    "th": "การสูญหาย %"
+   },
+   "points": [
+    {
+     "id": "S101",
+     "readiness": 0.63,
+     "kpi": 1.38
+    },
+    {
+     "id": "S102",
+     "readiness": 0.86,
+     "kpi": 2.05
+    },
+    {
+     "id": "S103",
+     "readiness": 0.54,
+     "kpi": 1.76
+    },
+    {
+     "id": "S104",
+     "readiness": 0.32,
+     "kpi": 1.54
+    },
+    {
+     "id": "S105",
+     "readiness": 0.83,
+     "kpi": 1.86
+    },
+    {
+     "id": "S106",
+     "readiness": 0.66,
+     "kpi": 1.32
+    },
+    {
+     "id": "S107",
+     "readiness": 0.69,
+     "kpi": 1.63
+    },
+    {
+     "id": "S108",
+     "readiness": 0.7,
+     "kpi": 1.69
+    },
+    {
+     "id": "S109",
+     "readiness": 0.4,
+     "kpi": 2.45
+    },
+    {
+     "id": "S110",
+     "readiness": 0.8,
+     "kpi": 1.48
+    },
+    {
+     "id": "S111",
+     "readiness": 0.88,
+     "kpi": 1.18
+    },
+    {
+     "id": "S112",
+     "readiness": 0.59,
+     "kpi": 2.03
+    },
+    {
+     "id": "S113",
+     "readiness": 0.55,
+     "kpi": 1.35
+    },
+    {
+     "id": "S114",
+     "readiness": 0.72,
+     "kpi": 2.12
+    },
+    {
+     "id": "S115",
+     "readiness": 0.54,
+     "kpi": 1.56
+    },
+    {
+     "id": "S116",
+     "readiness": 0.37,
+     "kpi": 1.61
+    },
+    {
+     "id": "S117",
+     "readiness": 0.76,
+     "kpi": 1.69
+    },
+    {
+     "id": "S118",
+     "readiness": 0.71,
+     "kpi": 2.22
+    },
+    {
+     "id": "S119",
+     "readiness": 0.63,
+     "kpi": 2.2
+    },
+    {
+     "id": "S120",
+     "readiness": 0.33,
+     "kpi": 2.14
+    },
+    {
+     "id": "S121",
+     "readiness": 0.86,
+     "kpi": 1.62
+    },
+    {
+     "id": "S122",
+     "readiness": 0.53,
+     "kpi": 1.4
+    },
+    {
+     "id": "S123",
+     "readiness": 0.38,
+     "kpi": 2.05
+    },
+    {
+     "id": "S124",
+     "readiness": 0.83,
+     "kpi": 1.19
+    },
+    {
+     "id": "S125",
+     "readiness": 0.36,
+     "kpi": 2.06
+    },
+    {
+     "id": "S126",
+     "readiness": 0.86,
+     "kpi": 1.71
+    },
+    {
+     "id": "S127",
+     "readiness": 0.5,
+     "kpi": 1.62
+    },
+    {
+     "id": "S128",
+     "readiness": 0.69,
+     "kpi": 1.42
+    },
+    {
+     "id": "S129",
+     "readiness": 0.79,
+     "kpi": 1.36
+    },
+    {
+     "id": "S130",
+     "readiness": 0.5,
+     "kpi": 1.39
+    },
+    {
+     "id": "S131",
+     "readiness": 0.51,
+     "kpi": 2.31
+    },
+    {
+     "id": "S132",
+     "readiness": 0.63,
+     "kpi": 1.34
+    },
+    {
+     "id": "S133",
+     "readiness": 0.72,
+     "kpi": 2.2
+    },
+    {
+     "id": "S134",
+     "readiness": 0.69,
+     "kpi": 1.99
+    },
+    {
+     "id": "S135",
+     "readiness": 0.68,
+     "kpi": 1.98
+    },
+    {
+     "id": "S136",
+     "readiness": 0.9,
+     "kpi": 1.26
+    },
+    {
+     "id": "S137",
+     "readiness": 0.85,
+     "kpi": 1.06
+    },
+    {
+     "id": "S138",
+     "readiness": 0.8,
+     "kpi": 1.55
+    },
+    {
+     "id": "S139",
+     "readiness": 0.84,
+     "kpi": 1.89
+    },
+    {
+     "id": "S140",
+     "readiness": 0.86,
+     "kpi": 1.3
+    }
+   ]
+  },
+  "pk": {
+   "label": {
+    "en": "Line OEE % vs line-leader readiness",
+    "th": "OEE % ของไลน์เทียบความพร้อมของหัวหน้าไลน์"
+   },
+   "kpi": {
+    "en": "OEE %",
+    "th": "OEE %"
+   },
+   "points": [
+    {
+     "id": "L11",
+     "readiness": 0.55,
+     "kpi": 69.3
+    },
+    {
+     "id": "L12",
+     "readiness": 0.64,
+     "kpi": 72.1
+    },
+    {
+     "id": "L13",
+     "readiness": 0.48,
+     "kpi": 70.2
+    },
+    {
+     "id": "L14",
+     "readiness": 0.5,
+     "kpi": 68.3
+    },
+    {
+     "id": "L15",
+     "readiness": 0.53,
+     "kpi": 63.5
+    },
+    {
+     "id": "L16",
+     "readiness": 0.8,
+     "kpi": 69.2
+    },
+    {
+     "id": "L17",
+     "readiness": 0.43,
+     "kpi": 70.9
+    },
+    {
+     "id": "L18",
+     "readiness": 0.45,
+     "kpi": 68.5
+    },
+    {
+     "id": "L19",
+     "readiness": 0.73,
+     "kpi": 73.7
+    },
+    {
+     "id": "L20",
+     "readiness": 0.73,
+     "kpi": 74.2
+    },
+    {
+     "id": "L21",
+     "readiness": 0.73,
+     "kpi": 75.6
+    },
+    {
+     "id": "L22",
+     "readiness": 0.33,
+     "kpi": 69.7
+    },
+    {
+     "id": "L23",
+     "readiness": 0.7,
+     "kpi": 74.8
+    },
+    {
+     "id": "L24",
+     "readiness": 0.44,
+     "kpi": 72.7
+    },
+    {
+     "id": "L25",
+     "readiness": 0.51,
+     "kpi": 72.3
+    },
+    {
+     "id": "L26",
+     "readiness": 0.68,
+     "kpi": 67.3
+    },
+    {
+     "id": "L27",
+     "readiness": 0.79,
+     "kpi": 78.4
+    },
+    {
+     "id": "L28",
+     "readiness": 0.72,
+     "kpi": 73
+    },
+    {
+     "id": "L29",
+     "readiness": 0.5,
+     "kpi": 64.9
+    },
+    {
+     "id": "L30",
+     "readiness": 0.52,
+     "kpi": 66.3
+    },
+    {
+     "id": "L31",
+     "readiness": 0.58,
+     "kpi": 65.4
+    },
+    {
+     "id": "L32",
+     "readiness": 0.82,
+     "kpi": 76.1
+    },
+    {
+     "id": "L33",
+     "readiness": 0.56,
+     "kpi": 74
+    },
+    {
+     "id": "L34",
+     "readiness": 0.36,
+     "kpi": 71.2
+    }
+   ]
+  }
+ },
+ "coach": [
+  {
+   "week": 1,
+   "conversations": 2283,
+   "csat": 4.22,
+   "escalationRate": 0.02,
+   "flagged": 18
+  },
+  {
+   "week": 2,
+   "conversations": 3072,
+   "csat": 4.27,
+   "escalationRate": 0.015,
+   "flagged": 11
+  },
+  {
+   "week": 3,
+   "conversations": 3978,
+   "csat": 4.22,
+   "escalationRate": 0.014,
+   "flagged": 11
+  },
+  {
+   "week": 4,
+   "conversations": 4911,
+   "csat": 4.39,
+   "escalationRate": 0.02,
+   "flagged": 12
+  },
+  {
+   "week": 5,
+   "conversations": 5845,
+   "csat": 4.05,
+   "escalationRate": 0.022,
+   "flagged": 10
+  },
+  {
+   "week": 6,
+   "conversations": 6860,
+   "csat": 4.21,
+   "escalationRate": 0.014,
+   "flagged": 10
+  },
+  {
+   "week": 7,
+   "conversations": 7767,
+   "csat": 4.04,
+   "escalationRate": 0.022,
+   "flagged": 14
+  },
+  {
+   "week": 8,
+   "conversations": 8534,
+   "csat": 4.37,
+   "escalationRate": 0.019,
+   "flagged": 16
+  }
+ ]
+}

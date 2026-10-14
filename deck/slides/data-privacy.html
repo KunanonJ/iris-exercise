@@ -1,0 +1,35 @@
+<section id="data-privacy" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">5 · Technology: data, PDPA and security</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">A small core data model, with privacy designed in from week 1</h2>
+<div style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:28px">
+<div style="display:flex;flex-direction:column;gap:10px">
+<table style="font-size:24px;line-height:1.3;color:#3B4A4C">
+<tr style="background:#10292B"><th style="width:30%;text-align:left;color:#F2F5F4">Entity</th><th style="width:47%;text-align:left;color:#F2F5F4">Key fields</th><th style="width:23%;text-align:left;color:#F2F5F4">Owner</th></tr>
+<tr><td><b>Employee</b></td><td>role, manager, site, language</td><td>HR system</td></tr>
+<tr style="background:#ECF2F1"><td><b>Role</b></td><td>BU, family, grade, next roles</td><td>IRIS + SMEs</td></tr>
+<tr><td><b>Skill</b></td><td>category; levels 1-4, each with behaviours</td><td>IRIS library</td></tr>
+<tr style="background:#ECF2F1"><td><b>Role skill</b></td><td>required level, critical flag</td><td>IRIS + SMEs</td></tr>
+<tr><td><b>Assessment</b></td><td>self, check, manager, final, status</td><td>Suite</td></tr>
+<tr style="background:#ECF2F1"><td><b>Learning item</b></td><td>LMS, format, skill + level, sessions</td><td>LMS A / B</td></tr>
+<tr><td><b>Plan, step</b></td><td>target role, week, reason, status</td><td>Suite</td></tr>
+<tr style="background:#ECF2F1"><td><b>Approval</b></td><td>type, approver, decision, due date</td><td>Suite</td></tr>
+<tr><td><b>KPI</b></td><td>BU or site, period, value (aggregate)</td><td>BU finance</td></tr>
+</table>
+</div>
+<table style="font-size:24px;line-height:1.3;color:#3B4A4C">
+<tr style="background:#10292B"><th style="width:22%;text-align:left;color:#F2F5F4">Control</th><th style="width:78%;text-align:left;color:#F2F5F4">How</th></tr>
+<tr><td><b>Lawful basis</b></td><td>Contract or legal duty for learning records; legitimate interest (documented test) for AI personalisation; consent only for opt-ins like LINE</td></tr>
+<tr style="background:#ECF2F1"><td><b>DPIA</b></td><td>Done by week 3, signed off by the DPO before go-live. PDPC AI guidance treats prompts and logs as personal data</td></tr>
+<tr><td><b>Minimum data</b></td><td>The coach sees first name, role, skills and plan. Never national ID, salary or ratings; personal data masked first</td></tr>
+<tr style="background:#ECF2F1"><td><b>Cross-border</b></td><td>Data at rest in a Thailand region; AI runs in Singapore under PDPA s.29 contract safeguards; no training on client data</td></tr>
+<tr><td><b>Access</b></td><td>Employee: own record. Manager: direct reports. HR: own BU. Leaders: groups of 10+ only. Every view of personal data is logged</td></tr>
+<tr style="background:#ECF2F1"><td><b>Security</b></td><td>SSO + MFA, encryption, WAF, OWASP and LLM top-10 tests, pen test in week 9. Security pack to IT in week 2</td></tr>
+<tr><td><b>Rights</b></td><td>Assessments kept while employed + 1 year; coach chats 90 days. Access and deletion requests go through HR</td></tr>
+</table>
+</div>
+<div style="position:absolute;left:112px;right:112px;bottom:40px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#66767A">PDPA s.28-29 cross-border rules; PDPC enforcement since 2024 includes fines up to THB 7M</p>
+<p style="font-size:24px;color:#66767A">8</p>
+</div>
+<aside>Privacy is on the critical path, so it starts in week 1: the DPIA is done by week 3 and the security pack goes to IT in week 2, not week 10. The coach is built so that the riskiest data never reaches the model at all: no national ID, no salary, no ratings, and nobody else's records.</aside>
+</section>

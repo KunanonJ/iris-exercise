@@ -1,0 +1,28 @@
+<section id="prototype" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">8 · Prototype and tools</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">A working prototype tests the riskiest parts: Thai retrieval, guardrails and the approval loop</h2>
+<div style="display:flex;gap:20px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="/_blob/ed8e5ef0772b80cd469eb07fddbcdc77" alt="Coach chat in Thai blocking a colleague-score question and a salary question, with guardrail labels" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Guardrails</p></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="/_blob/2da43cae627c247887aab6e3129216a2" alt="Lesson page with the coach chat beside it, answering with a citation" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Coach + lesson</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center"><img src="/_blob/cc7311dd69ef3af362484447e1fcd41a" alt="Leader dashboard with adoption curves and a capability heatmap by business unit" style="width:1020px;height:400px;object-fit:contain;border:1px solid #D7DFDE;border-radius:12px"><p style="font-size:24px;color:#66767A">Leader dashboard (illustrative data)</p></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:28px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-size:28px;font-weight:600;color:#0E6B70">Try it</h3>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">[prototype link] · passcode in the email. To run locally: pnpm install, pnpm dev, pnpm eval. Code shared privately on request.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-size:28px;font-weight:600;color:#10292B">Real vs mocked</h3>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Real: path engine with ID checks, Thai search, 2-layer guardrails, cited coach, approvals with SLA, 31-case evals. Mocked: HR, LMS, SSO, LINE, dashboard numbers.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<h3 style="font-size:28px;font-weight:600;color:#10292B">Tools I used</h3>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Claude Code (Opus 5.5) for code, mock data, lesson text, research and slide drafts; Claude API in the app; Playwright for UI checks. I made the calls.</p>
+</div>
+</div>
+<div style="position:absolute;left:112px;right:112px;bottom:40px;display:flex;justify-content:space-between">
+<p style="font-size:24px;color:#66767A">Mock data only: fictional company, people and courses</p>
+<p style="font-size:24px;color:#66767A">12</p>
+</div>
+<aside>The prototype runs in two modes. Demo mode needs no API key: guardrails, retrieval, the rules-based path and approvals all work, and the coach gives scripted answers drawn from retrieval. Live mode calls Claude for the coach and the path. If we go ahead, weeks 1-2 are: confirm the cohort, IdP and LMS access; submit the security pack; start frameworks with SMEs; agree KPI hypotheses with BU heads. Tools: I used Claude Code to write the prototype and draft the deck, and checked every number and decision myself.</aside>
+</section>
