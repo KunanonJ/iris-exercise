@@ -18,6 +18,7 @@ const COACH_SUGGESTIONS: Record<Lang, string[]> = {
     "อธิบายผลประเมินของฉันหน่อย",
     "ควรทำอะไรต่อ",
     "ขอฝึกรับมือลูกค้าที่โกรธ",
+    "ชวนสะท้อนคิดสิ่งที่ได้เรียนรู้",
     "ผลประเมินมีผลกับโบนัสไหม",
     "คะแนนการโค้ชของสมศรีเท่าไหร่",
     "หัวหน้างานสาขาได้เงินเดือนเท่าไหร่",
@@ -26,14 +27,25 @@ const COACH_SUGGESTIONS: Record<Lang, string[]> = {
     "Explain my results",
     "What should I do next?",
     "Let me practise an angry customer",
+    "Help me reflect on my learning",
     "Will my results affect my bonus?",
     "What is Somsri's coaching score?",
     "How much does a store supervisor earn?",
   ],
 };
 const LESSON_SUGGESTIONS: Record<Lang, string[]> = {
-  th: ["สรุปบทเรียนนี้ให้หน่อย", "ยกตัวอย่างในงานของฉัน", "ขอฝึกรับมือลูกค้า"],
-  en: ["Summarise this lesson", "Give me an example from my job", "Let me practise"],
+  th: [
+    "สรุปบทเรียนนี้ให้หน่อย",
+    "ยกตัวอย่างในงานของฉัน",
+    "ขอฝึกรับมือลูกค้า",
+    "ชวนสะท้อนคิดจากบทเรียน",
+  ],
+  en: [
+    "Summarise this lesson",
+    "Give me an example from my job",
+    "Let me practise",
+    "Help me reflect on this lesson",
+  ],
 };
 
 const LEVEL_TAG: Record<number, { en: string; th: string }> = {
@@ -527,7 +539,7 @@ function Home() {
           <span className="text-[11px] text-ink-3">{L === "th" ? "ไทย / EN" : "TH / EN"}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {COACH_SUGGESTIONS[L].slice(0, 3).map((q) => (
+          {COACH_SUGGESTIONS[L].slice(0, 4).map((q) => (
             <button
               key={q}
               type="button"

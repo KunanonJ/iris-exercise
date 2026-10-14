@@ -1,20 +1,20 @@
 # Learning Suite prototype
 
-**Live: https://iris.kunanonj.com** (no login)
+**Live: https://iris.kunanonj.com** *(Role-Based Login with 1-tap demo sign-in: Employee `E0001`/PIN `1120`, Manager `E0002`/PIN `2240`, HR & Leaders `E9001`/PIN `9001`)*
 
 Working prototype for the IRIS Consulting case: an integrated, AI-powered learning suite for frontline staff, with a Thai/English AI coach. **Mock data only**: the company, people, roles and courses are fictional and were generated for this exercise.
 
 ## What to try (5 minutes)
 
-Use the persona switch at the top (Employee / Manager / HR & Leaders) and the ไทย/EN toggle.
+Each role signs into an isolated, PDPA-scoped session via the **Role-Based Login Portal** (use the pre-filled credentials, SSO button, or the **1-Tap Evaluator Quick Login** strip at the bottom; use **"สลับบัญชี / ออกจากระบบ · Switch role / Sign out"** in the top bar and the **ไทย/EN** toggle at any time):
 
-1. **Employee (Somchai, Senior Store Associate):** start the skill check. "Use sample answers" skips ahead. Submit it to the manager.
-2. **Manager (Malee, Store Manager):** open Somchai's assessment, adjust a level if you disagree, and approve. Batch approval and the overdue → HRBP escalation are visible in the inbox.
-3. **Employee → Path:** "Build my path with AI". A rules engine shortlists approved catalogue items for each skill gap; the model sequences them and writes the rationale. Send the path for approval.
-4. **Manager:** approve the plan. Approving it also approves the workshops in it.
-5. **Employee → Home:** next step, plus a preview of the LINE nudge. Open the lesson and use **"Ask about this lesson"** (the chat sits beside the content).
-6. **Coach tab:** try the suggested prompts, including the guardrail ones: a colleague's score, salary, prompt injection, stress.
-7. **HR & Leaders:** adoption, the capability heatmap (baseline vs now), the link to business KPIs, and coach health.
+1. **Employee (`E0001` · Somchai, Senior Store Associate · LINE OA SSO):** start the 5-minute skill check. "Use sample answers" skips ahead. Submit it to the manager, then click **"เข้าสู่ระบบหัวหน้า (E0002) เพื่ออนุมัติ / Sign in as Manager (E0002) to approve"**.
+2. **Manager (`E0002` · Malee, Store Manager · Corporate SSO):** open Somchai's assessment in the approval inbox, adjust a level if you disagree, and approve. Batch approval and the overdue → HRBP escalation are visible in the inbox.
+3. **Employee (`E0001`) → Path:** sign back in as Somchai and tap "Build my path with AI". A rules engine shortlists approved catalogue items for each skill gap; the model sequences them into a 70-20-10 plan and writes the rationale. Send the path for approval.
+4. **Manager (`E0002`):** sign in as Malee and approve the plan. Approving it also approves the workshops in it.
+5. **Employee (`E0001`) → Home:** view your next step, plus a preview of the LINE nudge. Open the lesson and use **"Ask about this lesson"** (the chat sits beside the content with clickable `[S1]` source drawer).
+6. **Coach tab:** try all 4 core capabilities (*Explain results*, *Recommend next steps*, *Practise role-play*, *Reflect on learning*) as well as the red-team guardrail prompts: a colleague's score, salary, prompt injection, stress.
+7. **HR & Leaders (`E9001` · Arunee, HRBP · Entra ID SSO):** sign in to inspect adoption, the capability heatmap (baseline vs now), the link to business KPIs, and coach health (anonymised aggregates $N \ge 10$ only).
 
 "Reset demo" restores the starting state. Demo state is kept in your browser only.
 

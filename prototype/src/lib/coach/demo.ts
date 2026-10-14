@@ -8,6 +8,7 @@ import { retrieve, tokenize, type Retrieved } from "./retrieval";
 
 const RE = {
   practise: /(practi[cs]e|role ?play|ฝึก|ซ้อม|บทบาทสมมติ)/i,
+  reflect: /(reflect|reflection|สะท้อนคิด|ทบทวนสิ่งที่ได้เรียน)/i,
   lesson: /(summar|this lesson|example|สรุป|บทเรียนนี้|ยกตัวอย่าง|ตัวอย่าง)/i,
   policy: /(affect|impact|used for|bonus|pay|salary|promot|มีผล|กระทบ|โบนัส|เงินเดือน|เลื่อนตำแหน่ง|นำไปใช้)/i,
   explain: /(result|gap|score|where do i stand|my level|explain my|ผลประเมิน|ผลของ|คะแนน|ช่องว่าง|ขาดอะไร|ระดับของ|จุดที่ต้องพัฒนา|อธิบายผล)/i,
@@ -60,6 +61,16 @@ export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
     const text = th
       ? `มาฝึกกันค่ะ โค้ชจะเล่นเป็นลูกค้านะคะ\nสถานการณ์: ลูกค้าถือพัดลมที่ซื้อเมื่อวานมาที่เคาน์เตอร์ แล้วพูดเสียงดังว่า\n"พัดลมที่ซื้อไปเมื่อวานเปิดไม่ติดเลย เสียเวลามาก ร้านนี้ขายของแบบนี้ได้ยังไง!"\nคุณจะตอบลูกค้าว่าอย่างไรคะ ลองใช้ขั้นตอน LAST [S1]${ROLEPLAY_MARK}`
       : `Let's practise. I'll play the customer.\nScene: a customer walks up holding a fan bought yesterday and says loudly:\n"This fan I bought yesterday won't even turn on. What a waste of my time!"\nHow do you respond? Try the LAST steps [S1].${ROLEPLAY_MARK}`;
+    return { text, sources: src };
+  }
+
+  if (RE.reflect.test(message)) {
+    const pinnedId = d.lessonId ?? "LA-201";
+    const src = retrieve("SBI situation behaviour impact feedback", lang, { pinned: [pinnedId], k: 1 });
+    const site = emp.site[lang];
+    const text = th
+      ? `มาสะท้อนคิด (Reflection) จากการปฎิบัติงานที่${site}กันค่ะ [S1]:\n1. ในสัปดาห์ที่ผ่านมา มีสถานการณ์ไหนที่คุณได้ลองให้ฟีดแบ็กหรือรับมือปัญหาหน้างานบ้างคะ\n2. ตอนนั้นคุณพูดหรือทำอย่างไร (Behaviour) และผลลัพธ์เป็นอย่างไร (Impact)\n3. ถ้ากลับไปทำอีกครั้ง คุณอยากปรับจุดไหนให้ดีขึ้นคะ ลองพิมพ์เล่าให้โค้ชฟังได้เลยค่ะ`
+      : `Let's reflect on your recent shift at ${site} [S1]:\n1. Think of one moment this week where you gave feedback or handled a store issue.\n2. What did you say or do (Behaviour), and how did the other person react (Impact)?\n3. What is one thing you would do differently next time? Share your thoughts below.`;
     return { text, sources: src };
   }
 
