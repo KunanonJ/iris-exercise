@@ -1,5 +1,6 @@
 -- IRIS Learning Suite — Cloudflare D1 (SQLite) Relational Schema
--- Covers: employees, assessments, plans, approvals, coach_logs
+-- Covers: employees, assessments, plans, approvals, coach_logs,
+--         sso_sessions, xapi_statements, line_outbox, integration_events
 
 CREATE TABLE IF NOT EXISTS employees (
   id TEXT PRIMARY KEY,
@@ -60,7 +61,54 @@ CREATE TABLE IF NOT EXISTS coach_logs (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS sso_sessions (
+  jti TEXT PRIMARY KEY,
+  employee_id TEXT NOT NULL,
+  persona TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  issuer TEXT NOT NULL,
+  email TEXT NOT NULL,
+  amr_json TEXT NOT NULL,
+  jwt_preview TEXT NOT NULL,
+  issued_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS xapi_statements (
+  id TEXT PRIMARY KEY,
+  actor_employee_id TEXT NOT NULL,
+  verb TEXT NOT NULL,
+  object_item_id TEXT NOT NULL,
+  lms_source TEXT NOT NULL,
+  score_scaled REAL,
+  completed INTEGER NOT NULL DEFAULT 1,
+  raw_json TEXT NOT NULL,
+  stored_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS line_outbox (
+  id TEXT PRIMARY KEY,
+  recipient_employee_id TEXT NOT NULL,
+  line_user_id TEXT NOT NULL,
+  template_type TEXT NOT NULL,
+  flex_payload_json TEXT NOT NULL,
+  delivery_status TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS integration_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel TEXT NOT NULL,
+  protocol TEXT NOT NULL,
+  direction TEXT NOT NULL,
+  status INTEGER NOT NULL,
+  summary TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_employees_manager ON employees(manager_id);
 CREATE INDEX IF NOT EXISTS idx_employees_bu ON employees(bu);
 CREATE INDEX IF NOT EXISTS idx_approvals_status ON approvals(status);
 CREATE INDEX IF NOT EXISTS idx_coach_logs_key ON coach_logs(employee_id, chat_key);
+CREATE INDEX IF NOT EXISTS idx_integration_events_created ON integration_events(created_at DESC);

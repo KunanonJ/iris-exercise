@@ -3,6 +3,15 @@
 import { isLive, models, provider, setAIBinding } from "../src/lib/ai";
 import { prepareCoach, type CoachInput } from "../src/lib/coach/coach";
 import { getDbMeta, loadSharedState, saveSharedState, seedDatabase, type D1Database, type SharedStatePayload } from "../src/lib/db";
+import {
+  createLtiLaunchEnvelope,
+  dispatchLineFlexNotification,
+  getIntegrationsTelemetry,
+  ingestHrisDeltaSync,
+  ingestXapiStatement,
+  issueOidcSsoSession,
+  verifyJwtHs256,
+} from "../src/lib/integrations";
 import { aiPlan } from "../src/lib/path";
 import { allow, clientKey } from "../src/lib/ratelimit";
 import { employeeById } from "../src/lib/skills";
@@ -13,6 +22,7 @@ interface Env {
   AI?: { run(model: string, inputs: Record<string, unknown>): Promise<unknown> };
   DB?: D1Database;
   DEMO_PASSCODE?: string;
+  LINE_CHANNEL_ACCESS_TOKEN?: string;
 }
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -99,6 +109,58 @@ const worker = {
         if (!env.DB) return json({ ok: false, dbMeta: { connected: false, engine: "localStorage" } });
         await seedDatabase(env.DB);
         return json(await loadSharedState(env.DB));
+      }
+      if (p === "/api/sso/token" && req.method === "POST") {
+        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
+        const body = (await req.json()) as { persona: "employee" | "manager" | "leader"; method?: "sso" | "credentials" };
+        const { token, claims, dbMeta } = await issueOidcSsoSession(env.DB, body.persona, body.method ?? "sso");
+        const headers = new Headers({ "content-type": "application/json", "cache-control": "no-store" });
+        headers.append(
+          "set-cookie",
+          `iris_sso_jwt=${encodeURIComponent(token)}; Path=/; Max-Age=28800; HttpOnly; SameSite=Lax; Secure`
+        );
+        return new Response(JSON.stringify({ ok: true, token, claims, dbMeta }), { status: 200, headers });
+      }
+      if (p === "/api/sso/session" && req.method === "GET") {
+        const token = cookie(req, "iris_sso_jwt");
+        const claims = token ? await verifyJwtHs256(token) : null;
+        return json({ authenticated: Boolean(claims), claims });
+      }
+      if (p === "/api/integrations" && req.method === "GET") {
+        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
+        return json(await getIntegrationsTelemetry(env.DB));
+      }
+      if (p === "/api/integrations/hris-sync" && req.method === "POST") {
+        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
+        const body = (await req.json().catch(() => ({}))) as Parameters<typeof ingestHrisDeltaSync>[1];
+        const res = await ingestHrisDeltaSync(env.DB, body);
+        const telemetry = await getIntegrationsTelemetry(env.DB);
+        return json({ ok: true, ...res, telemetry });
+      }
+      if (p === "/api/integrations/lms-xapi" && req.method === "POST") {
+        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
+        const body = (await req.json().catch(() => ({}))) as Parameters<typeof ingestXapiStatement>[1];
+        const res = await ingestXapiStatement(env.DB, body);
+        const state = await loadSharedState(env.DB);
+        const telemetry = await getIntegrationsTelemetry(env.DB);
+        return json({ ok: true, ...res, state, telemetry });
+      }
+      if (p === "/api/integrations/lti-launch" && req.method === "POST") {
+        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
+        const body = (await req.json().catch(() => ({}))) as Parameters<typeof createLtiLaunchEnvelope>[1];
+        const res = await createLtiLaunchEnvelope(env.DB, body);
+        const telemetry = await getIntegrationsTelemetry(env.DB);
+        return json({ ok: true, ...res, telemetry });
+      }
+      if (p === "/api/integrations/line-push" && req.method === "POST") {
+        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
+        const body = (await req.json().catch(() => ({}))) as Parameters<typeof dispatchLineFlexNotification>[1];
+        const res = await dispatchLineFlexNotification(env.DB, {
+          ...body,
+          lineChannelToken: env.LINE_CHANNEL_ACCESS_TOKEN,
+        });
+        const telemetry = await getIntegrationsTelemetry(env.DB);
+        return json({ ok: true, ...res, telemetry });
       }
       if (p === "/api/coach" && req.method === "POST") return await coach(req);
       if (p === "/api/path" && req.method === "POST") return await path(req);

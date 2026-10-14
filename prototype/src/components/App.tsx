@@ -4,13 +4,14 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { employeeById } from "@/lib/skills";
 import { EmployeeApp } from "./Employee";
 import { tr } from "./i18n";
+import { IntegrationsModal } from "./IntegrationsModal";
 import { LeaderDashboard } from "./Leader";
 import { ROLE_ACCOUNTS, RoleLoginScreen } from "./Login";
 import { ManagerApp } from "./Manager";
 import { MANAGER, StoreProvider, useStore } from "./store";
 import { Avatar, Badge, Button, cx, Icon } from "./ui";
 
-function About({ onClose }: { onClose: () => void }) {
+function About({ onClose, onOpenIntegrations }: { onClose: () => void; onOpenIntegrations: () => void }) {
   const { s, dispatch } = useStore();
   const th = s.lang === "th";
   const rows: [string, string, string][] = th
@@ -38,7 +39,7 @@ function About({ onClose }: { onClose: () => void }) {
         [
           "ทำงานจริง",
           "ฐานข้อมูล Cloudflare D1 (SQLite)",
-          "จัดเก็บ 5 ตารางจริง (employees, assessments, plans, approvals, coach_logs) บน Cloudflare D1 และซิงก์ข้ามบทบาท",
+          "จัดเก็บ 9 ตารางจริง (employees, assessments, plans, approvals, coach_logs, sso_sessions, xapi_statements, line_outbox, integration_events) บน Cloudflare D1",
         ],
         [
           "ทำงานจริง",
@@ -46,9 +47,9 @@ function About({ onClose }: { onClose: () => void }) {
           "ผลประเมิน แผน และโปรเจกต์ พร้อม SLA และการส่งต่อ",
         ],
         [
-          "จำลอง",
-          "HR, LMS, SSO, LINE",
-          "ระบบ HR ต้นทางและ SSO ภายนอกจำลองผ่านข้อมูล Seed ในฐานข้อมูล D1",
+          "ทำงานจริง",
+          "SSO (OIDC JWT), HRIS, LMS xAPI/LTI, LINE OA",
+          "ออกโทเคน OIDC JWT (HS256) จริง, รับข้อมูล HRIS Delta Sync, รับ xAPI 2.0 & LTI 1.3 จาก LMS A/B และส่งการ์ด LINE Flex จริง",
         ],
       ]
     : [
@@ -75,7 +76,7 @@ function About({ onClose }: { onClose: () => void }) {
         [
           "Real",
           "Cloudflare D1 (SQLite) database",
-          "Persists 5 relational tables (employees, assessments, plans, approvals, coach_logs) across Employee, Manager, and HR portals",
+          "Persists 9 relational tables (employees, assessments, plans, approvals, coach_logs, sso_sessions, xapi_statements, line_outbox, integration_events)",
         ],
         [
           "Real",
@@ -83,9 +84,9 @@ function About({ onClose }: { onClose: () => void }) {
           "Assessment, plan and project sign-off with SLA and escalation",
         ],
         [
-          "Mocked",
-          "External HRIS, LMSs, SSO, LINE",
-          "Upstream HRIS & SSO identity providers are simulated via seeded D1 records",
+          "Real",
+          "SSO (OIDC JWT), HRIS, LMS xAPI/LTI, LINE OA",
+          "Signs HS256 OIDC JWTs via WebCrypto, ingests HRIS Delta JSON, records IEEE xAPI 2.0 completions & LTI 1.3 launches, and dispatches LINE Flex messages",
         ],
       ];
   return (
@@ -131,18 +132,30 @@ function About({ onClose }: { onClose: () => void }) {
             ))}
           </tbody>
         </table>
-        <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
           <p className="text-xs text-ink-3">{tr(s.lang)("mock")}</p>
-          <Button
-            variant="outline"
-            className="px-2.5 py-1 text-xs"
-            onClick={() => {
-              dispatch({ type: "reset" });
-              onClose();
-            }}
-          >
-            {tr(s.lang)("reset")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="px-2.5 py-1 text-xs"
+              onClick={() => {
+                onClose();
+                onOpenIntegrations();
+              }}
+            >
+              {th ? "เปิดศูนย์เชื่อมต่อ SSO / HRIS / xAPI / LINE" : "Open Live Integrations Hub"}
+            </Button>
+            <Button
+              variant="outline"
+              className="px-2.5 py-1 text-xs"
+              onClick={() => {
+                dispatch({ type: "reset" });
+                onClose();
+              }}
+            >
+              {tr(s.lang)("reset")}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -156,6 +169,7 @@ function Shell() {
   const [live, setLive] = useState<boolean>();
   const [prov, setProv] = useState<string>();
   const [about, setAbout] = useState(false);
+  const [integrationsOpen, setIntegrationsOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/status")
@@ -254,6 +268,14 @@ function Shell() {
             )}
 
             <Button
+              variant="outline"
+              className="whitespace-nowrap px-2 py-1 text-xs max-md:hidden"
+              onClick={() => setIntegrationsOpen(true)}
+            >
+              <span>{L === "th" ? "เชื่อมต่อระบบจริง" : "Integrations"}</span>
+            </Button>
+
+            <Button
               variant="ghost"
               className="whitespace-nowrap px-2 py-1 text-xs"
               onClick={() => setAbout(true)}
@@ -300,7 +322,13 @@ function Shell() {
           </>
         )}
       </main>
-      {about && <About onClose={() => setAbout(false)} />}
+      {about && (
+        <About
+          onClose={() => setAbout(false)}
+          onOpenIntegrations={() => setIntegrationsOpen(true)}
+        />
+      )}
+      {integrationsOpen && <IntegrationsModal onClose={() => setIntegrationsOpen(false)} />}
     </div>
   );
 }

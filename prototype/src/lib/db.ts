@@ -83,6 +83,10 @@ export async function seedDatabase(db: D1Database): Promise<void> {
   const now = new Date().toISOString();
   const seed = defaultSeedState();
   const stmts: D1PreparedStatement[] = [
+    db.prepare("DELETE FROM integration_events"),
+    db.prepare("DELETE FROM line_outbox"),
+    db.prepare("DELETE FROM xapi_statements"),
+    db.prepare("DELETE FROM sso_sessions"),
     db.prepare("DELETE FROM coach_logs"),
     db.prepare("DELETE FROM approvals"),
     db.prepare("DELETE FROM plans"),

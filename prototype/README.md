@@ -30,16 +30,20 @@ pnpm dev                         # UI on http://localhost:3000, API (Worker + D1
 pnpm preview                     # production-like: static build + Worker on http://localhost:8787
 ```
 
-## Database (Cloudflare D1 SQLite)
+## Database & Live Enterprise Integrations (Cloudflare D1 + WebCrypto)
 
-The prototype persists state in a **Cloudflare D1** relational SQLite database (`iris-learning-suite-db`, schema in [`db/schema.sql`](db/schema.sql), repository in [`src/lib/db.ts`](src/lib/db.ts)) across 5 tables:
-- `employees` (213 seeded Siam Pinnacle Group employees across 5 BUs)
+The prototype persists state in a **Cloudflare D1** relational SQLite database (`iris-learning-suite-db`, schema in [`db/schema.sql`](db/schema.sql), repositories in [`src/lib/db.ts`](src/lib/db.ts) and [`src/lib/integrations.ts`](src/lib/integrations.ts)) across **9 tables**:
+- `employees` (213 seeded Siam Pinnacle Group employees across 5 BUs, updated via `POST /api/integrations/hris-sync`)
 - `assessments` (self-assessment, anchor quiz, manager calibration, and overrides)
 - `plans` (70-20-10 learning path steps, status, rationale, and project evidence)
 - `approvals` (manager approval inbox with SLA due dates and escalation status)
 - `coach_logs` (grounded AI Coach conversation history per employee and lesson)
+- `sso_sessions` (cryptographically signed HS256 OIDC JWT tokens issued via `POST /api/sso/token` for Google Workspace `accounts.google.com` and LINE Login `access.line.me`)
+- `xapi_statements` (IEEE 9274.1.1 xAPI 2.0 course completion statements from LMS A & LMS B via `POST /api/integrations/lms-xapi`, plus IMS LTI 1.3 signed launch tokens via `POST /api/integrations/lti-launch`)
+- `line_outbox` (spec-compliant LINE Messaging API v2 Flex Message push containers with 1-tap LIFF SSO URI actions via `POST /api/integrations/line-push`)
+- `integration_events` (unified real-time audit log of all inbound/outbound protocol payloads, inspectable via the **"เชื่อมต่อระบบจริง / Integrations"** button in the top bar)
 
-Every Employee $\rightarrow$ Manager $\rightarrow$ HR action syncs via `GET/POST /api/state`, and clicking **Reset demo (`รีเซ็ตเดโม`)** calls `POST /api/state/reset` to cleanly re-seed all 5 D1 tables.
+Every Employee $\rightarrow$ Manager $\rightarrow$ HR action syncs via `GET/POST /api/state`, and clicking **Reset demo (`รีเซ็ตเดโม`)** calls `POST /api/state/reset` to cleanly re-seed all 9 D1 tables.
 
 Without a key the app runs in **demo mode**. Guardrails, retrieval, the rules-based path and the approvals all work, and the coach gives scripted, retrieval-backed answers. With a key, the coach, the guardrail classifier and the path generator call a model.
 

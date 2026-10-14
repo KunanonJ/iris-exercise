@@ -7,6 +7,7 @@ import { directReports, employeeById } from "@/lib/skills";
 import type { Approval, Lang, LearningPlan, Level } from "@/lib/types";
 import type { CoachMeta } from "@/lib/coach/coach";
 import type { DbMeta, SharedStatePayload } from "@/lib/db";
+import type { SsoClaims } from "@/lib/integrations";
 
 export const HERO = "E0001";
 export const MANAGER = "E0002";
@@ -40,6 +41,8 @@ export interface State {
   evidence: Record<string, string>;
   chats: Record<string, ChatMsg[]>;
   dbMeta?: DbMeta;
+  ssoClaims?: SsoClaims;
+  ssoJwt?: string;
   toast?: string;
 }
 
@@ -354,7 +357,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       rawDispatch(a);
       if (a.type === "login") {
+        fetch("/api/sso/token", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ persona: a.persona, method: "sso" }),
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            if (d?.claims) {
+              rawDispatch({
+                type: "set",
+                patch: { ssoClaims: d.claims, ssoJwt: d.token, dbMeta: d.dbMeta },
+              });
+            }
+          })
+          .catch(() => {});
         pullFromD1();
+      }
+      if (a.type === "stepStatus" && a.status === "done") {
+        fetch("/api/integrations/lms-xapi", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ employeeId: HERO, itemId: a.itemId }),
+        }).catch(() => {});
       }
     },
     [pullFromD1]
