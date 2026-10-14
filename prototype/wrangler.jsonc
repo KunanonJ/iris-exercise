@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "iris-learning-suite",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-06-01",
+  // nodejs_compat also fills process.env with vars and secrets (dates >= 2025-04-01)
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    // Every request hits the Worker first so the optional passcode gate covers pages too
+    "run_worker_first": true,
+    "not_found_handling": "404-page"
+  },
+  "observability": { "enabled": true }
+  // Secrets (never in this file): wrangler secret put OPENCODE_API_KEY | ANTHROPIC_API_KEY | DEMO_PASSCODE
+}

@@ -1,10 +1,9 @@
 // Coach orchestration: guardrails -> retrieval -> (classifier) -> answer.
 // Used by the API route and by the eval harness, so both test the same path.
-import type Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { itemById } from "../../data/catalog";
-import { detectLang, fallbackFor, getClient, isLive, MODELS } from "../llm";
+import { generateJSON, isLive, models, provider, streamText, type Usage } from "../ai";
+import { detectLang } from "../llm";
 import { planForPrompt } from "../path";
 import { employeeById, profileForPrompt } from "../skills";
 import type { Bilingual, Lang, LearningPlan, Level } from "../types";
@@ -39,12 +38,7 @@ export interface CoachMeta {
   sources: SourceRef[];
   pii: string[];
   model?: string;
-}
-
-export interface Usage {
-  input: number;
-  output: number;
-  cacheRead: number;
+  provider?: string;
 }
 
 export interface Prepared {
@@ -58,14 +52,16 @@ const ClassifierSchema = z.object({ category: z.enum(CATEGORIES), reason: z.stri
 
 async function classify(text: string): Promise<Category | undefined> {
   try {
-    const res = await getClient().messages.parse({
-      model: MODELS.classifier,
-      max_tokens: 2000,
+    const out = await generateJSON({
+      model: models().classifier,
+      maxTokens: 2000,
+      effort: "low",
       system: CLASSIFIER_SYSTEM,
-      output_config: { effort: "low", format: zodOutputFormat(ClassifierSchema) },
       messages: [{ role: "user", content: `<message>\n${text}\n</message>` }],
+      schema: ClassifierSchema,
+      shape: `{"category": one of ${CATEGORIES.map((c) => `"${c}"`).join(" | ")}, "reason": string}`,
     });
-    return res.parsed_output?.category;
+    return out?.category;
   } catch (err) {
     console.error("classifier failed; deterministic verdict stands", err);
     return undefined;
@@ -119,9 +115,10 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   }
 
   meta.sources = toRefs(sources);
-  meta.model = MODELS.coach;
+  meta.model = models().coach;
+  meta.provider = provider() ?? undefined;
   const lesson = input.lessonId ? itemById(input.lessonId) : undefined;
-  const messages: Anthropic.Beta.BetaMessageParam[] = [
+  const messages: { role: "user" | "assistant"; content: string }[] = [
     ...history.slice(0, -1).map((m) => ({
       role: m.role,
       content: m.role === "user" ? precheck(m.content, emp.id, emp.managerId).redacted : m.content,
@@ -139,24 +136,15 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   ];
 
   const usage: Usage = { input: 0, output: 0, cacheRead: 0 };
-  async function* stream() {
-    const s = getClient().beta.messages.stream({
-      model: MODELS.coach,
-      max_tokens: 8000,
-      system: [{ type: "text", text: COACH_SYSTEM, cache_control: { type: "ephemeral" } }],
-      output_config: { effort: "low" },
+  const stream = () =>
+    streamText({
+      model: models().coach,
+      maxTokens: 8000,
+      effort: "low",
+      system: COACH_SYSTEM,
       messages,
-      ...fallbackFor(MODELS.coach),
+      onUsage: (u) => Object.assign(usage, u),
     });
-    for await (const ev of s) {
-      if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") yield ev.delta.text;
-    }
-    const final = await s.finalMessage();
-    usage.input = final.usage.input_tokens + (final.usage.cache_creation_input_tokens ?? 0);
-    usage.output = final.usage.output_tokens;
-    usage.cacheRead = final.usage.cache_read_input_tokens ?? 0;
-    if (final.stop_reason === "refusal") yield lang === "th" ? "\n\nขออภัยค่ะ โค้ชตอบคำถามนี้ไม่ได้" : "\n\nSorry, I can't help with that one.";
-  }
   return { meta, stream, usage };
 }
 

@@ -1,0 +1,19 @@
+# Copy to .dev.vars for local dev (wrangler and `pnpm eval` both read it).
+# No key = demo mode (scripted coach, rules-based path).
+
+# Option A: OpenCode gateway (https://opencode.ai). Claude, Qwen, Kimi, DeepSeek, GLM and free models.
+# OPENCODE_API_KEY=
+# Option B: Anthropic directly
+# ANTHROPIC_API_KEY=
+
+# Optional
+# AI_PROVIDER=opencode            # force a provider when both keys are set
+# COACH_MODEL=claude-sonnet-5-5   # e.g. kimi-k2.6, deepseek-v4.1-flash, big-pickle (free)
+# PATH_MODEL=
+# CLASSIFIER_MODEL=claude-haiku-5-5
+# JUDGE_MODEL=claude-sonnet-5-5
+# OPENCODE_BASE_URL=https://opencode.ai/inference/v1
+# OPENCODE_API_STYLE=messages     # or chat; normally detected from the model id
+# DEMO_PASSCODE=                  # gate the whole site behind a passcode
+# DAILY_LIMIT=1500
+# DEMO_MODE=1                     # force demo mode even with a key

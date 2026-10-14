@@ -77,11 +77,15 @@ function Shell() {
   const { s, dispatch } = useStore();
   const t = tr(s.lang);
   const [live, setLive] = useState<boolean>();
+  const [prov, setProv] = useState<string>();
   const [about, setAbout] = useState(false);
   useEffect(() => {
     fetch("/api/status")
       .then((r) => r.json())
-      .then((d) => setLive(Boolean(d.live)))
+      .then((d) => {
+        setLive(Boolean(d.live));
+        setProv(d.provider === "opencode" ? "OpenCode" : d.provider === "anthropic" ? "Claude API" : undefined);
+      })
       .catch(() => setLive(false));
   }, []);
   useEffect(() => {
@@ -111,7 +115,7 @@ function Shell() {
           <div className="ml-auto flex items-center gap-1.5">
             {live !== undefined && (
               <Badge tone={live ? "ok" : "warn"}>
-                <span className="max-md:hidden">{live ? t("liveMode") : t("demoMode")}</span>
+                <span className="max-md:hidden">{live ? `${t("liveMode")}${prov ? ` · ${prov}` : ""}` : t("demoMode")}</span>
                 <span className="md:hidden">{live ? "Live AI" : "Demo"}</span>
               </Badge>
             )}

@@ -1,14 +1,16 @@
 // Coach evaluation harness. Runs every case through the same code path as the
 // API (guardrails -> retrieval -> classifier -> answer), applies deterministic
 // checks, and in live mode adds an LLM judge for groundedness and Thai quality.
-// Run: pnpm eval          (demo mode if no API key)
+// Run: pnpm eval          (live if a key is in .dev.vars or the environment)
 //      pnpm eval --demo   (force demo mode)
-import { readFileSync, writeFileSync } from "node:fs";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+
+// Same secrets file wrangler uses for local dev.
+for (const f of [".dev.vars", ".env.local"]) if (existsSync(f)) process.loadEnvFile(f);
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { z } from "zod";
 import { askCoach } from "../src/lib/coach/coach";
 import { retrieve } from "../src/lib/coach/retrieval";
-import { getClient, isLive, MODELS } from "../src/lib/llm";
+import { generateJSON, isLive, models, provider } from "../src/lib/ai";
 import { rulesPlan } from "../src/lib/plan-rules";
 import { employeeById } from "../src/lib/skills";
 
@@ -34,6 +36,9 @@ const PRICES: Record<string, [number, number, number]> = {
   "claude-opus-5-5": [4, 20, 0.2],
   "claude-sonnet-5-5": [2, 10, 0.2],
   "claude-haiku-5-5": [0.1, 0.5, 0.01],
+  // OpenCode gateway list prices (opencode.ai docs, Oct 2026); free models cost 0
+  "kimi-k2.6": [0.95, 4, 0],
+  "deepseek-v4.1-flash": [0.3, 1.2, 0],
 };
 
 const JudgeSchema = z.object({
@@ -45,14 +50,15 @@ const JudgeSchema = z.object({
 });
 
 async function judge(c: Case, answer: string, sourcesText: string) {
-  const res = await getClient().messages.parse({
-    model: MODELS.judge,
-    max_tokens: 4000,
-    output_config: { effort: "medium", format: zodOutputFormat(JudgeSchema) },
+  return generateJSON({
+    model: models().judge,
+    maxTokens: 4000,
+    effort: "medium",
     system: "You grade answers from a workplace learning coach for a Thai company. Be strict about grounding: any course, date, rule or number not in the sources is a failure, unless it comes from the employee's own profile.",
     messages: [{ role: "user", content: `<question lang="${c.lang}">${c.q}</question>\n<sources>\n${sourcesText || "(none)"}\n</sources>\n<answer>\n${answer}\n</answer>` }],
+    schema: JudgeSchema,
+    shape: '{"grounded": boolean, "helpful": number 1-5, "language_ok": boolean, "thai_quality": number 0-5, "notes": string}',
   });
-  return res.parsed_output;
 }
 
 async function main() {
@@ -138,7 +144,7 @@ async function main() {
   ] as [string, string, string, boolean][];
 
   const md = [
-    `# Coach eval report (${live ? `live: ${MODELS.coach}, classifier ${MODELS.classifier}, judge ${MODELS.judge}` : "demo mode: guardrails + retrieval + scripted answers, no model calls"})`,
+    `# Coach eval report (${live ? `live via ${provider()}: coach ${models().coach}, classifier ${models().classifier}, judge ${models().judge}` : "demo mode: guardrails + retrieval + scripted answers, no model calls"})`,
     "",
     `Run: ${new Date().toISOString()} · ${stats.cases} cases · overall ${pct(stats.pass, stats.cases)} pass · median latency ${p50} ms${live ? ` · model cost $${stats.cost.toFixed(3)} (list prices)` : ""}`,
     "",

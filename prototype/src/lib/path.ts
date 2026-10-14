@@ -2,10 +2,9 @@
 // per skill gap; the LLM only sequences that shortlist and writes the
 // rationale. Output is validated against catalogue ids, so the model can
 // never invent a course. The manager approves the result.
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { skillById } from "../data/taxonomy";
-import { fallbackFor, getClient, isLive, MODELS } from "./llm";
+import { generateJSON, isLive, models } from "./ai";
 import { MAX_STEPS, PLAN_START, rulesPlan, shortlist } from "./plan-rules";
 import { profileForPrompt } from "./skills";
 import type { Employee, LearningPlan, Level, PlanStep } from "./types";
@@ -47,16 +46,16 @@ export async function aiPlan(emp: Employee, overrides?: Record<string, Level>): 
     )
     .join("\n");
   try {
-    const res = await getClient().beta.messages.parse({
-      model: MODELS.path,
-      max_tokens: 16000,
+    const out = await generateJSON({
+      model: models().path,
+      maxTokens: 16000,
+      effort: "medium",
       system: PATH_SYSTEM,
-      output_config: { effort: "medium", format: betaZodOutputFormat(PlanSchema) },
       messages: [{ role: "user", content: `<employee>\n${profileForPrompt(emp, overrides)}\n</employee>\n\n<shortlist>\n${shortlistText}\n</shortlist>` }],
-      ...fallbackFor(MODELS.path),
+      schema: PlanSchema,
+      shape: '{"summary_en": string, "summary_th": string, "steps": [{"itemId": string, "skillId": string, "week": number, "rationale_en": string, "rationale_th": string}]}',
     });
-    const out = res.parsed_output;
-    if (res.stop_reason === "refusal" || !out) return base;
+    if (!out) return base;
     const seen = new Set<string>();
     const steps: PlanStep[] = out.steps
       .filter((s) => allowed.has(s.itemId) && !seen.has(s.itemId) && seen.add(s.itemId))
