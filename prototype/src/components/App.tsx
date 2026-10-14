@@ -13,7 +13,7 @@ function About({ onClose }: { onClose: () => void }) {
   const th = s.lang === "th";
   const rows: [string, string, string][] = th
     ? [
-        ["ทำงานจริง", "AI สร้างเส้นทางการเรียนรู้", "ระบบกฎคัดรายการจากคลัง แล้ว Claude จัดลำดับและเขียนเหตุผล ตรวจสอบรหัสรายการทุกครั้ง"],
+        ["ทำงานจริง", "AI สร้างเส้นทางการเรียนรู้", "ระบบกฎคัดรายการจากคลัง แล้วโมเดล AI จัดลำดับและเขียนเหตุผล ตรวจสอบรหัสรายการทุกครั้ง"],
         ["ทำงานจริง", "โค้ช AI ภาษาไทย/อังกฤษ", "ค้นเนื้อหาด้วยการตัดคำภาษาไทย (BM25) ตอบพร้อมอ้างอิง สตรีมคำตอบ"],
         ["ทำงานจริง", "ระบบป้องกัน 2 ชั้น", "กฎแบบกำหนดแน่นอน + ตัวจำแนกด้วย AI ปิดบังข้อมูลส่วนบุคคลก่อนส่งให้ AI"],
         ["ทำงานจริง", "การอนุมัติของหัวหน้า", "ผลประเมิน แผน และโปรเจกต์ พร้อม SLA และการส่งต่อ"],
@@ -21,7 +21,7 @@ function About({ onClose }: { onClose: () => void }) {
         ["จำลอง", "แดชบอร์ด", "ตัวเลข 12,000 คนเป็นข้อมูลสมมติเพื่อแสดงตัวอย่าง"],
       ]
     : [
-        ["Real", "AI learning path", "Rules engine shortlists approved items; Claude sequences them and writes the rationale; every item id is validated"],
+        ["Real", "AI learning path", "Rules engine shortlists approved items; the AI model sequences them and writes the rationale; every item id is validated"],
         ["Real", "Thai/English AI coach", "Thai-aware retrieval (word segmentation + BM25), cited answers, streamed"],
         ["Real", "Two-layer guardrails", "Deterministic rules + AI intent classifier; personal data masked before any model call"],
         ["Real", "Manager approvals", "Assessment, plan and project sign-off with SLA and escalation"],

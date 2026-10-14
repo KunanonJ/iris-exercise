@@ -24,7 +24,7 @@ Requires Node 20+ and pnpm.
 
 ```bash
 pnpm install
-cp .dev.vars.example .dev.vars   # optional: add OPENCODE_API_KEY or ANTHROPIC_API_KEY
+cp .dev.vars.example .dev.vars   # optional: configure Workers AI, OpenCode or Anthropic
 pnpm dev                         # UI on http://localhost:3000, API (Worker) on :8787
 pnpm preview                     # production-like: static build + Worker on http://localhost:8787
 ```
@@ -83,7 +83,7 @@ Checks: category, correct citation, forbidden content, PII masking and reply lan
 | Retrieval | `src/lib/coach/retrieval.ts` | BM25 with Thai word segmentation (`Intl.Segmenter`, same output on Node and Workers). Production adds multilingual embeddings |
 | Guardrails | `src/lib/coach/guardrails.ts` | Layer 1: bilingual deterministic rules and PII masking before any model call. Layer 2: model intent classifier (live). Blocked categories get fixed, reviewed replies |
 | Coach | `src/lib/coach/coach.ts`, `prompt.ts` | Only the signed-in employee's own record is sent; sources are numbered and cited; streaming |
-| AI providers | `src/lib/ai.ts` | Anthropic or OpenCode; streaming text and schema-checked JSON |
+| AI providers | `src/lib/ai.ts` | Cloudflare Workers AI (free default), OpenCode or Anthropic; streaming text and schema-checked JSON |
 | API + hosting | `worker/index.ts`, `wrangler.jsonc` | Cloudflare Worker serves the static Next.js export and `/api/status`, `/api/coach` (stream), `/api/path`, `/api/unlock`; best-effort rate limit; optional passcode gate |
 
 ## Deploy (Cloudflare Workers)

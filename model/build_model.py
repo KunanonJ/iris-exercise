@@ -109,7 +109,7 @@ inp("path_out", "Path generation output tokens", 2500, "tokens", "")
 inp("judge_usd", "Eval and judge sampling per month", 150, "USD / month", "Weekly regression eval + sampled live answers.")
 
 section(A, "Model prices (Anthropic list, USD per 1M tokens, Oct 2026)")
-inp("c_in", "Coach model input (Sonnet 5.5)", 2.0, "USD / 1M", "Production coach on Sonnet 5.5 if it passes the eval gate; prototype runs Opus 5.5.", USD, True)
+inp("c_in", "Coach model input (Sonnet 5.5)", 2.0, "USD / 1M", "Production coach on Sonnet 5.5 if it passes the eval gate; live prototype runs SEA-LION v4 (Workers AI, free).", USD, True)
 inp("c_out", "Coach model output (Sonnet 5.5)", 10.0, "USD / 1M", "", USD, True)
 inp("c_cache", "Coach model cache read", 0.2, "USD / 1M", "", USD)
 inp("o_in", "Opus 5.5 input (scenario)", 4.0, "USD / 1M", "Used for the Opus scenario on the AI Cost sheet.", USD)
