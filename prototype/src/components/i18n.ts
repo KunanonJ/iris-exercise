@@ -28,7 +28,7 @@ const S = {
   open: { en: "Open", th: "เปิด" },
   lineNudge: { en: "Nudge on LINE", th: "การแจ้งเตือนทาง LINE" },
   lineNote: { en: "Frontline staff get reminders in LINE (opt-in); tapping opens the app via single sign-on.", th: "พนักงานหน้างานรับการแจ้งเตือนทาง LINE (สมัครใจ) แตะเพื่อเปิดแอปด้วยการล็อกอินครั้งเดียว" },
-  switchToManager: { en: "Switch to manager view to approve", th: "สลับไปมุมมองหัวหน้าเพื่ออนุมัติ" },
+  switchToManager: { en: "Sign in as Manager (E0002) to approve", th: "เข้าสู่ระบบหัวหน้า (E0002) เพื่ออนุมัติ" },
 
   assessment: { en: "Skill check", th: "ประเมินทักษะ" },
   rateYourself: { en: "Which statement fits you best today?", th: "ข้อใดตรงกับคุณมากที่สุดในวันนี้" },

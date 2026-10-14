@@ -364,7 +364,8 @@ function StatusCard() {
   const { s, dispatch } = useStore();
   const t = tr(s.lang);
   const L = s.lang;
-  const toManager = () => dispatch({ type: "set", patch: { persona: "manager" } });
+  const toManager = () =>
+    dispatch({ type: "logout", nextPersona: "manager", handoffNotice: "fromEmployee" });
   if (s.assessment.status === "not_started")
     return (
       <Card className="border-brand/30 bg-brand-soft/65">
@@ -900,7 +901,9 @@ function PathView() {
         <Button
           variant="outline"
           className="w-full"
-          onClick={() => dispatch({ type: "set", patch: { persona: "manager" } })}
+          onClick={() =>
+            dispatch({ type: "logout", nextPersona: "manager", handoffNotice: "fromEmployee" })
+          }
         >
           {t("switchToManager")} →
         </Button>

@@ -19,7 +19,9 @@ export interface ChatMsg {
 }
 
 export interface State {
+  authed: boolean;
   persona: Persona;
+  handoffNotice?: "fromEmployee";
   lang: Lang;
   tab: "home" | "skills" | "path" | "coach";
   lessonId?: string;
@@ -58,6 +60,7 @@ export function initialState(): State {
   const self: Record<string, Level> = {};
   for (const [k, v] of Object.entries(hero.scores)) self[k] = v.self;
   return {
+    authed: false,
     persona: "employee",
     lang: "th",
     tab: "home",
@@ -72,6 +75,8 @@ export function initialState(): State {
 
 export type Action =
   | { type: "set"; patch: Partial<State> }
+  | { type: "login"; persona: Persona }
+  | { type: "logout"; nextPersona?: Persona; handoffNotice?: "fromEmployee" }
   | { type: "submitAssessment"; self: Record<string, Level>; quiz: Record<string, Level> }
   | { type: "decideAssessment"; approvalId: string; final?: Record<string, Level>; note?: string; approve: boolean }
   | { type: "setPlan"; plan: LearningPlan }
@@ -87,61 +92,154 @@ function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "set":
       return { ...s, ...a.patch };
+    case "login":
+      return {
+        ...s,
+        authed: true,
+        persona: a.persona,
+        handoffNotice: undefined,
+        toast: undefined,
+      };
+    case "logout":
+      return {
+        ...s,
+        authed: false,
+        persona: a.nextPersona ?? s.persona,
+        handoffNotice: a.handoffNotice,
+        lessonId: undefined,
+        assessing: false,
+        toast: undefined,
+      };
     case "submitAssessment": {
       // Proposed result: self-rating, moderated by the knowledge check where one exists.
       const final: Record<string, Level> = {};
-      for (const [k, v] of Object.entries(a.self)) final[k] = (a.quiz[k] ? Math.min(v, a.quiz[k]) : v) as Level;
-      const ap: Approval = { id: `ap-assess-${Date.now()}`, kind: "assessment", employeeId: HERO, submittedAt: iso(0), dueAt: iso(5), status: "pending" };
-      return { ...s, assessing: false, assessment: { status: "submitted", self: a.self, quiz: a.quiz, final }, approvals: [ap, ...s.approvals], toast: "assessmentSent" };
+      for (const [k, v] of Object.entries(a.self))
+        final[k] = (a.quiz[k] ? Math.min(v, a.quiz[k]) : v) as Level;
+      const ap: Approval = {
+        id: `ap-assess-${Date.now()}`,
+        kind: "assessment",
+        employeeId: HERO,
+        submittedAt: iso(0),
+        dueAt: iso(5),
+        status: "pending",
+      };
+      return {
+        ...s,
+        assessing: false,
+        assessment: { status: "submitted", self: a.self, quiz: a.quiz, final },
+        approvals: [ap, ...s.approvals],
+        toast: "assessmentSent",
+      };
     }
     case "decideAssessment": {
-      const approvals = s.approvals.map((x) => (x.id === a.approvalId ? { ...x, status: a.approve ? ("approved" as const) : ("changes_requested" as const), note: a.note } : x));
+      const approvals = s.approvals.map((x) =>
+        x.id === a.approvalId
+          ? { ...x, status: a.approve ? ("approved" as const) : ("changes_requested" as const), note: a.note }
+          : x,
+      );
       const ap = s.approvals.find((x) => x.id === a.approvalId);
       if (ap?.employeeId !== HERO) return { ...s, approvals };
-      if (!a.approve) return { ...s, approvals, assessment: { ...s.assessment, status: "not_started", managerNote: a.note } };
+      if (!a.approve)
+        return { ...s, approvals, assessment: { ...s.assessment, status: "not_started", managerNote: a.note } };
       const final = a.final ?? s.assessment.final ?? {};
-      return { ...s, approvals, assessment: { ...s.assessment, status: "approved", final, managerNote: a.note }, overrides: { ...final } };
+      return {
+        ...s,
+        approvals,
+        assessment: { ...s.assessment, status: "approved", final, managerNote: a.note },
+        overrides: { ...final },
+      };
     }
     case "setPlan":
       return { ...s, plan: a.plan };
     case "submitPlan": {
       if (!s.plan) return s;
-      const ap: Approval = { id: `ap-plan-${Date.now()}`, kind: "plan", employeeId: HERO, submittedAt: iso(0), dueAt: iso(5), status: "pending" };
-      return { ...s, plan: { ...s.plan, status: "pending" }, approvals: [ap, ...s.approvals.filter((x) => !(x.employeeId === HERO && x.kind === "plan" && x.status === "pending"))], toast: "planSent" };
+      const ap: Approval = {
+        id: `ap-plan-${Date.now()}`,
+        kind: "plan",
+        employeeId: HERO,
+        submittedAt: iso(0),
+        dueAt: iso(5),
+        status: "pending",
+      };
+      return {
+        ...s,
+        plan: { ...s.plan, status: "pending" },
+        approvals: [
+          ap,
+          ...s.approvals.filter((x) => !(x.employeeId === HERO && x.kind === "plan" && x.status === "pending")),
+        ],
+        toast: "planSent",
+      };
     }
     case "decidePlan": {
-      const approvals = s.approvals.map((x) => (x.id === a.approvalId ? { ...x, status: a.approve ? ("approved" as const) : ("changes_requested" as const), note: a.note } : x));
+      const approvals = s.approvals.map((x) =>
+        x.id === a.approvalId
+          ? { ...x, status: a.approve ? ("approved" as const) : ("changes_requested" as const), note: a.note }
+          : x,
+      );
       const ap = s.approvals.find((x) => x.id === a.approvalId);
       if (ap?.employeeId !== HERO || !s.plan) return { ...s, approvals };
-      return { ...s, approvals, plan: { ...s.plan, status: a.approve ? "approved" : "changes_requested", managerNote: a.note } };
+      return {
+        ...s,
+        approvals,
+        plan: { ...s.plan, status: a.approve ? "approved" : "changes_requested", managerNote: a.note },
+      };
     }
     case "stepStatus":
       if (!s.plan) return s;
-      return { ...s, plan: { ...s.plan, steps: s.plan.steps.map((st) => (st.itemId === a.itemId ? { ...st, status: a.status } : st)) } };
+      return {
+        ...s,
+        plan: {
+          ...s.plan,
+          steps: s.plan.steps.map((st) => (st.itemId === a.itemId ? { ...st, status: a.status } : st)),
+        },
+      };
     case "submitProject": {
       if (!s.plan) return s;
-      const ap: Approval = { id: `ap-proj-${Date.now()}`, kind: "project", employeeId: HERO, submittedAt: iso(0), dueAt: iso(5), status: "pending", ref: a.itemId };
+      const ap: Approval = {
+        id: `ap-proj-${Date.now()}`,
+        kind: "project",
+        employeeId: HERO,
+        submittedAt: iso(0),
+        dueAt: iso(5),
+        status: "pending",
+        ref: a.itemId,
+      };
       return {
         ...s,
         evidence: { ...s.evidence, [a.itemId]: a.evidence },
         approvals: [ap, ...s.approvals],
-        plan: { ...s.plan, steps: s.plan.steps.map((st) => (st.itemId === a.itemId ? { ...st, status: "submitted" } : st)) },
+        plan: {
+          ...s.plan,
+          steps: s.plan.steps.map((st) => (st.itemId === a.itemId ? { ...st, status: "submitted" } : st)),
+        },
         toast: "projectSent",
       };
     }
     case "decideProject": {
-      const approvals = s.approvals.map((x) => (x.id === a.approvalId ? { ...x, status: a.approve ? ("approved" as const) : ("changes_requested" as const), note: a.note } : x));
+      const approvals = s.approvals.map((x) =>
+        x.id === a.approvalId
+          ? { ...x, status: a.approve ? ("approved" as const) : ("changes_requested" as const), note: a.note }
+          : x,
+      );
       const ap = s.approvals.find((x) => x.id === a.approvalId);
       if (ap?.employeeId !== HERO || !s.plan || !ap.ref) return { ...s, approvals };
       const item = itemById(ap.ref);
       const overrides = { ...s.overrides };
       // An approved project is evidence of the target level for its skills.
-      if (a.approve) for (const sk of item?.skills ?? []) overrides[sk.skillId] = Math.max(overrides[sk.skillId] ?? 1, sk.targetLevel) as Level;
+      if (a.approve)
+        for (const sk of item?.skills ?? [])
+          overrides[sk.skillId] = Math.max(overrides[sk.skillId] ?? 1, sk.targetLevel) as Level;
       return {
         ...s,
         approvals,
         overrides,
-        plan: { ...s.plan, steps: s.plan.steps.map((st) => (st.itemId === ap.ref ? { ...st, status: a.approve ? "done" : "in_progress" } : st)) },
+        plan: {
+          ...s.plan,
+          steps: s.plan.steps.map((st) =>
+            st.itemId === ap.ref ? { ...st, status: a.approve ? "done" : "in_progress" } : st,
+          ),
+        },
       };
     }
     case "chat":
@@ -152,7 +250,7 @@ function reducer(s: State, a: Action): State {
 }
 
 const Ctx = createContext<{ s: State; dispatch: (a: Action) => void } | null>(null);
-const KEY = "learning-suite-demo-v1";
+const KEY = "learning-suite-demo-v2";
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [s, dispatch] = useReducer(reducer, undefined, initialState);

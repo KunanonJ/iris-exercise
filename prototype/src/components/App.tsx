@@ -5,15 +5,21 @@ import { employeeById } from "@/lib/skills";
 import { EmployeeApp } from "./Employee";
 import { tr } from "./i18n";
 import { LeaderDashboard } from "./Leader";
+import { ROLE_ACCOUNTS, RoleLoginScreen } from "./Login";
 import { ManagerApp } from "./Manager";
-import { MANAGER, StoreProvider, useStore, type Persona } from "./store";
-import { Badge, Button, cx, Icon } from "./ui";
+import { MANAGER, StoreProvider, useStore } from "./store";
+import { Avatar, Badge, Button, cx, Icon } from "./ui";
 
 function About({ onClose }: { onClose: () => void }) {
   const { s, dispatch } = useStore();
   const th = s.lang === "th";
   const rows: [string, string, string][] = th
     ? [
+        [
+          "ทำงานจริง",
+          "แยกพอร์ทัลเข้าสู่ระบบ 3 บทบาท (RBAC)",
+          "พนักงาน (E0001 · LINE SSO), หัวหน้างาน (E0002 · Corp SSO) และ HR/ผู้บริหาร (E9001 · Entra ID) แยกเซสชันและสิทธิ์ข้อมูลตาม PDPA",
+        ],
         [
           "ทำงานจริง",
           "AI สร้างเส้นทางการเรียนรู้",
@@ -39,9 +45,13 @@ function About({ onClose }: { onClose: () => void }) {
           "HR, LMS, SSO, LINE",
           "ข้อมูลพนักงานและคลังการเรียนรู้เป็นข้อมูลจำลองที่สร้างด้วยสคริปต์",
         ],
-        ["จำลอง", "แดชบอร์ด", "ตัวเลข 12,000 คนเป็นข้อมูลสมมติเพื่อแสดงตัวอย่าง"],
       ]
     : [
+        [
+          "Real",
+          "Role-separated login portals (RBAC)",
+          "Employee (E0001 · LINE SSO), Manager (E0002 · Corp SSO), and HR & Leaders (E9001 · Entra ID) authenticate into isolated PDPA-scoped sessions",
+        ],
         [
           "Real",
           "AI learning path",
@@ -67,7 +77,6 @@ function About({ onClose }: { onClose: () => void }) {
           "HR system, LMSs, SSO, LINE",
           "Employees and catalogue are generated mock data",
         ],
-        ["Mocked", "Dashboard numbers", "The 12,000-person figures are illustrative"],
       ];
   return (
     <div
@@ -96,8 +105,8 @@ function About({ onClose }: { onClose: () => void }) {
         </div>
         <p className="mt-2 rounded-2xl bg-surface-2 p-3 text-xs leading-relaxed text-ink-2 ring-1 ring-inset ring-line">
           {th
-            ? "ต้นแบบสำหรับกรณีศึกษา: Learning Suite สำหรับพนักงานหน้างาน ลองทำตามเส้นทาง: พนักงานประเมินทักษะ → หัวหน้าอนุมัติ → AI สร้างเส้นทาง → หัวหน้าอนุมัติแผน → เรียนและถามโค้ช → ส่งโปรเจกต์ → แดชบอร์ดผู้บริหาร"
-            : "Case prototype of the Learning Suite for frontline staff. Suggested walk-through: employee skill check → manager approves → AI builds the path → manager approves the plan → learn and ask the coach → submit a project → leader dashboard."}
+            ? "ต้นแบบสำหรับกรณีศึกษา: แต่ละบทบาทเข้าสู่ระบบแยกกัน ลองทำตามเส้นทาง: เข้าสู่ระบบพนักงาน (E0001) ประเมินทักษะ → ออกจากระบบแล้วเข้าสู่ระบบหัวหน้า (E0002) เพื่ออนุมัติ → กลับเข้าพนักงานเพื่อให้ AI สร้างเส้นทาง → หัวหน้าอนุมัติแผน → เข้าสู่ระบบ HR และผู้บริหาร (E9001)"
+            : "Case prototype with role-separated login: Sign in as Employee (E0001) for skill check → Sign out & sign in as Manager (E0002) to approve → Sign in as Employee to build AI path → Manager approves → Sign in as HR & Leaders (E9001) for executive dashboard."}
         </p>
         <table className="mt-3 w-full text-xs">
           <tbody>
@@ -133,9 +142,11 @@ function About({ onClose }: { onClose: () => void }) {
 function Shell() {
   const { s, dispatch } = useStore();
   const t = tr(s.lang);
+  const L = s.lang;
   const [live, setLive] = useState<boolean>();
   const [prov, setProv] = useState<string>();
   const [about, setAbout] = useState(false);
+
   useEffect(() => {
     fetch("/api/status")
       .then((r) => r.json())
@@ -153,11 +164,13 @@ function Shell() {
       })
       .catch(() => setLive(false));
   }, []);
+
   useEffect(() => {
     document.documentElement.lang = s.lang;
   }, [s.lang]);
 
-  const personas: Persona[] = ["employee", "manager", "leader"];
+  const acct = ROLE_ACCOUNTS[s.persona];
+  const currentUser = employeeById(acct.empId)!;
   const pendingCount = s.approvals.filter(
     (a) => a.status === "pending" && employeeById(a.employeeId)?.managerId === MANAGER,
   ).length;
@@ -166,66 +179,58 @@ function Shell() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-line bg-surface/94 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 max-sm:gap-1.5 max-sm:px-2">
-          <div className="mr-2 flex items-center gap-2 text-sm font-semibold text-brand max-sm:hidden">
-            <span className="font-display grid h-7 w-7 place-items-center rounded-lg bg-brand text-xs font-bold text-white shadow-xs">
+          <div className="flex items-center gap-2 text-sm font-semibold text-brand">
+            <span className="font-display grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand text-xs font-bold text-white shadow-xs">
               LS
             </span>
-            <span>{t("appName")} · Prototype</span>
+            <span className="max-sm:hidden">{t("appName")}</span>
           </div>
-          <div className="flex rounded-xl border border-line bg-surface-2 p-0.5">
-            {personas.map((p) => {
-              const active = s.persona === p;
-              return (
+
+          {s.authed ? (
+            <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-2 px-2.5 py-1 text-xs">
+              <Avatar name={currentUser.name[L]} size="sm" className="h-5 w-5 text-[10px]" />
+              <span className="font-semibold text-ink">{currentUser.name[L]}</span>
+              <Badge tone="brand">{t(s.persona)}</Badge>
+              <span className="font-display hidden text-[11px] text-ink-3 md:inline">
+                {acct.empId} · {acct.ssoBadge}
+              </span>
+              {s.persona === "manager" && pendingCount > 0 && (
+                <Badge tone="gap">{pendingCount}</Badge>
+              )}
+            </div>
+          ) : (
+            <Badge tone="neutral" className="max-sm:hidden">
+              {L === "th" ? "ยังไม่ได้เข้าสู่ระบบ" : "Not signed in"}
+            </Badge>
+          )}
+
+          <div className="ml-auto flex items-center gap-1.5">
+            <div className="flex rounded-xl border border-line bg-surface-2 p-0.5">
+              {(["th", "en"] as const).map((l) => (
                 <button
-                  key={p}
+                  key={l}
                   type="button"
-                  onClick={() => dispatch({ type: "set", patch: { persona: p } })}
+                  onClick={() => dispatch({ type: "set", patch: { lang: l } })}
                   className={cx(
-                    "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium transition cursor-pointer max-sm:px-1.5",
-                    active ? "bg-surface text-brand shadow-xs" : "text-ink-2 hover:text-ink",
+                    "rounded-lg px-2 py-1 text-xs font-medium transition cursor-pointer",
+                    s.lang === l ? "bg-surface text-brand shadow-xs" : "text-ink-2 hover:text-ink",
                   )}
                 >
-                  <span>{t(p)}</span>
-                  {p === "manager" && pendingCount > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className={cx(
-                        "font-display inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums",
-                        active ? "bg-brand text-white" : "bg-gap text-white",
-                      )}
-                    >
-                      {pendingCount}
-                    </span>
-                  )}
+                  {l === "th" ? "ไทย" : "EN"}
                 </button>
-              );
-            })}
-          </div>
-          <div className="flex rounded-xl border border-line bg-surface-2 p-0.5">
-            {(["th", "en"] as const).map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => dispatch({ type: "set", patch: { lang: l } })}
-                className={cx(
-                  "rounded-lg px-2 py-1 text-xs font-medium transition cursor-pointer",
-                  s.lang === l ? "bg-surface text-brand shadow-xs" : "text-ink-2 hover:text-ink",
-                )}
-              >
-                {l === "th" ? "ไทย" : "EN"}
-              </button>
-            ))}
-          </div>
-          <div className="ml-auto flex items-center gap-1.5">
+              ))}
+            </div>
+
             {live !== undefined && (
-              <Badge tone={live ? "ok" : "warn"}>
+              <Badge tone={live ? "ok" : "warn"} className="max-sm:hidden">
                 {live && <span className="h-1.5 w-1.5 rounded-full bg-ok" />}
-                <span className="max-md:hidden">
+                <span className="max-lg:hidden">
                   {live ? `${t("liveMode")}${prov ? ` · ${prov}` : ""}` : t("demoMode")}
                 </span>
-                <span className="md:hidden">{live ? "Live AI" : "Demo"}</span>
+                <span className="lg:hidden">{live ? "Live AI" : "Demo"}</span>
               </Badge>
             )}
+
             <Button
               variant="ghost"
               className="whitespace-nowrap px-2 py-1 text-xs"
@@ -234,6 +239,18 @@ function Shell() {
               <span className="max-md:hidden">{t("about")}</span>
               <span className="md:hidden">?</span>
             </Button>
+
+            {s.authed && (
+              <Button
+                variant="outline"
+                className="whitespace-nowrap px-2.5 py-1 text-xs"
+                onClick={() => dispatch({ type: "logout" })}
+              >
+                <Icon name="logout" className="h-3.5 w-3.5" />
+                <span>{L === "th" ? "สลับบัญชี / ออกจากระบบ" : "Switch role / Sign out"}</span>
+              </Button>
+            )}
+
             <Button
               variant="ghost"
               className="whitespace-nowrap px-2 py-1 text-xs max-sm:hidden"
@@ -244,15 +261,22 @@ function Shell() {
           </div>
         </div>
       </header>
+
       <main
         className={cx(
           "px-4 py-4 max-sm:px-0 max-sm:py-0",
-          s.persona === "leader" && "max-sm:px-4 max-sm:py-4",
+          (!s.authed || s.persona === "leader") && "max-sm:px-4 max-sm:py-4",
         )}
       >
-        {s.persona === "employee" && <EmployeeApp />}
-        {s.persona === "manager" && <ManagerApp />}
-        {s.persona === "leader" && <LeaderDashboard />}
+        {!s.authed ? (
+          <RoleLoginScreen />
+        ) : (
+          <>
+            {s.persona === "employee" && <EmployeeApp />}
+            {s.persona === "manager" && <ManagerApp />}
+            {s.persona === "leader" && <LeaderDashboard />}
+          </>
+        )}
       </main>
       {about && <About onClose={() => setAbout(false)} />}
     </div>
