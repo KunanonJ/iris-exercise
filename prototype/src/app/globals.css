@@ -1,42 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #eef1f1;
-  --surface: #ffffff;
-  --surface-2: #f6f8f8;
-  --ink: #0f1d1f;
-  --ink-2: #4a5759;
-  --ink-3: #7b8789;
-  --line: #dde3e3;
-  --brand: #0e6b70;
-  --brand-2: #0a5357;
-  --brand-soft: #e3f1f1;
-  --gap: #b45309;
-  --gap-soft: #fdf1e2;
-  --ok: #157f3b;
-  --ok-soft: #e4f4ea;
-  --warn-soft: #fff6db;
-  --danger: #b42318;
-  --danger-soft: #fdecea;
-  /* chart roles (dataviz reference palette, light) */
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
+  /* Perceptually uniform OKLCH palette — tinted toward Siamjade teal (hue ~192) and warm handbook paper */
+  --bg: oklch(0.955 0.008 192);
+  --surface: oklch(0.994 0.003 192);
+  --surface-2: oklch(0.972 0.006 192);
+  --surface-3: oklch(0.942 0.010 192);
+  --ink: oklch(0.210 0.024 196);
+  --ink-2: oklch(0.385 0.022 196);
+  --ink-3: oklch(0.495 0.018 196); /* >= 4.6:1 contrast on surface & surface-2 (WCAG AA) */
+  --line: oklch(0.892 0.012 192);
+  --line-strong: oklch(0.825 0.018 192);
+
+  /* Primary brand: Siamjade Teal */
+  --brand: oklch(0.475 0.088 194);
+  --brand-2: oklch(0.395 0.082 194);
+  --brand-soft: oklch(0.938 0.026 192);
+  --brand-ring: oklch(0.580 0.095 194 / 0.28);
+
+  /* Semantic roles */
+  --gap: oklch(0.520 0.135 58);
+  --gap-soft: oklch(0.952 0.032 72);
+  --ok: oklch(0.495 0.125 152);
+  --ok-soft: oklch(0.945 0.032 152);
+  --warn: oklch(0.505 0.125 75);
+  --warn-soft: oklch(0.958 0.038 84);
+  --danger: oklch(0.485 0.175 28);
+  --danger-soft: oklch(0.948 0.028 25);
+
+  /* Dataviz reference palette (light mode) */
+  --series-1: #1f6feb;
+  --series-2: #e05d26;
   --seq-100: #cde2fb;
   --seq-250: #86b6ef;
   --seq-400: #3987e5;
   --seq-550: #1c5cab;
   --seq-700: #0d366b;
-  --grid: #e7ebeb;
+  --grid: oklch(0.915 0.010 192);
+
+  /* Motion tokens */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
   --color-brand: var(--brand);
   --color-brand-2: var(--brand-2);
   --color-brand-soft: var(--brand-soft);
@@ -44,10 +60,12 @@
   --color-gap-soft: var(--gap-soft);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --font-sans: var(--font-inter), var(--font-thai), system-ui, sans-serif;
+  --font-sans: var(--font-sans-latin), var(--font-thai), system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-thai), system-ui, sans-serif;
 }
 
 html,
@@ -57,26 +75,58 @@ body {
 }
 
 body {
-  font-family: var(--font-inter), var(--font-thai), system-ui, sans-serif;
+  font-family: var(--font-sans-latin), var(--font-thai), system-ui, sans-serif;
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Thai text needs a little more line height to fit tone marks */
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), var(--font-thai), system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Thai text needs extra vertical breathing room for tone marks (วรรณยุกต์) and no negative tracking */
 :lang(th) {
   line-height: 1.65;
 }
 
+:lang(th) h1,
+:lang(th) h2,
+:lang(th) h3,
+:lang(th) .font-display {
+  letter-spacing: 0;
+  line-height: 1.42;
+}
+
+/* Accessible keyboard focus indicators */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 .scroll-thin::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
 .scroll-thin::-webkit-scrollbar-thumb {
-  background: var(--line);
-  border-radius: 3px;
+  background: var(--line-strong);
+  border-radius: 9999px;
 }
 
 @keyframes blink {
   50% {
-    opacity: 0.2;
+    opacity: 0.22;
   }
 }
 .typing span {
@@ -87,4 +137,45 @@ body {
 }
 .typing span:nth-child(3) {
   animation-delay: 0.4s;
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-sheet-up {
+  animation: sheet-up 240ms var(--ease-out-quart) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 200ms var(--ease-out-quart) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

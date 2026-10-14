@@ -8,7 +8,7 @@ import { directReports, employeeById, profile } from "@/lib/skills";
 import type { Approval, Level } from "@/lib/types";
 import { tr } from "./i18n";
 import { HERO, MANAGER, useStore } from "./store";
-import { Badge, Button, Card, cx, Icon, PhoneFrame } from "./ui";
+import { Avatar, Badge, Button, Card, cx, Icon, PhoneFrame, Ring } from "./ui";
 
 const manager = employeeById(MANAGER)!;
 const CANNED_EVIDENCE = {
@@ -34,9 +34,12 @@ function Detail({ ap, onClose }: { ap: Approval; onClose: () => void }) {
 
   const decide = (approve: boolean) => {
     const n = note.trim() || undefined;
-    if (ap.kind === "assessment") dispatch({ type: "decideAssessment", approvalId: ap.id, approve, final, note: n });
-    if (ap.kind === "plan") dispatch({ type: "decidePlan", approvalId: ap.id, approve, note: n });
-    if (ap.kind === "project") dispatch({ type: "decideProject", approvalId: ap.id, approve, note: n });
+    if (ap.kind === "assessment")
+      dispatch({ type: "decideAssessment", approvalId: ap.id, approve, final, note: n });
+    if (ap.kind === "plan")
+      dispatch({ type: "decidePlan", approvalId: ap.id, approve, note: n });
+    if (ap.kind === "project")
+      dispatch({ type: "decideProject", approvalId: ap.id, approve, note: n });
     onClose();
   };
 
@@ -44,53 +47,104 @@ function Detail({ ap, onClose }: { ap: Approval; onClose: () => void }) {
   if (ap.kind === "assessment") {
     const ids = Object.keys(final);
     body = (
-      <div className="overflow-hidden rounded-xl border border-line bg-surface">
-        <div className="grid grid-cols-[1fr_40px_40px_92px] gap-1 border-b border-line bg-surface-2 px-2 py-1.5 text-[10px] font-medium text-ink-3">
-          <span />
+      <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="grid grid-cols-[1fr_42px_42px_96px] gap-1 border-b border-line bg-surface-2 px-3 py-2 text-[10px] font-semibold text-ink-3">
+          <span>{t("skills")}</span>
           <span className="text-center">{t("selfRating")}</span>
           <span className="text-center">{t("quizShort")}</span>
           <span className="text-center">{t("proposed")}</span>
         </div>
-        {ids.map((id) => {
-          const selfV = isHero ? s.assessment.self[id] : emp.scores[id]?.self;
-          const quizV = isHero ? s.assessment.quiz[id] : undefined;
-          const differs = selfV !== final[id];
-          return (
-            <div key={id} className="grid grid-cols-[1fr_40px_40px_92px] items-center gap-1 border-b border-line px-2 py-1.5 text-xs last:border-0">
-              <span className="truncate">{skillById(id).name[L]}</span>
-              <span className="text-center text-ink-3">{selfV ?? "-"}</span>
-              <span className="text-center text-ink-3">{quizV ?? "-"}</span>
-              <span className="flex items-center justify-center gap-1">
-                <button className="h-6 w-6 rounded-lg border border-line" onClick={() => setFinal({ ...final, [id]: Math.max(1, final[id] - 1) as Level })}>
-                  −
-                </button>
-                <span className={cx("w-5 text-center font-semibold", differs && "text-gap")}>{final[id]}</span>
-                <button className="h-6 w-6 rounded-lg border border-line" onClick={() => setFinal({ ...final, [id]: Math.min(4, final[id] + 1) as Level })}>
-                  +
-                </button>
-              </span>
-            </div>
-          );
-        })}
+        <div className="divide-y divide-line">
+          {ids.map((id) => {
+            const selfV = isHero ? s.assessment.self[id] : emp.scores[id]?.self;
+            const quizV = isHero ? s.assessment.quiz[id] : undefined;
+            const differs = selfV !== final[id];
+            return (
+              <div
+                key={id}
+                className={cx(
+                  "grid grid-cols-[1fr_42px_42px_96px] items-center gap-1 px-3 py-2 text-xs transition",
+                  differs && "bg-brand-soft/45",
+                )}
+              >
+                <span className="truncate font-medium text-ink">
+                  {skillById(id).name[L]}
+                  {differs && (
+                    <span className="ml-1.5 inline-block rounded bg-gap-soft px-1 py-0.2 text-[9px] font-semibold text-gap">
+                      {L === "th" ? "ปรับเทียบ" : "Calibrated"}
+                    </span>
+                  )}
+                </span>
+                <span className="text-center tabular-nums text-ink-3">
+                  {selfV ? `L${selfV}` : "–"}
+                </span>
+                <span className="text-center tabular-nums text-ink-3">
+                  {quizV ? `L${quizV}` : "–"}
+                </span>
+                <span className="flex items-center justify-center gap-1.5">
+                  <button
+                    type="button"
+                    aria-label="Decrease level"
+                    className="grid h-7 w-7 place-items-center rounded-lg border border-line bg-surface-2 font-bold text-ink hover:border-brand/40 cursor-pointer"
+                    onClick={() =>
+                      setFinal({ ...final, [id]: Math.max(1, final[id] - 1) as Level })
+                    }
+                  >
+                    −
+                  </button>
+                  <span
+                    className={cx(
+                      "font-display w-6 text-center text-xs font-bold tabular-nums",
+                      differs ? "text-gap" : "text-brand",
+                    )}
+                  >
+                    L{final[id]}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Increase level"
+                    className="grid h-7 w-7 place-items-center rounded-lg border border-line bg-surface-2 font-bold text-ink hover:border-brand/40 cursor-pointer"
+                    onClick={() =>
+                      setFinal({ ...final, [id]: Math.min(4, final[id] + 1) as Level })
+                    }
+                  >
+                    +
+                  </button>
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   } else if (ap.kind === "plan") {
     const plan = isHero ? s.plan : rulesPlan(emp);
     body = (
       <div className="space-y-2">
-        {plan?.summary && <p className="text-xs text-ink-2">{plan.summary[L]}</p>}
+        {plan?.summary && (
+          <p className="text-xs leading-relaxed text-ink-2">{plan.summary[L]}</p>
+        )}
         {plan?.steps.map((st) => {
           const item = itemById(st.itemId)!;
           return (
-            <div key={st.itemId} className="rounded-xl border border-line bg-surface p-2.5">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Icon name={item.format} className="h-3.5 w-3.5 text-brand" /> {item.title[L]}
+            <div key={st.itemId} className="rounded-2xl border border-line bg-surface p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+                  <Icon name={item.format} className="h-4 w-4 text-brand" /> {item.title[L]}
+                </div>
+                <Badge tone="neutral">
+                  {t("week")} {st.week}
+                </Badge>
               </div>
-              <div className="mt-0.5 text-[11px] text-ink-3">
-                {t("week")} {st.week} · {item.minutes} {t("min")}
-                {item.format === "workshop" ? ` · ${L === "th" ? "ออกจากกะ" : "off-shift"}` : ""}
+              <div className="mt-1 text-[11px] text-ink-3">
+                {t(item.format)} · {item.minutes} {t("min")} · {item.source}
+                {item.format === "workshop"
+                  ? ` · ${L === "th" ? "ออกจากกะ" : "off-shift"}`
+                  : ""}
               </div>
-              <p className="mt-1 text-xs text-ink-2">{st.rationale[L]}</p>
+              <p className="mt-1.5 rounded-lg bg-surface-2 px-2.5 py-1.5 text-xs text-ink-2">
+                <b>{t("why")}:</b> {st.rationale[L]}
+              </p>
             </div>
           );
         })}
@@ -99,43 +153,68 @@ function Detail({ ap, onClose }: { ap: Approval; onClose: () => void }) {
   } else {
     const item = itemById(ap.ref!)!;
     body = (
-      <div className="space-y-2">
-        <div className="text-sm font-medium">{item.title[L]}</div>
-        <p className="text-xs text-ink-2">{item.content?.[L]}</p>
-        <div className="rounded-xl border border-line bg-surface p-2.5 text-sm">{isHero ? s.evidence[item.id] : CANNED_EVIDENCE[L]}</div>
-        <p className="text-[11px] text-ink-3">
-          {L === "th" ? "เมื่ออนุมัติ ระดับทักษะจะอัปเดตเป็นระดับเป้าหมายของโปรเจกต์" : "Approving updates the skill to the project's target level."}{" "}
-          {item.skills.map((x) => `${skillById(x.skillId).name[L]} → L${x.targetLevel}`).join(", ")}
-        </p>
+      <div className="space-y-2.5">
+        <div className="text-sm font-semibold text-ink">{item.title[L]}</div>
+        <p className="text-xs leading-relaxed text-ink-2">{item.content?.[L]}</p>
+        <div className="rounded-2xl border border-line bg-surface p-3 text-sm leading-relaxed text-ink">
+          {isHero ? s.evidence[item.id] : CANNED_EVIDENCE[L]}
+        </div>
+        <div className="flex items-start gap-2 rounded-xl bg-brand-soft/60 p-2.5 text-[11px] text-ink-2">
+          <Icon name="trendUp" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+          <span>
+            {L === "th"
+              ? "เมื่ออนุมัติ ระดับทักษะจะอัปเดตเป็นระดับเป้าหมายของโปรเจกต์:"
+              : "Approving updates the skill to the project's target level:"}{" "}
+            <b className="text-brand">
+              {item.skills
+                .map((x) => `${skillById(x.skillId).name[L]} → L${x.targetLevel}`)
+                .join(", ")}
+            </b>
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="absolute inset-0 z-20 flex flex-col bg-surface-2">
-      <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-3">
-        <button onClick={onClose} className="text-sm text-ink-2">
+    <div className="animate-sheet-up absolute inset-0 z-20 flex flex-col bg-surface-2">
+      <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-2.5">
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-sm font-medium text-ink-2 hover:text-ink cursor-pointer"
+        >
           ← {t("back")}
         </button>
-        <span className="text-sm font-medium">{t(`kind_${ap.kind}`)}</span>
-        <span />
+        <Badge tone="brand">{t(`kind_${ap.kind}`)}</Badge>
       </div>
       <div className="scroll-thin min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
-        <div>
-          <div className="font-semibold">{emp.name[L]}</div>
-          <div className="text-xs text-ink-3">
-            {roleById(emp.roleId).title[L]}
-            {emp.nextRoleId ? ` → ${roleById(emp.nextRoleId).title[L]}` : ""}
+        <div className="flex items-center gap-3">
+          <Avatar name={emp.name[L]} />
+          <div>
+            <div className="font-semibold text-ink">{emp.name[L]}</div>
+            <div className="text-xs text-ink-3">
+              {roleById(emp.roleId).title[L]}
+              {emp.nextRoleId ? ` → ${roleById(emp.nextRoleId).title[L]}` : ""}
+            </div>
           </div>
         </div>
         {body}
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("notePh")} rows={2} className="w-full rounded-xl border border-line bg-surface p-2 text-sm outline-none focus:border-brand" />
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={t("notePh")}
+          rows={2}
+          className="w-full rounded-xl border border-line bg-surface p-2.5 text-sm outline-none focus:border-brand"
+        />
       </div>
-      <div className="grid grid-cols-2 gap-2 border-t border-line bg-surface p-3">
+      <div className="grid grid-cols-2 gap-2 border-t border-line bg-surface p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
         <Button variant="danger" onClick={() => decide(false)}>
           {t("requestChanges")}
         </Button>
-        <Button onClick={() => decide(true)}>{t("approve")}</Button>
+        <Button onClick={() => decide(true)}>
+          <Icon name="check" /> {t("approve")}
+        </Button>
       </div>
     </div>
   );
@@ -148,57 +227,116 @@ function Inbox() {
   const [open, setOpen] = useState<string>();
   const [now] = useState(() => Date.now());
   const mine = s.approvals.filter((a) => employeeById(a.employeeId)?.managerId === MANAGER);
-  const pending = mine.filter((a) => a.status === "pending").sort((a, b) => Number(b.employeeId === HERO) - Number(a.employeeId === HERO));
+  const pending = mine
+    .filter((a) => a.status === "pending")
+    .sort((a, b) => Number(b.employeeId === HERO) - Number(a.employeeId === HERO));
   const done = mine.filter((a) => a.status !== "pending");
   const batch = pending.filter((a) => a.employeeId !== HERO && a.kind !== "project");
   const active = s.approvals.find((a) => a.id === open);
 
   return (
     <div className="space-y-3 p-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold">
-          {t("inbox")} <span className="text-ink-3">({pending.length})</span>
+      <div className="flex items-center justify-between gap-2 rounded-2xl border border-line bg-surface p-3">
+        <div className="flex items-center gap-3 text-xs">
+          <div>
+            <div className="font-display text-base font-bold tabular-nums text-ink">
+              {pending.length}
+            </div>
+            <div className="text-[10px] text-ink-3">{t("inbox")}</div>
+          </div>
+          <div className="h-6 w-px bg-line" />
+          <div>
+            <div className="font-display text-base font-bold tabular-nums text-ok">
+              {pending.filter((a) => daysBetween(a.dueAt, now) >= 0).length}
+            </div>
+            <div className="text-[10px] text-ink-3">≤5d SLA</div>
+          </div>
+          <div className="h-6 w-px bg-line" />
+          <div>
+            <div className="font-display text-base font-bold tabular-nums text-danger">
+              {pending.filter((a) => daysBetween(a.dueAt, now) < 0).length}
+            </div>
+            <div className="text-[10px] text-ink-3">HRBP</div>
+          </div>
         </div>
         {batch.length > 1 && (
           <Button
-            variant="ghost"
-            className="px-2 py-1 text-xs"
+            variant="soft"
+            className="shrink-0 px-2.5 py-1.5 text-xs"
             onClick={() =>
               batch.forEach((a) =>
-                dispatch(a.kind === "assessment" ? { type: "decideAssessment", approvalId: a.id, approve: true } : { type: "decidePlan", approvalId: a.id, approve: true }),
+                dispatch(
+                  a.kind === "assessment"
+                    ? { type: "decideAssessment", approvalId: a.id, approve: true }
+                    : { type: "decidePlan", approvalId: a.id, approve: true },
+                ),
               )
             }
           >
-            {t("approveAll")} ({batch.length})
+            <Icon name="check" /> {t("approveAll")} ({batch.length})
           </Button>
         )}
       </div>
       <p className="text-[11px] text-ink-3">{t("slaNote")}</p>
-      {!pending.length && <Card className="text-sm text-ink-2">{t("nothingPending")}</Card>}
+
+      {!pending.length && (
+        <Card className="border-ok/30 bg-ok-soft/45 text-center text-sm text-ink-2">
+          {t("nothingPending")}
+        </Card>
+      )}
+
       {pending.map((a) => {
         const emp = employeeById(a.employeeId)!;
         const left = daysBetween(a.dueAt, now);
         return (
-          <Card key={a.id} onClick={() => setOpen(a.id)} className={cx("p-3", a.employeeId === HERO && "border-brand/40")}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium">{emp.name[L]}</div>
-                <div className="text-xs text-ink-2">{t(`kind_${a.kind}`)}</div>
+          <Card
+            key={a.id}
+            onClick={() => setOpen(a.id)}
+            className={cx(
+              "p-3.5",
+              a.employeeId === HERO && "border-brand/45 bg-brand-soft/35",
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Avatar name={emp.name[L]} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-ink">{emp.name[L]}</div>
+                    <div className="text-xs font-medium text-brand">{t(`kind_${a.kind}`)}</div>
+                  </div>
+                  {left < 0 ? (
+                    <Badge tone="danger">{t("overdue")}</Badge>
+                  ) : (
+                    <Badge tone="neutral">
+                      {t("due")} {left}d
+                    </Badge>
+                  )}
+                </div>
               </div>
-              {left < 0 ? <Badge tone="danger">{t("overdue")}</Badge> : <Badge tone="neutral">{t("due")} {left}d</Badge>}
+              <Icon name="chevronRight" className="h-4 w-4 shrink-0 text-ink-3" />
             </div>
           </Card>
         );
       })}
+
       {done.length > 0 && (
         <div className="space-y-1.5 pt-2">
-          <div className="text-xs font-medium text-ink-3">{L === "th" ? "ตัดสินใจแล้ว" : "Decided"}</div>
+          <div className="text-xs font-semibold text-ink-3">
+            {L === "th" ? "ตัดสินใจแล้ว" : "Decided"}
+          </div>
           {done.map((a) => (
-            <div key={a.id} className="flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-xs">
-              <span className="truncate">
-                {employeeById(a.employeeId)!.name[L]} · {t(`kind_${a.kind}`)}
+            <div
+              key={a.id}
+              className="flex items-center justify-between rounded-xl border border-line bg-surface px-3 py-2 text-xs"
+            >
+              <span className="truncate text-ink-2">
+                <b className="text-ink">{employeeById(a.employeeId)!.name[L]}</b> ·{" "}
+                {t(`kind_${a.kind}`)}
               </span>
-              <Badge tone={a.status === "approved" ? "ok" : "danger"}>{a.status === "approved" ? t("approved") : t("changesRequested")}</Badge>
+              <Badge tone={a.status === "approved" ? "ok" : "danger"}>
+                {a.status === "approved" ? t("approved") : t("changesRequested")}
+              </Badge>
             </div>
           ))}
         </div>
@@ -214,33 +352,55 @@ function Team() {
   const L = s.lang;
   const team = directReports(MANAGER);
   return (
-    <div className="space-y-2 p-4">
-      <div className="text-sm font-semibold">{t("readiness")}</div>
-      <p className="text-[11px] text-ink-3">{L === "th" ? "หัวหน้าเห็นข้อมูลเฉพาะลูกทีมโดยตรงเท่านั้น" : "Managers see their direct reports only."}</p>
+    <div className="space-y-2.5 p-4">
+      <div>
+        <div className="text-sm font-semibold text-ink">{t("readiness")}</div>
+        <p className="text-[11px] text-ink-3">
+          {L === "th"
+            ? "หัวหน้าเห็นข้อมูลเฉพาะลูกทีมโดยตรงเท่านั้น"
+            : "Managers see their direct reports only."}
+        </p>
+      </div>
       {team.map((e) => {
-        const p = profile(e, e.id === HERO && s.assessment.status === "approved" ? s.overrides : undefined);
+        const p = profile(
+          e,
+          e.id === HERO && s.assessment.status === "approved" ? s.overrides : undefined,
+        );
         const crit = p.nextGaps.filter((g) => g.critical && g.gap > 0).length;
         return (
-          <div key={e.id} className="rounded-xl border border-line bg-surface px-3 py-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium">{e.name[L]}</div>
-                <div className="truncate text-[11px] text-ink-3">
+          <Card key={e.id} className="p-3.5">
+            <div className="flex items-center gap-3">
+              {p.next ? (
+                <Ring value={p.nextReadiness} size={46} />
+              ) : (
+                <Avatar name={e.name[L]} />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="truncate text-sm font-semibold text-ink">{e.name[L]}</div>
+                  {crit > 0 ? (
+                    <Badge tone="gap">
+                      {crit} {L === "th" ? "ทักษะสำคัญที่ยังขาด" : "critical gaps"}
+                    </Badge>
+                  ) : (
+                    <Badge tone="ok">{t("met")}</Badge>
+                  )}
+                </div>
+                <div className="truncate text-xs text-ink-2">
                   {roleById(e.roleId).title[L]}
                   {p.next ? ` → ${p.next.title[L]}` : ""}
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold">{p.next ? `${Math.round(p.nextReadiness * 100)}%` : "-"}</div>
-                {crit > 0 && <div className="text-[10px] text-gap">{crit} {L === "th" ? "ทักษะสำคัญที่ยังขาด" : "critical gaps"}</div>}
+                {p.next && (
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
+                    <div
+                      className="h-full rounded-full bg-brand transition-all duration-300"
+                      style={{ width: `${p.nextReadiness * 100}%` }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
-            {p.next && (
-              <div className="mt-1.5 h-1.5 rounded-full bg-line">
-                <div className="h-1.5 rounded-full bg-brand" style={{ width: `${p.nextReadiness * 100}%` }} />
-              </div>
-            )}
-          </div>
+          </Card>
         );
       })}
     </div>
@@ -251,22 +411,53 @@ export function ManagerApp() {
   const { s } = useStore();
   const t = tr(s.lang);
   const [tab, setTab] = useState<"inbox" | "team">("inbox");
-  const pending = s.approvals.filter((a) => a.status === "pending" && employeeById(a.employeeId)?.managerId === MANAGER).length;
+  const pending = s.approvals.filter(
+    (a) => a.status === "pending" && employeeById(a.employeeId)?.managerId === MANAGER,
+  ).length;
   return (
     <PhoneFrame label={`${manager.name[s.lang]} · ${roleById(manager.roleId).title[s.lang]}`}>
-      <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-3">
-        <div className="text-sm font-semibold text-brand">{t("appName")}</div>
-        <div className="text-[11px] text-ink-3">{manager.site[s.lang]}</div>
+      <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <Avatar name={manager.name[s.lang]} size="sm" />
+          <div>
+            <div className="text-sm font-semibold leading-tight text-brand">{t("appName")}</div>
+            <div className="text-[11px] text-ink-3">{manager.site[s.lang]}</div>
+          </div>
+        </div>
+        <Badge tone="neutral">{manager.name[s.lang].split(" ")[0]}</Badge>
       </div>
-      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">{tab === "inbox" ? <Inbox /> : <Team />}</div>
-      <nav className="grid grid-cols-2 border-t border-line bg-surface">
-        {(["inbox", "team"] as const).map((x) => (
-          <button key={x} onClick={() => setTab(x)} className={cx("relative flex flex-col items-center gap-0.5 py-2 text-[11px]", tab === x ? "text-brand" : "text-ink-3")}>
-            <Icon name={x} className="h-5 w-5" />
-            {t(x)}
-            {x === "inbox" && pending > 0 && <span className="absolute right-[38%] top-1 rounded-full bg-danger px-1.5 text-[9px] text-white">{pending}</span>}
-          </button>
-        ))}
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
+        {tab === "inbox" ? <Inbox /> : <Team />}
+      </div>
+      <nav className="grid grid-cols-2 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)]">
+        {(["inbox", "team"] as const).map((x) => {
+          const active = tab === x;
+          return (
+            <button
+              key={x}
+              type="button"
+              onClick={() => setTab(x)}
+              className={cx(
+                "relative flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition cursor-pointer",
+                active ? "text-brand" : "text-ink-3 hover:text-ink-2",
+              )}
+            >
+              {active && (
+                <span className="absolute top-0 h-0.5 w-10 rounded-b-full bg-brand" />
+              )}
+              <Icon name={x} className="h-5 w-5" />
+              {t(x)}
+              {x === "inbox" && pending > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="font-display absolute top-1 right-[36%] rounded-full bg-danger px-1.5 text-[9px] font-bold tabular-nums text-white"
+                >
+                  {pending}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
     </PhoneFrame>
   );
