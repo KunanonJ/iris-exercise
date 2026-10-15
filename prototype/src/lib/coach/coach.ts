@@ -6,15 +6,16 @@ import { generateJSON, isLive, models, provider, streamText, type Usage } from "
 import { detectLang } from "../llm";
 import { planForPrompt } from "../path";
 import { employeeById, profileForPrompt } from "../skills";
-import type { Bilingual, Lang, LearningPlan, Level } from "../types";
+import type { Bilingual, Employee, Lang, LearningPlan, Level } from "../types";
 import { demoAnswer } from "./demo";
-import { precheck, SAFE_REPLIES, stricter, type Category } from "./guardrails";
+import { precheck, programmePolicySource, SAFE_REPLIES, stricter, type Category } from "./guardrails";
 import { buildUserTurn, CLASSIFIER_SYSTEM, COACH_SYSTEM } from "./prompt";
-import { retrieve, type Retrieved } from "./retrieval";
+import { hasUnknownOfferTerm, retrieve, type Retrieved } from "./retrieval";
 
 export interface CoachInput {
   // In production the employee id comes from the SSO session, never the body.
   employeeId: string;
+  employee?: Employee; // Trusted server-owned record; never populated from request JSON.
   messages: { role: "user" | "assistant"; content: string }[];
   lessonId?: string;
   plan?: LearningPlan;
@@ -29,7 +30,14 @@ export interface SourceRef {
   title: Bilingual;
 }
 
+export type AnswerSource = "model" | "safety_template" | "no_source" | "demo" | "provider_fallback";
+export interface EvaluatedSource extends SourceRef { text: string }
+
 export interface CoachMeta {
+  // Mutable until the stream finishes. Send final metadata after the last text chunk.
+  answerSource: AnswerSource;
+  classifierStatus: "not_run" | "ok" | "unavailable";
+  evaluatedSources: EvaluatedSource[]; // Exact passages in the model prompt, never fallback-only references.
   mode: "live" | "demo";
   lang: Lang;
   category: Category;
@@ -47,7 +55,11 @@ export interface Prepared {
   usage: Usage; // filled once the stream completes (live mode)
 }
 
-const LESSON_REQUEST = /(summar|this lesson|example|explain this|สรุป|บทเรียนนี้|ยกตัวอย่าง|ตัวอย่าง)/i;
+const OWN_RECORD_REQUEST = /(my (results?|scores?|gaps?|plan|next step)|explain my|where do i stand|what should i focus|ผลประเมินของฉัน|อธิบายผล|แผนของฉัน|ขั้นต่อไปของฉัน)/i;
+const NO_SOURCE: Record<Lang, string> = {
+  en: "I don't have approved material on that topic. Please ask your manager or HR to confirm it.",
+  th: "ยังไม่มีเนื้อหาที่ได้รับอนุมัติเกี่ยวกับเรื่องนี้ค่ะ กรุณาสอบถามหัวหน้าหรือ HR เพื่อยืนยันข้อมูลนะคะ",
+};
 const CATEGORIES = ["in_scope", "other_person_data", "hr_decision", "wellbeing", "crisis", "off_topic", "injection"] as const;
 const ClassifierSchema = z.object({ category: z.enum(CATEGORIES), reason: z.string() });
 
@@ -64,7 +76,7 @@ async function classify(text: string): Promise<Category | undefined> {
     });
     return out?.category;
   } catch (err) {
-    console.error("classifier failed; deterministic verdict stands", err);
+    void err; // Provider details can contain sensitive response data; do not log them.
     return undefined;
   }
 }
@@ -77,7 +89,7 @@ const toRefs = (sources: Retrieved[]): SourceRef[] =>
   sources.map((s, i) => ({ n: i + 1, sourceId: s.sourceId, kind: s.kind, title: s.title }));
 
 export async function prepareCoach(input: CoachInput): Promise<Prepared> {
-  const emp = employeeById(input.employeeId);
+  const emp = input.employee ?? employeeById(input.employeeId);
   if (!emp) throw new Error("unknown employee");
   const history = input.messages.slice(-9);
   const last = history[history.length - 1];
@@ -87,31 +99,53 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   const verdict = precheck(last.content, emp.id, emp.managerId);
   const live = isLive() && !input.forceDemo;
 
+  const policySource = programmePolicySource(verdict.redacted);
+  const namedOfferRequest = /(course|workshop|certificate|คอร์ส|หลักสูตร)/i.test(verdict.redacted)
+    && !/(this (course|workshop)|open (course|workshop)|คอร์สนี้|หลักสูตรนี้)/i.test(verdict.redacted);
+  const offerSources = namedOfferRequest ? retrieve(verdict.redacted, lang).filter((s) => s.kind === "lesson") : [];
+  const unsupportedOffer = namedOfferRequest && (offerSources.length === 0 || hasUnknownOfferTerm(verdict.redacted)) && !policySource;
   const prevUser = [...history].reverse().slice(1).find((m) => m.role === "user");
-  const query = `${verdict.redacted} ${prevUser ? prevUser.content.slice(0, 200) : ""}`;
+  // Only expand a short follow-up. An unrelated new question must not inherit sources.
+  const followUp = !namedOfferRequest && /^(and |what about|why|how so|แล้ว|ทำไม|ขออีก|อีกครั้ง)/i.test(verdict.redacted.trim());
+  const previous = prevUser ? precheck(prevUser.content, emp.id, emp.managerId).redacted : "";
+  const query = `${verdict.redacted} ${followUp ? previous.slice(0, 200) : ""}`;
   const retrieved = retrieve(query, lang, {
-    pinned: input.lessonId ? [input.lessonId] : [],
+    pinned: policySource ? [policySource] : input.lessonId ? [input.lessonId] : [],
     boost: input.plan?.steps.map((s) => s.itemId) ?? [],
   });
   // Chat beside a lesson: "summarise this" / "give an example" is about that lesson only,
   // so the model gets only that passage and cannot drift to a neighbouring one.
-  const lessonRequest = input.lessonId && LESSON_REQUEST.test(last.content);
-  const sources = lessonRequest ? retrieved.filter((s) => s.sourceId === input.lessonId) : retrieved;
+  const lessonRequest = input.lessonId && !policySource && !OWN_RECORD_REQUEST.test(last.content);
+  const sources = unsupportedOffer ? [] : policySource
+    ? retrieved.filter((s) => s.sourceId === policySource)
+    : lessonRequest ? retrieved.filter((s) => s.sourceId === input.lessonId) : retrieved;
 
   let category = verdict.category;
   let classifier: Category | undefined;
-  if (live && category === "in_scope") {
+  if (live && category === "in_scope" && !policySource && !unsupportedOffer) {
     classifier = await classify(verdict.redacted);
     // "Off-topic" never overrides a question that matched approved content (e.g. "SBI คืออะไร").
     // The other categories (colleague data, pay, wellbeing, crisis, injection) always win.
     if (classifier && !(classifier === "off_topic" && sources.length > 0)) category = stricter(category, classifier);
   }
 
-  const meta: CoachMeta = { mode: live ? "live" : "demo", lang, category, rule: verdict.rule, classifier, sources: [], pii: verdict.piiFound };
+  const meta: CoachMeta = {
+    mode: live ? "live" : "demo", answerSource: live ? "model" : "demo", lang, category,
+    rule: verdict.rule, classifier, sources: [], evaluatedSources: [], pii: verdict.piiFound,
+    classifierStatus: live && verdict.category === "in_scope" && !policySource && !unsupportedOffer ? (classifier ? "ok" : "unavailable") : "not_run",
+  };
 
   if (category !== "in_scope") {
+    meta.answerSource = "safety_template";
     const reply = SAFE_REPLIES[category][lang];
     return { meta, stream: () => chunked(reply), usage: { input: 0, output: 0, cacheRead: 0 } };
+  }
+
+  // An unsupported question is a deterministic abstention, never a model invitation
+  // to fill the gap. Personal-record answers may use the trusted employee context.
+  if (unsupportedOffer || (sources.length === 0 && !OWN_RECORD_REQUEST.test(verdict.redacted))) {
+    meta.answerSource = "no_source";
+    return { meta, stream: () => chunked(NO_SOURCE[lang]), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
   // The retrieval-backed answer is the demo-mode reply, and in live mode the
@@ -134,7 +168,11 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   });
   const unavailable = lang === "th" ? "\n\n(ตอนนี้ AI ไม่พร้อมใช้งาน คำตอบนี้มาจากเนื้อหาบทเรียนโดยตรง)" : "\n\n(The AI is unavailable right now; this answer comes straight from the lesson content.)";
 
-  meta.sources = toRefs(merged);
+  // Keep the initial references exactly aligned with the live prompt. If the
+  // fallback is used, replace references after the error, while evaluatedSources
+  // continue to describe the actual model input.
+  meta.sources = toRefs(sources);
+  meta.evaluatedSources = sources.map((s, i) => ({ ...toRefs([s])[0], n: i + 1, text: s.text }));
   meta.model = models().coach;
   meta.provider = provider() ?? undefined;
   const lesson = input.lessonId ? itemById(input.lessonId) : undefined;
@@ -171,9 +209,11 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
         sent = true;
         yield piece;
       }
+      if (!sent) throw new Error("empty model response");
     } catch (err) {
+      meta.answerSource = "provider_fallback";
       if (sent) throw err;
-      console.error("model provider failed; serving the retrieval answer", err);
+      meta.sources = toRefs(merged);
       yield* chunked(fallbackText + unavailable);
     }
   }

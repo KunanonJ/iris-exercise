@@ -4,6 +4,7 @@ import { itemById } from "../../data/catalog";
 import { roleById, skillById } from "../../data/taxonomy";
 import { profile } from "../skills";
 import type { Employee, Lang, LearningPlan, Level } from "../types";
+import { programmePolicySource } from "./guardrails";
 import { retrieve, tokenize, type Retrieved } from "./retrieval";
 
 const RE = {
@@ -12,7 +13,7 @@ const RE = {
   lesson: /(summar|this lesson|example|สรุป|บทเรียนนี้|ยกตัวอย่าง|ตัวอย่าง)/i,
   policy: /(affect|impact|used for|bonus|pay|salary|promot|มีผล|กระทบ|โบนัส|เงินเดือน|เลื่อนตำแหน่ง|นำไปใช้)/i,
   explain: /(result|gap|score|where do i stand|my level|explain my|ผลประเมิน|ผลของ|คะแนน|ช่องว่าง|ขาดอะไร|ระดับของ|จุดที่ต้องพัฒนา|อธิบายผล)/i,
-  next: /(next step|what should i|where (do|should) i start|recommend|ขั้นต่อไป|ทำอะไรต่อ|เริ่มจาก|ควรทำอะไร|แนะนำ)/i,
+  next: /(next step|what should i (learn|focus|study)|where (do|should) i start|recommend|ขั้นต่อไป|ทำอะไรต่อ|เริ่มจาก|ควรทำอะไร|แนะนำ)/i,
 };
 export const ROLEPLAY_MARK = "⁣"; // invisible marker on the role-play opener
 
@@ -44,6 +45,12 @@ function excerpt(text: string, query: string, lang: Lang) {
 export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
   const { emp, lang, message } = d;
   const th = lang === "th";
+
+  const policySource = programmePolicySource(message);
+  if (policySource) {
+    const source = d.sources.find((s) => s.sourceId === policySource);
+    if (source) return { text: `${source.body} [S1]`, sources: [source] };
+  }
 
   // Second turn of a role-play: SBI-style feedback on the learner's reply.
   if (d.prevAssistant?.includes(ROLEPLAY_MARK)) {
@@ -110,7 +117,7 @@ export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
   }
 
   const pinned = d.lessonId ? d.sources.find((x) => x.sourceId === d.lessonId) : undefined;
-  if (pinned && RE.lesson.test(message)) {
+  if (pinned && !RE.policy.test(message) && !RE.explain.test(message) && !RE.next.test(message)) {
     const item = itemById(pinned.sourceId)!;
     const example = /(example|ตัวอย่าง)/i.test(message);
     const units = pinned.lang === "en" ? (pinned.body.match(/[^.!?]+[.!?]+/g) ?? [pinned.body]) : pinned.body.split(/\s+/);

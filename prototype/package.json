@@ -3,17 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently -k -n web,api -c cyan,magenta \"next dev\" \"wrangler dev --port 8787\"",
+    "dev": "concurrently -k -n web,api -c cyan,magenta \"next dev\" \"wrangler dev --config wrangler.sandbox.jsonc --local --persist-to .wrangler/suite-v2 --port 8797 --inspector-port 0\"",
     "build": "next build",
     "lint": "eslint",
     "data": "tsx scripts/generate-mock-data.ts",
     "eval": "tsx scripts/eval.ts",
-    "preview": "next build && wrangler dev --port 8787",
+    "preview": "next build && wrangler dev --config wrangler.sandbox.jsonc --local --persist-to .wrangler/suite-v2 --port 8797 --inspector-port 0",
     "deploy": "next build && wrangler deploy",
-    "predev": "mkdir -p out"
+    "predev": "mkdir -p out",
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.mjs src/components/__tests__/*.test.ts",
+    "test:integration": "node --import tsx --test tests/integrations*.test.ts tests/integrations*.test.mjs tests/workflows.test.mjs",
+    "sandbox:provision": "tsx scripts/provision-sandbox.ts",
+    "eval:release": "tsx scripts/eval.ts --live --release",
+    "sandbox:verify": "tsx scripts/verify-suite-integrations.ts",
+    "sandbox:connect": "tsx scripts/configure-local-integrations.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "@clerk/backend": "^3.23.2",
+    "@clerk/react": "^6.17.8",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",

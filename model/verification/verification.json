@@ -1,0 +1,1047 @@
+{
+  "status": "PASS",
+  "sha256": "370df187840cfcf5d12addec9673cab6c87889ac11ec778f5bfb2fc09974d8dc",
+  "sheets": [
+    "README",
+    "Assumptions",
+    "Build",
+    "Run",
+    "Pricing & P&L",
+    "AI Cost",
+    "Value"
+  ],
+  "formula_count": 1207,
+  "missing_cached_results": 0,
+  "formula_errors": 0,
+  "preservation": {
+    "sheets": [
+      "README",
+      "Assumptions",
+      "Build",
+      "Run",
+      "Pricing & P&L",
+      "AI Cost",
+      "Value"
+    ],
+    "cell_styles": "equivalent after RGB alpha normalization",
+    "inputs_and_labels": "unchanged",
+    "panes_layout_validation": "unchanged"
+  },
+  "package_changes": {
+    "added_parts": [
+      "xl/sharedStrings.xml"
+    ],
+    "removed_parts": [
+      "docProps/app.xml",
+      "docProps/core.xml"
+    ]
+  },
+  "independent_controls": [
+    {
+      "cell": "Build!D18",
+      "actual": 5911428.571428572,
+      "independent": 5911428.571428572,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Build!D28",
+      "actual": 7312571.428571429,
+      "independent": 7312571.428571429,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Build!E31",
+      "actual": 15500000,
+      "independent": 15500000,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!B5",
+      "actual": 0,
+      "independent": 0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!B13",
+      "actual": 0,
+      "independent": 0.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!B21",
+      "actual": 0,
+      "independent": 0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!C5",
+      "actual": 0,
+      "independent": 0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!C13",
+      "actual": 0,
+      "independent": 0.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!C21",
+      "actual": 0,
+      "independent": 0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!D5",
+      "actual": 0,
+      "independent": 0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!D13",
+      "actual": 0,
+      "independent": 0.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!D21",
+      "actual": 0,
+      "independent": 0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!E5",
+      "actual": 12000,
+      "independent": 12000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!E13",
+      "actual": 38371.9648,
+      "independent": 38371.9648,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!E21",
+      "actual": 743891.9648,
+      "independent": 743891.9648,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!F5",
+      "actual": 12000,
+      "independent": 12000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!F13",
+      "actual": 38371.9648,
+      "independent": 38371.9648,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!F21",
+      "actual": 743891.9648,
+      "independent": 743891.9648,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!G5",
+      "actual": 12000,
+      "independent": 12000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!G13",
+      "actual": 38371.9648,
+      "independent": 38371.9648,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!G21",
+      "actual": 743891.9648,
+      "independent": 743891.9648,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!H5",
+      "actual": 27000,
+      "independent": 27000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!H13",
+      "actual": 78049.4208,
+      "independent": 78049.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!H21",
+      "actual": 938169.4208,
+      "independent": 938169.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!I5",
+      "actual": 27000,
+      "independent": 27000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!I13",
+      "actual": 78049.4208,
+      "independent": 78049.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!I21",
+      "actual": 938169.4208,
+      "independent": 938169.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!J5",
+      "actual": 27000,
+      "independent": 27000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!J13",
+      "actual": 78049.4208,
+      "independent": 78049.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!J21",
+      "actual": 938169.4208,
+      "independent": 938169.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!K5",
+      "actual": 27000,
+      "independent": 27000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!K13",
+      "actual": 78049.4208,
+      "independent": 78049.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!K21",
+      "actual": 938169.4208,
+      "independent": 938169.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!L5",
+      "actual": 27000,
+      "independent": 27000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!L13",
+      "actual": 78049.4208,
+      "independent": 78049.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!L21",
+      "actual": 938169.4208,
+      "independent": 938169.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!M5",
+      "actual": 27000,
+      "independent": 27000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!M13",
+      "actual": 78049.4208,
+      "independent": 78049.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!M21",
+      "actual": 938169.4208,
+      "independent": 938169.4208,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!N5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!N13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!N21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!O5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!O13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!O21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!P5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!P13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!P21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!Q5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!Q13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!Q21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!R5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!R13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!R21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!S5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!S13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!S21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!T5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!T13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!T21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!U5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!U13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!U21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!V5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!V13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!V21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!W5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!W13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!W21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!X5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!X13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!X21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!Y5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!Y13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!Y21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!Z5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!Z13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!Z21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AA5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AA13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AA21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AB5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AB13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AB21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AC5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AC13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AC21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AD5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AD13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AD21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AE5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AE13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AE21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AF5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AF13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AF21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AG5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AG13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AG21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AH5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AH13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AH21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AI5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AI13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AI21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AJ5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AJ13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AJ21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AK5",
+      "actual": 45000,
+      "independent": 45000.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "Run!AK13",
+      "actual": 125662.368,
+      "independent": 125662.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Run!AK21",
+      "actual": 1112742.368,
+      "independent": 1112742.368,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!B8",
+      "actual": 29222000,
+      "independent": 29222000.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!B9",
+      "actual": 18173263.847771432,
+      "independent": 18173263.847771432,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!B10",
+      "actual": 11048736.152228568,
+      "independent": 11048736.152228568,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!B11",
+      "actual": 0.37809650784438326,
+      "independent": 0.37809650784438326,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "Pricing & P&L!C8",
+      "actual": 30060000,
+      "independent": 30060000.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!C9",
+      "actual": 17852908.416000005,
+      "independent": 17852908.416000005,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!C10",
+      "actual": 12207091.583999997,
+      "independent": 12207091.583999997,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!C11",
+      "actual": 0.4060908710578841,
+      "independent": 0.4060908710578841,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "Pricing & P&L!D8",
+      "actual": 21060000,
+      "independent": 21060000.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!D9",
+      "actual": 13352908.416000003,
+      "independent": 13352908.416000003,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!D10",
+      "actual": 7707091.584000002,
+      "independent": 7707091.584000002,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!D11",
+      "actual": 0.36595876467236477,
+      "independent": 0.36595876467236477,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "Pricing & P&L!E8",
+      "actual": 80342000,
+      "independent": 80342000.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!E9",
+      "actual": 49379080.67977144,
+      "independent": 49379080.679771446,
+      "difference": -7.450580596923828e-09,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!E10",
+      "actual": 30962919.320228565,
+      "independent": 30962919.32022855,
+      "difference": 1.4901161193847656e-08,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Pricing & P&L!E11",
+      "actual": 0.3853889537256798,
+      "independent": 0.3853889537256796,
+      "difference": 1.6653345369377348e-16,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "Pricing & P&L!D19",
+      "actual": 24.72760817777778,
+      "independent": 24.72760817777778,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "Pricing & P&L!D20",
+      "actual": 6.205549037037037,
+      "independent": 6.205549037037037,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!B5",
+      "actual": 0.01034,
+      "independent": 0.01034,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!B6",
+      "actual": 9e-05,
+      "independent": 9e-05,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!B7",
+      "actual": 5.532071999999999,
+      "independent": 5.532071999999999,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!B8",
+      "actual": 20250,
+      "independent": 20250.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "AI Cost!B9",
+      "actual": 1344293.4959999998,
+      "independent": 1344293.4959999998,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "AI Cost!B10",
+      "actual": 0.10067420925236126,
+      "independent": 0.10067420925236126,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!C5",
+      "actual": 0.02044,
+      "independent": 0.02044,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!C6",
+      "actual": 9e-05,
+      "independent": 9e-05,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!C7",
+      "actual": 10.889112,
+      "independent": 10.889112,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "AI Cost!C8",
+      "actual": 20250,
+      "independent": 20250.0,
+      "difference": 0.0,
+      "tolerance": 0
+    },
+    {
+      "cell": "AI Cost!C9",
+      "actual": 2646054.216,
+      "independent": 2646054.216,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "AI Cost!C10",
+      "actual": 0.18056048836338598,
+      "independent": 0.18056048836338598,
+      "difference": 0.0,
+      "tolerance": 0.0001
+    },
+    {
+      "cell": "Value!C21",
+      "actual": 53250000,
+      "independent": 53250000.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    },
+    {
+      "cell": "Value!C29",
+      "actual": 93187500,
+      "independent": 93187500.0,
+      "difference": 0.0,
+      "tolerance": 1.0
+    }
+  ],
+  "headline": {
+    "three_year_revenue_thb": 80342000,
+    "three_year_gross_profit_thb": 30962919.320228565,
+    "three_year_gross_margin": 0.3853889537256798
+  }
+}

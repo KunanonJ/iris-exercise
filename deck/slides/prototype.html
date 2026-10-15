@@ -1,28 +1,28 @@
 <section id="prototype" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
-<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">8 · Prototype and tools</p>
-<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">A working prototype tests the riskiest parts: Thai retrieval, guardrails and the approval loop</h2>
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">8 · Implementation, proof and tools</p>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">Clerk sign-in and local Moodle integrations are proven; the live AI release gate remains open</h2>
 <div style="display:flex;gap:20px;align-items:start">
-<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/g-coach-guardrails-th.png" alt="Coach chat in Thai blocking a colleague-score question and a salary question, with guardrail labels" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Guardrails</p></div>
-<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/f-lesson-chat-th.png" alt="Lesson page with the coach chat beside it, answering with a citation" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Coach + lesson</p></div>
-<div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/h-leader-en.png" alt="Leader dashboard with adoption curves and a capability heatmap by business unit" style="width:1020px;height:400px;object-fit:contain;border:1px solid #D7DFDE;border-radius:12px"><p style="font-size:24px;color:#66767A">Leader dashboard (illustrative data)</p></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/g-coach-guardrails-th.png" alt="Prior illustrative UI: Coach chat in Thai blocking a colleague-score question and a salary question, with guardrail labels" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Guardrails</p></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/f-lesson-chat-th.png" alt="Prior illustrative UI: Lesson page with the coach chat beside it, answering with a citation" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Coach + lesson</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/h-leader-en.png" alt="Prior illustrative UI: Leader dashboard with adoption curves and a capability heatmap by business unit" style="width:1020px;height:400px;object-fit:contain;border:1px solid #D7DFDE;border-radius:12px"><p style="font-size:24px;color:#66767A">Leader dashboard (illustrative data)</p></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:28px">
 <div style="display:flex;flex-direction:column;gap:6px">
-<h3 style="font-size:28px;font-weight:600;color:#0E6B70">Try it</h3>
-<p style="font-size:24px;line-height:1.32;color:#3B4A4C"><a href="https://iris.kunanonj.com">iris.kunanonj.com</a> · role login (Employee E0001, Manager E0002, HR &amp; Leaders E9001). Code: <a href="https://github.com/KunanonJ/iris-exercise">github.com/KunanonJ/iris-exercise</a>.</p>
+<h3 style="font-size:28px;font-weight:600;color:#0E6B70">Current status</h3>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Prior illustrative UI shown above. Revised Clerk client is local, not deployed; hosted connectors are unconfigured.</p>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
-<h3 style="font-size:28px;font-weight:600;color:#10292B">What runs live</h3>
-<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Real on Cloudflare D1 + Workers AI: OIDC JWT SSO (Google Workspace &amp; LINE), HRIS delta API, LMS xAPI 2.0 + LTI 1.3, LINE Flex push, path engine, Thai RAG coach, 2-layer guardrails, approvals &amp; 31 evals.</p>
+<h3 style="font-size:28px;font-weight:600;color:#10292B">Implementation and proof</h3>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Proven locally: real Clerk sign-in + cross-role API/browser journeys, atomic approvals, two Moodle 4.5.15 REST flows and synthetic HR. Live AI gate remains unpassed.</p>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
 <h3 style="font-size:28px;font-weight:600;color:#10292B">Tools I used</h3>
-<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Claude Code (Opus 5.5) for code, mock data, lesson text, research and slide drafts. The live demo runs free on SEA-LION v4 (Cloudflare Workers AI). I made the calls.</p>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Original draft: Claude Code/Cursor. Continuation: Codex &amp; Cursor for auth, security, evals, integration, model checks and docs. Live eval: SEA-LION v4 + Qwen3 (93.1% grounded; FAIL).</p>
 </div>
 </div>
 <div style="position:absolute;left:112px;right:112px;bottom:40px;display:flex;justify-content:space-between">
 <p style="font-size:24px;color:#66767A">Mock data only: fictional company, people and courses</p>
 <p style="font-size:24px;color:#66767A">12</p>
 </div>
-<aside>The prototype runs in two modes. Demo mode needs no API key: guardrails, retrieval, the rules-based path and approvals all work, and the coach gives scripted answers drawn from retrieval. Live mode calls SEA-LION v4 on Cloudflare Workers AI (free) for the coach and the path. If we go ahead, weeks 1-2 are: confirm the cohort, IdP and LMS access; submit the security pack; start frameworks with SMEs; agree KPI hypotheses with BU heads. Tools: I used Claude Code to write the prototype and draft the deck, and checked every number and decision myself.</aside>
+<aside>The revised prototype requires Clerk identity and provisioned D1 membership; no local persona bypass remains. Real Clerk sign-in and cross-role API/browser journeys passed (clerk-api-2026-10-15T14-10-06.023Z.json, clerk-browser-2026-10-15T14-17-17.135Z.json). Local Moodle/HR proof receipt: 2026-10-15T09-17-29.219Z.json. Offline 55/55 passed; complete 55-case live Workers AI run achieved 93.1% groundedness (27/29) and remains below the 95% release gate (2026-10-15T14-18-58-089Z-f48e1caf). The recalculated seven-sheet model has 1,207 caches, zero errors, 143 independent checks and four sensitivities. Existing screenshots are prior illustrative UI. The new app is not deployed.</aside>
 </section>

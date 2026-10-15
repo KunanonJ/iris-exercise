@@ -1,0 +1,21 @@
+{
+  "kind": "local_worker_d1_moodle_proof",
+  "status": "PASS",
+  "fixture": "Pre-approved synthetic integration fixture; not Clerk login evidence",
+  "evidence": [
+    {
+      "source": "moodle-a",
+      "upstreamCompleted": true,
+      "persistedRevision": 15,
+      "idempotentReplay": true
+    },
+    {
+      "source": "moodle-b",
+      "upstreamCompleted": true,
+      "persistedRevision": 18,
+      "idempotentReplay": true
+    }
+  ],
+  "anonymousRead": 401,
+  "hosted": "unconfigured"
+}

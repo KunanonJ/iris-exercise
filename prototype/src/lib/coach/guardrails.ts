@@ -20,10 +20,11 @@ const PII: [string, RegExp][] = [
 
 const RULES: [Category, string, RegExp][] = [
   ["crisis", "self_harm", /(kill myself|suicid|end my life|hurt myself|self[- ]harm|(don'?t|do not) want to (live|be alive)|want to die|ฆ่าตัวตาย|ไม่อยากมีชีวิต|อยากตาย|ทำร้ายตัวเอง)/i],
-  ["injection", "prompt_injection", /(ignore (all |any |the )?(previous|prior|above) (instructions|rules)|system prompt|developer mode|you are now|act as (an?|the) (?!customer)|reveal your (instructions|prompt)|ลืมคำสั่ง|ไม่ต้องสนใจคำสั่ง|เปิดเผยคำสั่งระบบ)/i],
+  ["injection", "prompt_injection", /(ignore (all |any |the )?(previous|prior|above) (instructions|rules)|disregard (earlier|prior|previous) (rules|instructions)|system prompt|hidden (instructions|prompt)|developer mode|you are now|act as (an?|the|my) (?!customer)|reveal your (instructions|prompt)|ลืมคำสั่ง|ไม่ต้องสนใจคำสั่ง|เปิดเผยคำสั่งระบบ|ข้ามกฎเดิม|คำสั่งลับของระบบ)/i],
+  ["other_person_data", "bulk_employee_data", /((every|all) (employee|staff|worker)s?.{0,40}(score|result|assessment|plan|record)|(score|result|assessment|plan|record)s?.{0,40}(every|all) (employee|staff|worker)|(ผลประเมิน|คะแนน|ข้อมูล|แผน).{0,30}(พนักงานทุกคน|พนักงานทั้งหมด))/i],
   ["other_person_data", "colleague_data", /((colleague|co-?worker|team ?mate|team member|friend|someone else|other (staff|employee|people))('?s'?)?\s.{0,30}(score|result|level|assessment|rating|gap)|(score|result|level|assessment|rating)s?\s.{0,20}(of|for)\s(my )?(colleague|co-?worker|team|everyone|others)|(คะแนน|ผลประเมิน|ผล|ระดับ).{0,20}(ของ)?(เพื่อน|เพื่อนร่วมงาน|คนอื่น|ลูกทีมคนอื่น|ทุกคนในทีม))/i],
   ["hr_decision", "pay_amount", /((how much|what).{0,30}(salary|pay|earn|wage)|salary (of|for|as)|pay rise|raise my (pay|salary)|bonus (amount|will i get)|เงินเดือน.{0,20}(เท่าไร|เท่าไหร่|เพิ่ม|ขึ้น)|ได้เงินเดือน|ขึ้นเงินเดือน|ค่าจ้าง.{0,10}(เท่าไร|เท่าไหร่)|โบนัส.{0,10}(เท่าไร|เท่าไหร่|กี่เดือน))/i],
-  ["hr_decision", "promotion_decision", /(will i (get|be) promoted|promise.{0,20}promot|guarantee.{0,20}(promot|job)|when (will|do) i get promoted|การันตี.{0,20}(เลื่อน|ตำแหน่ง)|จะได้เลื่อนตำแหน่ง(เมื่อไร|เมื่อไหร่|แน่)|รับประกัน.{0,10}(เลื่อน|ตำแหน่ง))/i],
+  ["hr_decision", "promotion_decision", /(will i (get|be) promoted|promise.{0,20}promot|guarantee.{0,70}(promot|job|next role)|when (will|do) i get promoted|การันตี.{0,20}(เลื่อน|ตำแหน่ง)|จะได้เลื่อนตำแหน่ง(เมื่อไร|เมื่อไหร่|แน่)|รับประกัน.{0,30}(เลื่อน|ตำแหน่ง))/i],
   ["wellbeing", "stress", /(burn(ed|t)? ?out|depress|anxious|anxiety|can'?t cope|overwhelmed|panic attack|เครียดมาก|ซึมเศร้า|หมดไฟ|ไม่ไหวแล้ว|วิตกกังวล|นอนไม่หลับ)/i],
 ];
 
@@ -48,6 +49,17 @@ function otherEmployeeMentioned(text: string, selfId: string, managerId: string 
 
 const DATA_WORDS = /(score|result|level|assessment|rating|gap|plan|progress|คะแนน|ผลประเมิน|ผล|ระดับ|แผน|ความคืบหน้า)/i;
 
+/** Policy clarification is answerable; asking the coach to promise a promotion is not. */
+export function programmePolicySource(text: string): string | undefined {
+  if (/(how much|what (is|will be) my (salary|pay|bonus)|can you guarantee|promise me|approve (my|the) promotion|เงินเดือน.*เท่า|โบนัส.*(เท่า|กี่)|รับประกันให้|ช่วยรับประกัน)/i.test(text)) return undefined;
+  if (/(next role|development target|ตำแหน่งถัดไป|เป้าหมายการพัฒนา)/i.test(text)
+    && /(is |does |mean|promise|guarantee|promotion|คือ|หมายถึง|สัญญา|รับประกัน|เลื่อนตำแหน่ง)/i.test(text)
+    && !/(can you|will you|please|give me|คุณช่วย|ช่วยรับประกัน|รับประกันให้)/i.test(text)) return "KB-03";
+  if (/(result|assessment|skill|ผลประเมิน|ทักษะ)/i.test(text)
+    && /(used for|affect|impact|who can see|privacy|pay|bonus|performance|promotion|มีผล|กระทบ|นำไปใช้|ใคร.*เห็น|โบนัส|เงินเดือน|เลื่อนตำแหน่ง)/i.test(text)) return "KB-01";
+  return undefined;
+}
+
 export function precheck(text: string, selfId: string, managerId: string | null): Verdict {
   let redacted = text;
   const piiFound: string[] = [];
@@ -57,7 +69,11 @@ export function precheck(text: string, selfId: string, managerId: string | null)
       redacted = redacted.replace(re, `[${label.toUpperCase()}]`);
     }
   }
-  for (const [category, rule, re] of RULES) if (re.test(text)) return { category, rule, redacted, piiFound };
+  for (const [category, rule, re] of RULES) {
+    if (!re.test(text)) continue;
+    if (category === "hr_decision" && programmePolicySource(text) && (rule === "promotion_decision" || programmePolicySource(text) === "KB-01")) continue;
+    return { category, rule, redacted, piiFound };
+  }
   if (DATA_WORDS.test(text) && otherEmployeeMentioned(text, selfId, managerId))
     return { category: "other_person_data", rule: "named_colleague", redacted, piiFound };
   return { category: "in_scope", redacted, piiFound };

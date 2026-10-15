@@ -1,5 +1,5 @@
 <section id="architecture" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
-<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">5 · Technology</p>
+<p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">5 · Proposed production technology</p>
 <h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">Integrate, don't replace: a skills layer on top of the HR system and both LMSs</h2>
 <div style="display:grid;grid-template-columns:1.62fr 1fr;gap:28px">
 <div style="display:flex;flex-direction:column;gap:10px">
@@ -21,7 +21,7 @@
 <div style="display:flex;gap:10px;align-items:stretch">
 <p style="width:150px;font-size:24px;font-weight:600;color:#0E6B70;padding:12px 0">Learning Suite</p>
 <div style="flex:1;display:flex;flex-direction:column;gap:8px;background:#0E6B70;border-radius:12px;padding:12px">
-<p style="font-size:24px;color:#E3F1F1">Built by IRIS · hosted in a Thailand cloud region</p>
+<p style="font-size:24px;color:#E3F1F1">Production target: IRIS layer in an approved Thailand region</p>
 <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:8px">
 <p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Skills and assessment</p>
 <p style="font-size:24px;line-height:1.25;color:#10292B;background:#E3F1F1;border-radius:8px;padding:10px 8px">Path engine</p>
@@ -45,7 +45,7 @@
 <div style="flex:1;display:grid;grid-template-columns:1fr 1.3fr 1.1fr;gap:10px">
 <p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>HR system:</b> nightly changes to people, positions and manager lines</p>
 <p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>LMS A + B:</b> catalogue and completions via API or xAPI; launch by SSO deep link or LTI 1.3; CSV fallback</p>
-<p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>Claude on Vertex AI</b> (Singapore, in-region), pseudonymised prompts</p>
+<p style="font-size:24px;line-height:1.3;background:#FDFDFB;border:1px solid #D7DFDE;border-radius:10px;padding:12px 14px"><b>LLM API:</b> model, region and data terms require validation</p>
 </div>
 </div>
 </div>
@@ -57,7 +57,7 @@
 </div>
 </div>
 <div style="position:absolute;left:112px;right:112px;bottom:40px;display:flex;justify-content:space-between">
-<p style="font-size:24px;color:#66767A">Claude models are not served in-region in Thailand today; Vertex AI Singapore is the nearest in-region option</p>
+<p style="font-size:24px;color:#66767A">Sandbox: Next.js + Worker/D1 + Clerk; separate local Moodle logins. Enterprise connections remain proposed.</p>
 <p style="font-size:24px;color:#66767A">7</p>
 </div>
 <aside>The HR system stays the source of truth for people and org; both LMSs stay the source of truth for content and completions. We read from them on a schedule and launch content by deep link, so nothing is migrated in 12 weeks. Frontline identity is the integration most likely to surprise us, which is why it is called out in amber.</aside>

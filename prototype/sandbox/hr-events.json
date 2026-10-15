@@ -1,0 +1,328 @@
+[
+  {
+    "id": "E0002",
+    "employee": {
+      "id": "E0002",
+      "name": {
+        "en": "Malee Suksan",
+        "th": "มาลี สุขสันต์"
+      },
+      "bu": "RD",
+      "roleId": "RD-SM",
+      "nextRoleId": "RD-AM",
+      "managerId": "E0010",
+      "site": {
+        "en": "Store #112 Bang Na",
+        "th": "สาขา 112 บางนา"
+      },
+      "lang": "th",
+      "frontline": true,
+      "scores": {
+        "C-SAFE": {
+          "self": 4,
+          "manager": 3,
+          "final": 3
+        },
+        "C-CUST": {
+          "self": 4,
+          "manager": 4,
+          "final": 4
+        },
+        "T-INV": {
+          "self": 4,
+          "manager": 4,
+          "final": 4
+        },
+        "C-COMM": {
+          "self": 4,
+          "manager": 3,
+          "final": 3
+        },
+        "L-COACH": {
+          "self": 4,
+          "manager": 4,
+          "final": 4
+        },
+        "L-PLAN": {
+          "self": 3,
+          "manager": 3,
+          "final": 3
+        },
+        "L-PERF": {
+          "self": 4,
+          "manager": 4,
+          "final": 4
+        },
+        "L-DEC": {
+          "self": 4,
+          "manager": 3,
+          "final": 3
+        },
+        "L-CHG": {
+          "self": 2,
+          "manager": 2,
+          "final": 2
+        },
+        "L-STK": {
+          "self": 2,
+          "manager": 2,
+          "final": 2
+        }
+      }
+    },
+    "active": true
+  },
+  {
+    "id": "E0001",
+    "employee": {
+      "id": "E0001",
+      "name": {
+        "en": "Somchai Jaidee",
+        "th": "สมชาย ใจดี"
+      },
+      "bu": "RD",
+      "roleId": "RD-SSA",
+      "nextRoleId": "RD-SS",
+      "managerId": "E0002",
+      "site": {
+        "en": "Store #112 Bang Na",
+        "th": "สาขา 112 บางนา"
+      },
+      "lang": "th",
+      "frontline": true,
+      "scores": {
+        "C-SAFE": {
+          "self": 3,
+          "final": 2
+        },
+        "C-CUST": {
+          "self": 3,
+          "final": 3
+        },
+        "T-POS": {
+          "self": 3,
+          "final": 3
+        },
+        "T-MERCH": {
+          "self": 2,
+          "final": 2
+        },
+        "T-INV": {
+          "self": 2,
+          "final": 2
+        },
+        "T-CMPL": {
+          "self": 3,
+          "final": 2
+        },
+        "C-COMM": {
+          "self": 2,
+          "final": 2
+        },
+        "L-COACH": {
+          "self": 2,
+          "final": 1
+        },
+        "L-PLAN": {
+          "self": 1,
+          "final": 1
+        },
+        "L-PERF": {
+          "self": 1,
+          "final": 1
+        },
+        "L-DEC": {
+          "self": 2,
+          "final": 2
+        }
+      }
+    },
+    "active": true
+  },
+  {
+    "id": "E9001",
+    "employee": {
+      "id": "E9001",
+      "name": {
+        "en": "Arunee Srisuk",
+        "th": "อรุณี ศรีสุข"
+      },
+      "bu": "CS",
+      "roleId": "CS-HR",
+      "nextRoleId": null,
+      "managerId": null,
+      "site": {
+        "en": "Group HQ, Bangkok",
+        "th": "สำนักงานใหญ่ กรุงเทพฯ"
+      },
+      "lang": "en",
+      "frontline": false,
+      "scores": {
+        "T-HRBP": {
+          "self": 4,
+          "manager": 3,
+          "final": 3
+        },
+        "L-STK": {
+          "self": 3,
+          "manager": 3,
+          "final": 3
+        },
+        "C-COMM": {
+          "self": 4,
+          "manager": 4,
+          "final": 4
+        },
+        "L-DEC": {
+          "self": 3,
+          "manager": 3,
+          "final": 3
+        },
+        "L-CHG": {
+          "self": 2,
+          "manager": 2,
+          "final": 2
+        }
+      }
+    },
+    "active": true
+  },
+  {
+    "id": "E0003",
+    "employee": {
+      "id": "E0003",
+      "name": {
+        "en": "Synthetic New Joiner",
+        "th": "พนักงานสังเคราะห์ใหม่"
+      },
+      "bu": "RD",
+      "roleId": "RD-SSA",
+      "nextRoleId": "RD-SS",
+      "managerId": "E0002",
+      "site": {
+        "en": "Store #112 Bang Na",
+        "th": "สาขา 112 บางนา"
+      },
+      "lang": "th",
+      "frontline": true,
+      "scores": {
+        "C-SAFE": {
+          "self": 3,
+          "final": 2
+        },
+        "C-CUST": {
+          "self": 3,
+          "final": 3
+        },
+        "T-POS": {
+          "self": 3,
+          "final": 3
+        },
+        "T-MERCH": {
+          "self": 2,
+          "final": 2
+        },
+        "T-INV": {
+          "self": 2,
+          "final": 2
+        },
+        "T-CMPL": {
+          "self": 3,
+          "final": 2
+        },
+        "C-COMM": {
+          "self": 2,
+          "final": 2
+        },
+        "L-COACH": {
+          "self": 2,
+          "final": 1
+        },
+        "L-PLAN": {
+          "self": 1,
+          "final": 1
+        },
+        "L-PERF": {
+          "self": 1,
+          "final": 1
+        },
+        "L-DEC": {
+          "self": 2,
+          "final": 2
+        }
+      }
+    },
+    "active": true
+  },
+  {
+    "id": "E0003",
+    "employee": {
+      "id": "E0003",
+      "name": {
+        "en": "Synthetic New Joiner",
+        "th": "พนักงานสังเคราะห์ใหม่"
+      },
+      "bu": "RD",
+      "roleId": "RD-SSA",
+      "nextRoleId": "RD-SS",
+      "managerId": "E9001",
+      "site": {
+        "en": "Store #112 Bang Na",
+        "th": "สาขา 112 บางนา"
+      },
+      "lang": "th",
+      "frontline": true,
+      "scores": {
+        "C-SAFE": {
+          "self": 3,
+          "final": 2
+        },
+        "C-CUST": {
+          "self": 3,
+          "final": 3
+        },
+        "T-POS": {
+          "self": 3,
+          "final": 3
+        },
+        "T-MERCH": {
+          "self": 2,
+          "final": 2
+        },
+        "T-INV": {
+          "self": 2,
+          "final": 2
+        },
+        "T-CMPL": {
+          "self": 3,
+          "final": 2
+        },
+        "C-COMM": {
+          "self": 2,
+          "final": 2
+        },
+        "L-COACH": {
+          "self": 2,
+          "final": 1
+        },
+        "L-PLAN": {
+          "self": 1,
+          "final": 1
+        },
+        "L-PERF": {
+          "self": 1,
+          "final": 1
+        },
+        "L-DEC": {
+          "self": 2,
+          "final": 2
+        }
+      }
+    },
+    "active": true
+  },
+  {
+    "id": "E0003",
+    "active": false
+  }
+]

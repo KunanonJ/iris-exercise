@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "source_unchanged": true,
+  "scenarios": [
+    {
+      "scenario": "enrolment",
+      "input": "Assumptions!B11",
+      "new_value": 13000.0,
+      "revenue_delta_thb": 1287000.0,
+      "cost_delta_thb": 312850.4031999707,
+      "gross_profit_delta_thb": 974149.5968000181,
+      "status": "PASS"
+    },
+    {
+      "scenario": "subscription_price",
+      "input": "Assumptions!B63",
+      "new_value": 43.0,
+      "revenue_delta_thb": 5112000.0,
+      "cost_delta_thb": 0.0,
+      "gross_profit_delta_thb": 5111999.999999996,
+      "status": "PASS"
+    },
+    {
+      "scenario": "ai_usage_double",
+      "input": "Assumptions!B19",
+      "new_value": 24.0,
+      "revenue_delta_thb": 0.0,
+      "cost_delta_thb": 3181494.607199982,
+      "gross_profit_delta_thb": -3181494.607199982,
+      "status": "PASS"
+    },
+    {
+      "scenario": "ai_usage_zero",
+      "input": "Assumptions!B19",
+      "new_value": 0,
+      "revenue_delta_thb": 0.0,
+      "cost_delta_thb": -3181494.6072000116,
+      "gross_profit_delta_thb": 3181494.607200008,
+      "status": "PASS"
+    }
+  ],
+  "engine": "Artifact Tool public import/recalculate/export API",
+  "native_excel": "SKIPPED: no desktop Excel session was used"
+}

@@ -1,177 +1,75 @@
-// Cloudflare Worker: serves the static Next.js export (env.ASSETS) and the
-// API. One Worker, no server; the passcode gate runs in front of everything.
-import { isLive, models, provider, setAIBinding } from "../src/lib/ai";
-import { prepareCoach, type CoachInput } from "../src/lib/coach/coach";
-import { getDbMeta, loadSharedState, saveSharedState, seedDatabase, type D1Database, type SharedStatePayload } from "../src/lib/db";
-import {
-  createLtiLaunchEnvelope,
-  dispatchLineFlexNotification,
-  getIntegrationsTelemetry,
-  ingestHrisDeltaSync,
-  ingestXapiStatement,
-  issueOidcSsoSession,
-  verifyJwtHs256,
-} from "../src/lib/integrations";
+import { readJson } from "../src/server/request";
+import { z } from "zod";
+import { setAIBinding } from "../src/lib/ai";
+import { prepareCoach } from "../src/lib/coach/coach";
 import { aiPlan } from "../src/lib/path";
-import { allow, clientKey } from "../src/lib/ratelimit";
-import { employeeById } from "../src/lib/skills";
-import type { Level } from "../src/lib/types";
+import type { Principal } from "../src/lib/suite-contracts";
+import { applyCommand, commandSchema, HttpError, scopedView, storeGeneratedPlan } from "../src/lib/suite-domain";
+import { commitTenant, fingerprint, loadTenant, priorResult, reserveQuota } from "../src/lib/suite-repository";
+import { authenticate, requireOrigin, type AuthEnvironment } from "../src/server/auth";
+import { integrationService, type IntegrationEnv } from "../src/server/integration-service";
 
-interface Env {
-  ASSETS: { fetch(req: Request | string): Promise<Response> };
-  AI?: { run(model: string, inputs: Record<string, unknown>): Promise<unknown> };
-  DB?: D1Database;
-  DEMO_PASSCODE?: string;
-  LINE_CHANNEL_ACCESS_TOKEN?: string;
+export interface Env extends AuthEnvironment,IntegrationEnv {
+  ASSETS:{fetch(req:Request|string):Promise<Response>};
+  AI?:{run(model:string,inputs:Record<string,unknown>):Promise<unknown>}; AI_FREE_ONLY_VERIFIED?:string;
 }
-
-const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
-
-// UTF-8 safe base64 for the coach metadata header.
-function b64(value: unknown) {
-  const bytes = new TextEncoder().encode(JSON.stringify(value));
-  let bin = "";
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin);
+const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","x-content-type-options":"nosniff"}});
+function requestKey(req:Request){const key=req.headers.get("idempotency-key");if(!key || !/^[a-zA-Z0-9_-]{8,128}$/.test(key))throw new HttpError(422,"A unique Idempotency-Key is required");return key;}
+const revisionSchema=z.object({expectedRevision:z.number().int().nonnegative()}).strict();
+const chatSchema=z.object({message:z.string().trim().min(1).max(1000),lessonId:z.string().max(64).optional()}).strict();
+const retired=new Set(["/api/sso/token","/api/sso/session","/api/state/reset","/api/unlock","/api/integrations/hris-sync","/api/integrations/lms-xapi","/api/integrations/lti-launch","/api/integrations/line-push"]);
+export function createWorker(deps:{authenticate?:typeof authenticate}={}){
+ return {async fetch(req:Request,env:Env):Promise<Response>{
+  const path=new URL(req.url).pathname;
+  if(retired.has(path)||(path==="/api/state"&&req.method!=="GET"))return json({error:"Legacy demo authority retired"},410);
+  if(!path.startsWith("/api/"))return env.ASSETS.fetch(req);
+  if(path==="/api/status"&&req.method==="GET")return json({service:"Learning Suite sandbox",authentication:"Clerk",data:"synthetic"});
+  try{
+   if(path==="/api/integrations/sync")return json(await integrationService(req,env));
+   const p:Principal=await(deps.authenticate??authenticate)(req,env);if(!env.DB)throw new HttpError(503,"Sandbox database is not configured");
+   const db=env.DB;const {state,revision}=await loadTenant(db,p.tenantId);const view=scopedView(state,p,revision);
+   if(req.method==="GET"){
+    if(path==="/api/session")return json({principal:p});if(path==="/api/state")return json(view);if(path==="/api/integrations")return json({integrations:view.integrations});
+   }
+   if(req.method!=="POST")throw new HttpError(404,"Endpoint not found");requireOrigin(req,env);
+   if(path==="/api/commands"){
+    const parsed=commandSchema.safeParse(await readJson(req));if(!parsed.success)throw new HttpError(422,"Invalid workflow command");
+    const input=parsed.data as Parameters<typeof applyCommand>[2];const key=requestKey(req);const hash=await fingerprint(input);const previous=await priorResult(db,p,key,hash);if(previous)return json(previous);
+    if(input.expectedRevision!==revision)throw new HttpError(409,"Data changed. Refresh before retrying.");
+    return json(await commitTenant(db,p,revision,applyCommand(state,p,input),key,hash,input.command.type));
+   }
+   // No paid-provider fallback. Enable live inference only after account-level free-only limits are verified.
+   setAIBinding(env.AI_FREE_ONLY_VERIFIED==="1"?env.AI:undefined);process.env.DEMO_MODE=env.AI_FREE_ONLY_VERIFIED==="1"?"0":"1";process.env.AI_PROVIDER="workers-ai";
+   if(path==="/api/path"){
+    if(p.role==="leader")throw new HttpError(403,"Learning permission required");const parsed=revisionSchema.safeParse(await readJson(req));if(!parsed.success)throw new HttpError(422,"Expected revision required");
+    const key=requestKey(req);const hash=await fingerprint({type:"plan.generate",...parsed.data});const previous=await priorResult(db,p,key,hash);if(previous)return json(previous);
+    if(parsed.data.expectedRevision!==revision)throw new HttpError(409,"Data changed. Refresh before generating a plan.");const r=state.records[p.employeeId];
+    if(r.assessment.status!=="approved"||(r.plan&&!["draft","changes_requested"].includes(r.plan.status)))throw new HttpError(409,"An approved assessment and editable plan are required");
+    await reserveQuota(db,`${p.tenantId}:user:${p.userId}`,20);await reserveQuota(db,`${p.tenantId}:ai`,100);
+    return json(await commitTenant(db,p,revision,storeGeneratedPlan(state,p,await aiPlan(r.employee,r.overrides)),key,hash,"plan.generate"));
+   }
+   if(path==="/api/coach"){
+    if(p.role==="leader")throw new HttpError(403,"Learning permission required");const parsed=chatSchema.safeParse(await readJson(req));if(!parsed.success)throw new HttpError(422,"A message of 1-1000 characters is required");
+    const r=state.records[p.employeeId];const key=parsed.data.lessonId??"general";if(parsed.data.lessonId&&!r.plan?.steps.some(s=>s.itemId===parsed.data.lessonId))throw new HttpError(404,"Lesson is not in your plan");
+    await reserveQuota(db,`${p.tenantId}:user:${p.userId}`,20);await reserveQuota(db,`${p.tenantId}:ai`,100);
+    const messages=[...(r.chats[key]??[]).slice(-8).map(m=>({role:m.role,content:m.content})),{role:"user" as const,content:parsed.data.message}];
+    const prepared=await prepareCoach({employeeId:p.employeeId,employee:r.employee,messages,plan:r.plan,overrides:r.overrides,lessonId:parsed.data.lessonId});
+    const enc=new TextEncoder();const event=(name:string,data:unknown)=>enc.encode(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`);
+    return new Response(new ReadableStream<Uint8Array>({async start(controller){let answer="";
+     try{for await(const text of prepared.stream()){answer+=text;controller.enqueue(event("text",{text}));}
+      const latest=await loadTenant(db,p.tenantId);const record=latest.state.records[p.employeeId];if(!record)throw new HttpError(403,"Employee access was removed");
+      record.chats[key]=[...(record.chats[key]??[]).slice(-38),{role:"user",content:parsed.data.message},{role:"assistant",content:answer,meta:prepared.meta as unknown as Record<string,unknown>}];const id=crypto.randomUUID();
+      await commitTenant(db,p,latest.revision,latest.state,id,await fingerprint(id),"coach.message");controller.enqueue(event("final",{meta:prepared.meta}));
+     }catch(error){controller.enqueue(event("error",{error:error instanceof HttpError?error.message:"The response could not be completed or saved. Please refresh."}));}finally{controller.close();}
+    }}),{headers:{"content-type":"text/event-stream; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"}});
+   }
+   throw new HttpError(404,"Endpoint not found");
+  }catch(error){
+   if(env.SANDBOX_MODE==="1" && !(error instanceof HttpError)){
+    const known=["Sandbox upstream unavailable","Sandbox upstream returned an invalid response","Sandbox upstream response failed validation"];
+    console.error("Local sandbox failure",error instanceof Error?(known.includes(error.message)?error.message:error.name):"UnknownError");
+   }
+   return json({error:error instanceof HttpError?error.message:"Sandbox operation failed"},error instanceof HttpError?error.status:500);}
+ }};
 }
-
-const OPEN = [/^\/unlock(\.html)?$/, /^\/api\/unlock$/, /^\/_next\//, /^\/favicon\.ico$/];
-function cookie(req: Request, name: string) {
-  const m = (req.headers.get("cookie") ?? "").match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return m ? decodeURIComponent(m[1]) : undefined;
-}
-
-async function coach(req: Request) {
-  const body = (await req.json()) as CoachInput;
-  const last = body.messages?.at(-1)?.content ?? "";
-  if (!last.trim() || last.length > 1000) return json({ error: "Message must be 1-1000 characters." }, 400);
-  if (!allow(clientKey(req))) return json({ error: "Too many requests. Try again in a minute." }, 429);
-  const { meta, stream } = await prepareCoach({
-    ...body,
-    forceDemo: false,
-    messages: body.messages.map((m) => ({ role: m.role, content: String(m.content).slice(0, 1500) })),
-  });
-  const enc = new TextEncoder();
-  const out = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        for await (const piece of stream()) controller.enqueue(enc.encode(piece));
-      } catch (err) {
-        console.error("coach stream failed", err);
-        controller.enqueue(enc.encode(meta.lang === "th" ? "\n\n(ขออภัยค่ะ ระบบขัดข้องชั่วคราว)" : "\n\n(Sorry, something went wrong. Please try again.)"));
-      }
-      controller.close();
-    },
-  });
-  return new Response(out, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-coach-meta": b64(meta) } });
-}
-
-async function path(req: Request) {
-  const { employeeId, overrides } = (await req.json()) as { employeeId: string; overrides?: Record<string, Level> };
-  const emp = employeeById(employeeId);
-  if (!emp?.nextRoleId) return json({ error: "No target role" }, 400);
-  if (!allow(clientKey(req), 4)) return json({ error: "Too many requests. Try again in a minute." }, 429);
-  return json(await aiPlan(emp, overrides));
-}
-
-async function unlock(req: Request, env: Env) {
-  const pass = String((await req.formData()).get("passcode") ?? "");
-  const ok = !env.DEMO_PASSCODE || pass === env.DEMO_PASSCODE;
-  const headers = new Headers({ location: ok ? "/" : "/unlock?e=1" });
-  if (ok) headers.append("set-cookie", `demo_pass=${encodeURIComponent(pass)}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax; Secure`);
-  return new Response(null, { status: 303, headers });
-}
-
-const worker = {
-  async fetch(req: Request, env: Env): Promise<Response> {
-    setAIBinding(env.AI);
-    const url = new URL(req.url);
-    const p = url.pathname;
-    if (env.DEMO_PASSCODE && !OPEN.some((re) => re.test(p)) && cookie(req, "demo_pass") !== env.DEMO_PASSCODE) {
-      return p.startsWith("/api/") ? json({ error: "Locked" }, 401) : Response.redirect(new URL("/unlock", url).toString(), 302);
-    }
-    try {
-      if (p === "/api/status" && req.method === "GET") {
-        const dbMeta = env.DB ? await getDbMeta(env.DB) : null;
-        return json({ live: isLive(), provider: provider(), models: isLive() ? models() : null, db: Boolean(env.DB), dbMeta });
-      }
-      if (p === "/api/state" && req.method === "GET") {
-        if (!env.DB) return json({ dbMeta: { connected: false, engine: "localStorage" } });
-        return json(await loadSharedState(env.DB));
-      }
-      if (p === "/api/state" && req.method === "POST") {
-        if (!env.DB) return json({ ok: false, dbMeta: { connected: false, engine: "localStorage" } });
-        const body = (await req.json()) as SharedStatePayload;
-        const dbMeta = await saveSharedState(env.DB, body);
-        return json({ ok: true, dbMeta });
-      }
-      if (p === "/api/state/reset" && req.method === "POST") {
-        if (!env.DB) return json({ ok: false, dbMeta: { connected: false, engine: "localStorage" } });
-        await seedDatabase(env.DB);
-        return json(await loadSharedState(env.DB));
-      }
-      if (p === "/api/sso/token" && req.method === "POST") {
-        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
-        const body = (await req.json()) as { persona: "employee" | "manager" | "leader"; method?: "sso" | "credentials" };
-        const { token, claims, dbMeta } = await issueOidcSsoSession(env.DB, body.persona, body.method ?? "sso");
-        const headers = new Headers({ "content-type": "application/json", "cache-control": "no-store" });
-        headers.append(
-          "set-cookie",
-          `iris_sso_jwt=${encodeURIComponent(token)}; Path=/; Max-Age=28800; HttpOnly; SameSite=Lax; Secure`
-        );
-        return new Response(JSON.stringify({ ok: true, token, claims, dbMeta }), { status: 200, headers });
-      }
-      if (p === "/api/sso/session" && req.method === "GET") {
-        const token = cookie(req, "iris_sso_jwt");
-        const claims = token ? await verifyJwtHs256(token) : null;
-        return json({ authenticated: Boolean(claims), claims });
-      }
-      if (p === "/api/integrations" && req.method === "GET") {
-        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
-        return json(await getIntegrationsTelemetry(env.DB));
-      }
-      if (p === "/api/integrations/hris-sync" && req.method === "POST") {
-        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
-        const body = (await req.json().catch(() => ({}))) as Parameters<typeof ingestHrisDeltaSync>[1];
-        const res = await ingestHrisDeltaSync(env.DB, body);
-        const telemetry = await getIntegrationsTelemetry(env.DB);
-        return json({ ok: true, ...res, telemetry });
-      }
-      if (p === "/api/integrations/lms-xapi" && req.method === "POST") {
-        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
-        const body = (await req.json().catch(() => ({}))) as Parameters<typeof ingestXapiStatement>[1];
-        const res = await ingestXapiStatement(env.DB, body);
-        const state = await loadSharedState(env.DB);
-        const telemetry = await getIntegrationsTelemetry(env.DB);
-        return json({ ok: true, ...res, state, telemetry });
-      }
-      if (p === "/api/integrations/lti-launch" && req.method === "POST") {
-        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
-        const body = (await req.json().catch(() => ({}))) as Parameters<typeof createLtiLaunchEnvelope>[1];
-        const res = await createLtiLaunchEnvelope(env.DB, body);
-        const telemetry = await getIntegrationsTelemetry(env.DB);
-        return json({ ok: true, ...res, telemetry });
-      }
-      if (p === "/api/integrations/line-push" && req.method === "POST") {
-        if (!env.DB) return json({ error: "D1 database not bound" }, 500);
-        const body = (await req.json().catch(() => ({}))) as Parameters<typeof dispatchLineFlexNotification>[1];
-        const res = await dispatchLineFlexNotification(env.DB, {
-          ...body,
-          lineChannelToken: env.LINE_CHANNEL_ACCESS_TOKEN,
-        });
-        const telemetry = await getIntegrationsTelemetry(env.DB);
-        return json({ ok: true, ...res, telemetry });
-      }
-      if (p === "/api/coach" && req.method === "POST") return await coach(req);
-      if (p === "/api/path" && req.method === "POST") return await path(req);
-      if (p === "/api/unlock" && req.method === "POST") return await unlock(req, env);
-      if (p.startsWith("/api/")) return json({ error: "Not found" }, 404);
-    } catch (err) {
-      console.error(err);
-      return json({ error: "Server error" }, 500);
-    }
-    return env.ASSETS.fetch(req);
-  },
-};
-
-export default worker;
+export default createWorker();
