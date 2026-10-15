@@ -1,0 +1,207 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to Cloudflare Workers (requires CLOUDFLARE_API_TOKEN secret)"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  prototype-ci:
+    name: Prototype (Types, Lint, 71 Tests, 55 Offline Evals & Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prototype
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: prototype/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit --incremental false
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Run unit, auth, workflow & integration tests
+        run: pnpm test
+
+      - name: Run 55-case offline AI evaluation regression suite
+        run: pnpm eval --demo
+
+      - name: Build static export
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '' }}
+        run: pnpm build
+
+      - name: Inspect exported client bundle & production dependencies
+        run: |
+          pnpm audit --prod
+          node - <<'JS'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          function walk(dir) {
+            let out = [];
+            for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+              const p = path.join(dir, e.name);
+              if (e.isDirectory()) out.push(...walk(p));
+              else if (p.endsWith(".js") || p.endsWith(".html")) out.push(p);
+            }
+            return out;
+          }
+          const files = walk("out");
+          const forbidden = ["Somchai Jaidee", "Malee Suksan", "Arunee Srisuk", "MOODLE_A_TOKEN", "INTEGRATION_SECRET"];
+          for (const f of files) {
+            const txt = fs.readFileSync(f, "utf8");
+            for (const term of forbidden) {
+              if (txt.includes(term)) throw new Error(`Forbidden string ${term} found in ${f}`);
+            }
+          }
+          console.log(`Bundle check PASS across ${files.length} exported files.`);
+          JS
+
+  model-and-package-ci:
+    name: Financial Model (1,207 Formulas), 12-Slide PDF & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python verification packages
+        run: pip install --disable-pip-version-check openpyxl pypdf
+
+      - name: Verify financial workbook caches & 143 controls
+        run: python3 model/verify_model.py model/cost-model.xlsx
+
+      - name: Verify 12-slide PDF, documentation links & secret scan
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from pypdf import PdfReader
+          import re, subprocess
+
+          pdf = Path("IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf")
+          reader = PdfReader(pdf)
+          assert len(reader.pages) == 12, f"Expected 12 pages, got {len(reader.pages)}"
+          for idx, page in enumerate(reader.pages):
+              w, h = float(page.mediabox.width), float(page.mediabox.height)
+              assert abs(w - 1920) < 1 and abs(h - 1080) < 1, f"Page {idx+1} size mismatch: {w}x{h}"
+              assert len(page.extract_text()) > 500, f"Page {idx+1} has insufficient text"
+
+          for name in ["README.md", "SUBMISSION.md", "prototype/README.md", "docs/implementation-progress.md", "model/README.md"]:
+              doc = Path(name)
+              for target in re.findall(r"\]\(([^)]+)\)", doc.read_text()):
+                  if not target.startswith(("https:", "http:", "#", "<")) and not (doc.parent / target.split("#")[0]).exists():
+                      raise RuntimeError(f"Broken file link in {name}: {target}")
+
+          paths = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          patterns = [
+              r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+              r"\bsk_live_[A-Za-z0-9]{12,}",
+              r"\bsk_test_[A-Za-z0-9]{12,}",
+              r"\b(?:ghp_|github_pat_)[A-Za-z0-9_]{20,}",
+              r"\bAKIA[A-Z0-9]{16}\b",
+          ]
+          findings = []
+          for raw in paths:
+              if not raw:
+                  continue
+              fp = Path(raw.decode())
+              if fp.suffix in [".pdf", ".xlsx", ".png", ".woff2"] or not fp.is_file():
+                  continue
+              try:
+                  s = fp.read_text()
+              except UnicodeError:
+                  continue
+              if any(re.search(x, s) for x in patterns):
+                  findings.append(str(fp))
+          assert not findings, f"Credential scan failed: {findings}"
+          print("PASS: 12-slide PDF, documentation links, and credential scan verified.")
+          PY
+          git diff --check
+
+  deploy:
+    name: Deploy to Cloudflare Workers (CD)
+    needs: [prototype-ci, model-and-package-ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.deploy == true)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prototype
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '' }}
+    steps:
+      - name: Check deployment credentials
+        id: creds
+        run: |
+          if [ -n "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Cloudflare Deployment Skipped"
+              echo "CI checks passed, but \`CLOUDFLARE_API_TOKEN\` is not configured in GitHub repository secrets."
+              echo "To enable automatic deployment on \`main\`, add \`CLOUDFLARE_API_TOKEN\` and \`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY\` in **Settings → Secrets and variables → Actions**."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Checkout repository
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        if: steps.creds.outputs.ready == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node.js
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: prototype/pnpm-lock.yaml
+
+      - name: Install dependencies
+        if: steps.creds.outputs.ready == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build & deploy Worker to Cloudflare
+        if: steps.creds.outputs.ready == 'true'
+        run: pnpm deploy
