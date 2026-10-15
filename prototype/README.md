@@ -1,120 +1,107 @@
-# Learning Suite prototype
+# Learning Suite prototype — implementation and local proof
 
-**Live: https://iris.kunanonj.com** *(Role-Based Login with 1-tap demo sign-in: Employee `E0001`/PIN `1120`, Manager `E0002`/PIN `2240`, HR & Leaders `E9001`/PIN `9001`)*
+The Next.js static frontend and Cloudflare Worker/D1 API implement the five learning journeys using synthetic case-study data. **The revised version is local and has not been deployed.** Historical public screenshots and demo links do not verify this version.
 
-Working prototype for the IRIS Consulting case: an integrated, AI-powered learning suite for frontline staff, with a Thai/English AI coach. **Mock data only**: the company, people, roles and courses are fictional and were generated for this exercise.
+## Authentication and permissions
 
-## What to try (5 minutes)
+Clerk supplies session identity. The Worker verifies the public-key JWT and expected issuer, authorised party, user/session claims and session status. D1 membership records map the verified user to one tenant, employee and role; the browser cannot choose a persona or grant itself a role.
 
-Each role signs into an isolated, PDPA-scoped session via the **Role-Based Login Portal** (use the pre-filled credentials, SSO button, or the **1-Tap Evaluator Quick Login** strip at the bottom; use **"สลับบัญชี / ออกจากระบบ · Switch role / Sign out"** in the top bar and the **ไทย/EN** toggle at any time):
+- Employees access their own learning record.
+- Managers can learn on their own record and review their current direct reports. Team views exclude private coach conversations; self-approval is blocked.
+- HR/leadership views return server-calculated aggregates, suppressing groups below 10.
+- Mutations use typed commands, an expected revision, idempotency key and atomic audit writes. The browser cannot replace shared state or claim verified lesson completion.
+- Suite-managed learning data and API bearer tokens stay in memory; the Suite persists only language preference. Clerk manages its own authentication cookies and storage. Legacy public reset and token-minting routes are retired.
 
-1. **Employee (`E0001` · Somchai, Senior Store Associate · LINE OA SSO):** start the 5-minute skill check. "Use sample answers" skips ahead. Submit it to the manager, then click **"เข้าสู่ระบบหัวหน้า (E0002) เพื่ออนุมัติ / Sign in as Manager (E0002) to approve"**.
-2. **Manager (`E0002` · Malee, Store Manager · Google Workspace SSO):** open Somchai's assessment in the approval inbox, adjust a level if you disagree, and approve. Batch approval and the overdue → HRBP escalation are visible in the inbox.
-3. **Employee (`E0001`) → Path:** sign back in as Somchai and tap "Build my path with AI". A rules engine shortlists approved catalogue items for each skill gap; the model sequences them into a 70-20-10 plan and writes the rationale. Send the path for approval.
-4. **Manager (`E0002`):** sign in as Malee and approve the plan. Approving it also approves the workshops in it.
-5. **Employee (`E0001`) → Home:** view your next step, plus a preview of the LINE nudge. Open the lesson and use **"Ask about this lesson"** (the chat sits beside the content with clickable `[S1]` source drawer).
-6. **Coach tab:** try all 4 core capabilities (*Explain results*, *Recommend next steps*, *Practise role-play*, *Reflect on learning*) as well as the red-team guardrail prompts: a colleague's score, salary, prompt injection, stress.
-7. **HR & Leaders (`E9001` · Arunee, HRBP · Google Workspace SSO):** sign in to inspect adoption, the capability heatmap (baseline vs now), the link to business KPIs, and coach health (anonymised aggregates $N \ge 10$ only).
+The client fails closed if its Clerk publishable key is absent. Verifier unit tests use local signed fixtures, and **real Clerk sign-in, cross-role API verification and authenticated browser journeys have been verified locally** against the linked development application (`app_3FR2A54nq68wzHcRSjfMWabSBU5`); receipts: [`sandbox/receipts/clerk-api-2026-10-15T14-10-06.023Z.json`](sandbox/receipts/clerk-api-2026-10-15T14-10-06.023Z.json) and [`sandbox/receipts/clerk-browser-2026-10-15T14-17-17.135Z.json`](sandbox/receipts/clerk-browser-2026-10-15T14-17-17.135Z.json). Suite and Moodle authentication remain separate.
 
-"Reset demo" restores the starting state and re-seeds the Cloudflare D1 database.
+## Local setup
 
-## Run locally
+Use the repository's installed Node/pnpm versions, Docker Desktop with its daemon running, and the existing dependencies. Run commands from `prototype/`. This guide makes no changes to production D1 or hosted secrets.
 
-Requires Node 20+ and pnpm.
+1. Select the existing Clerk development application. The user may authenticate its official CLI with `pnpm dlx clerk@latest auth login`; do not create an unrelated app automatically.
+2. Configure the frontend's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` through its ignored local environment convention. It is bundled at build time, so rebuild when it changes.
+3. Configure `CLERK_PUBLISHABLE_KEY`, public `CLERK_JWT_KEY`, `CLERK_ISSUER_URL` and `APP_ORIGINS` for the local Worker. Use the existing ignored local secret mechanism for integration credentials; never put token values in commands, tracked files or screenshots.
+4. Prepare a protected membership input containing the selected Clerk `userId` values and synthetic employee/role mappings. Provision locally:
 
-```bash
-pnpm install
-cp .dev.vars.example .dev.vars   # optional: configure Workers AI, OpenCode or Anthropic
-npx wrangler d1 execute iris-learning-suite-db --local --file=db/schema.sql
-pnpm dev                         # UI on http://localhost:3000, API (Worker + D1) on :8787
-pnpm preview                     # production-like: static build + Worker on http://localhost:8787
+```sh
+pnpm sandbox:provision --memberships /absolute/path/to/protected-memberships.json
+pnpm build
 ```
 
-## Database & Live Enterprise Integrations (Cloudflare D1 + WebCrypto)
+Start the explicitly local Worker/D1 configuration, then the frontend in a second terminal:
 
-The prototype persists state in a **Cloudflare D1** relational SQLite database (`iris-learning-suite-db`, schema in [`db/schema.sql`](db/schema.sql), repositories in [`src/lib/db.ts`](src/lib/db.ts) and [`src/lib/integrations.ts`](src/lib/integrations.ts)) across **9 tables**:
-- `employees` (213 seeded Siam Pinnacle Group employees across 5 BUs, updated via `POST /api/integrations/hris-sync`)
-- `assessments` (self-assessment, anchor quiz, manager calibration, and overrides)
-- `plans` (70-20-10 learning path steps, status, rationale, and project evidence)
-- `approvals` (manager approval inbox with SLA due dates and escalation status)
-- `coach_logs` (grounded AI Coach conversation history per employee and lesson)
-- `sso_sessions` (cryptographically signed HS256 OIDC JWT tokens issued via `POST /api/sso/token` for Google Workspace `accounts.google.com` and LINE Login `access.line.me`)
-- `xapi_statements` (IEEE 9274.1.1 xAPI 2.0 course completion statements from LMS A & LMS B via `POST /api/integrations/lms-xapi`, plus IMS LTI 1.3 signed launch tokens via `POST /api/integrations/lti-launch`)
-- `line_outbox` (spec-compliant LINE Messaging API v2 Flex Message push containers with 1-tap LIFF SSO URI actions via `POST /api/integrations/line-push`)
-- `integration_events` (unified real-time audit log of all inbound/outbound protocol payloads, inspectable via the **"เชื่อมต่อระบบจริง / Integrations"** button in the top bar)
+```sh
+pnpm exec wrangler dev --config wrangler.sandbox.jsonc --local --persist-to .wrangler/suite-v2 --port 8797 --inspector-port 0
+```
 
-Every Employee $\rightarrow$ Manager $\rightarrow$ HR action syncs via `GET/POST /api/state`, and clicking **Reset demo (`รีเซ็ตเดโม`)** calls `POST /api/state/reset` to cleanly re-seed all 9 D1 tables.
+```sh
+pnpm exec next dev --port 3000
+```
 
-Without a key the app runs in **demo mode**. Guardrails, retrieval, the rules-based path and the approvals all work, and the coach gives scripted, retrieval-backed answers. With a key, the coach, the guardrail classifier and the path generator call a model.
+Use the configured localhost origin. The `dev` and `preview` scripts use this isolated local sandbox configuration. Port 8797 is intentional because an unrelated service occupies 8787; the Next.js development API proxy targets 8797. Do not infer production authentication or integration readiness from a successful build.
 
-## AI providers
+## Verify the five journeys
 
-One provider layer (`src/lib/ai.ts`) with three backends. It is chosen by `AI_PROVIDER`, otherwise by whichever key is set.
+1. Sign in with the provisioned employee account. Review current/next-role skills, complete self-ratings and the three scenarios, then submit. Scores are calculated on the server.
+2. Sign out and sign in with the assigned manager account. Approve or return the assessment; calibration requires a reason. Other managers and employees cannot make this decision.
+3. Return as the employee, generate a draft path, submit it, then have the manager approve. Rules-based generation is labelled distinctly from an AI-generated path.
+4. Open the video/lesson, workshop or project content. The contextual coach can explain, practise and reflect in Thai/English. Its final answer provenance is visible.
+5. Complete a mapped Moodle activity upstream and reconcile through the administrative connector. The browser has no "verified complete" action. Submit project evidence for the manager's separate approval.
+6. Inspect the leader's server-generated aggregates and the environment's connection status. Business impact is a measurement hypothesis, not a demonstrated causal result.
 
-| Provider | Setup | Default models | Notes |
-|---|---|---|---|
-| **Cloudflare Workers AI** (free; the live demo uses this) | `AI_PROVIDER=workers-ai`. The Worker uses its `AI` binding; Node scripts need `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` | coach, path and classifier `@cf/aisingapore/gemma-sea-lion-v4-27b-it` (SEA-LION v4, tuned for Southeast Asian languages); judge `@cf/qwen/qwen3-30b-a3b-fp8` | 10,000 neurons/day free, about 60-70 coach messages. When the allowance runs out, the coach falls back to retrieval answers. |
-| **OpenCode** gateway (`https://opencode.ai/inference/v1`) | `OPENCODE_API_KEY` (needs credits and model access) | coach and path `claude-sonnet-5-5`, classifier `claude-haiku-5-5` | Claude and Qwen use the gateway's Anthropic-format `/messages`; Kimi, DeepSeek, GLM and MiniMax use `/chat/completions`. OpenCode's free models only work inside the OpenCode app, not over its API. |
-| **Anthropic** (Claude API) | `ANTHROPIC_API_KEY` | coach and path `claude-opus-5-5`, classifier `claude-haiku-5-5` | Adds structured outputs, prompt caching and server-side refusal fallback. |
+The sandbox has individual reviews and due dates. Batch approval, workshop reservations, LINE reminders and automatic SLA escalation remain production proposals.
 
-On OpenCode and Workers AI, structured results (the classifier, the path, the judge) are requested as JSON and validated against the same zod schemas. One retry is allowed, then the app falls back to the rules engine. If any provider fails before replying, the coach serves the retrieval answer with an "AI unavailable" note.
+## HR and Moodle evidence
 
-Before you switch the coach to another model, run `pnpm eval` on it.
+See [`sandbox/README.md`](sandbox/README.md) for the isolated lab:
 
-**Live eval on the free model** (`evals/report-live.md`):
+```sh
+node sandbox/run.mjs setup
+node sandbox/run.mjs start
+node sandbox/run.mjs proof
+```
 
-| Check | Result |
+The recorded proof against two **real Moodle 4.5.15** instances covers catalogue, enrolment, upstream completion, replay and one-instance-down behavior. The synthetic HR feed demonstrates persistent-cursor joiner, manager-transfer and leaver events. Receipt: [`sandbox/receipts/2026-10-15T09-17-29.219Z.json`](sandbox/receipts/2026-10-15T09-17-29.219Z.json).
+
+This connector proof is distinct from Suite-to-D1 reconciliation and permission acceptance. Hosted connectors remain **unconfigured**. No client HRIS, Google/LINE federation, xAPI, LTI or LINE delivery has been proven. Tokens remain server-side in ignored protected configuration.
+
+## Checks and AI release gate
+
+The integrated automated suite passed **71/71**, with TypeScript, lint and the default Turbopack build passing. Local Worker/D1 reconciliation and idempotent replay against both Moodle instances passed; [receipt](sandbox/receipts/suite-2026-10-15T09-35-39.519Z.json). Real Clerk login, cross-role API checks and authenticated browser journeys also passed across employee, manager and leader accounts; [API receipt](sandbox/receipts/clerk-api-2026-10-15T14-10-06.023Z.json), [browser receipt](sandbox/receipts/clerk-browser-2026-10-15T14-17-17.135Z.json).
+
+```sh
+pnpm test
+pnpm lint
+pnpm exec tsc --noEmit --incremental false
+pnpm build
+pnpm eval --demo
+```
+
+The evaluator runs the original 31 cases plus 24 held-out cases. The integrated offline run passed 55/55; this is deterministic regression evidence, **not live-model certification**. Both the historical [`evals/report-live.md`](evals/report-live.md) (83% groundedness) and the new 55-case live Workers AI run [`evals/runs/2026-10-15T14-18-58-089Z-f48e1caf/report.md`](evals/runs/2026-10-15T14-18-58-089Z-f48e1caf/report.md) (93.1% groundedness across 27/29 judged answers; 100% valid citations; Thai quality 5.00 / 4.83) remain below the 95% groundedness gate (**FAIL**, `releaseCertified: false`). A proposed production Claude configuration has no established passing result either.
+
+The harness requires exact-source judgments, validates citations, preserves model/source fingerprints, and sends final answer provenance through SSE. Missing judges, interrupted/quota-limited runs and diagnostic subsets cannot certify release. Required thresholds: 100% safety and language correctness; at least 90% golden/hallucination and citation pass; at least 95% groundedness; Thai quality at least 4/5.
+
+Live execution is blocked until the operator verifies account-level free-only limits; the plan-read request returned 403. The harness does not read secret files. Supply only the named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` through the existing secure process environment. Only after free-only verification, use the configured provider:
+
+```sh
+AI_PROVIDER=workers-ai AI_FREE_ONLY=1 pnpm eval --live --free-tier-confirmed
+```
+
+Do not treat the flag as billing evidence. The Worker requires `AI_FREE_ONLY_VERIFIED=1` before live inference; otherwise it uses deterministic mode. No paid-provider fallback is enabled in the Worker. Preserve failed runs and report incomplete usage: classifier/judge billing is not currently captured as a complete total.
+
+## Main code boundaries
+
+| Layer | Source |
 |---|---|
-| Overall | 90% |
-| Red-team cases handled safely | 100% |
-| Thai quality (LLM judge) | 4.09 / 5 |
-| Correct citations | 92% |
-| Grounded (LLM judge) | 83%, below the 95% gate |
+| Client, no personnel dataset | `src/components/SecureSuite.tsx` and `secure-*` |
+| Identity and workflow contracts | `src/server/auth.ts`, `src/lib/suite-contracts.ts` |
+| Scope, scoring and state transitions | `src/lib/suite-domain.ts` |
+| D1 revision/idempotency/audit transaction | `src/lib/suite-repository.ts`, `db/migrations/` |
+| Synthetic HR and local Moodle adapters | `src/lib/sandbox-integrations.ts`, `src/server/integration-service.ts` |
+| Grounded coach and evaluation | `src/lib/coach/`, `src/lib/evaluation.ts`, `scripts/eval.ts` |
 
-Three fixes made after that run (`report-live-subset.md`): lesson-only sources, no extra courses, and citing only existing sources. By the release gate, production would stay on Claude.
+## Tools and outstanding acceptance
 
-## Evals
+The original draft attributes initial implementation and earlier screenshots to Claude Code, Cursor and Playwright. Codex supported this continuation's authentication, workflows, evaluation integrity, integration/security review, financial verification and documentation. Historical live benchmarking used SEA-LION v4 with Qwen judging. No current assistant model identity or unperformed human review is claimed.
 
-```bash
-pnpm eval          # live if a key is in .dev.vars, otherwise demo mode
-pnpm eval --demo   # deterministic layers only, no model calls, free
-pnpm eval --only=G12,H02   # re-check a few cases (writes report-*-subset.md)
-```
-
-There are 31 cases in `evals/cases.json`, in Thai and English:
-
-- golden questions
-- hallucination bait (courses that don't exist)
-- red-team cases: colleague data, pay and promotion, prompt injection, wellbeing, crisis, PII, off-topic
-
-Checks: category, correct citation, forbidden content, PII masking and reply language. In live mode an LLM judge also scores groundedness and Thai quality. Results go to `evals/report-*.md` with a release gate.
-
-## How it works
-
-| Layer | File | Notes |
-|---|---|---|
-| Data model | `src/lib/types.ts` | Roles → required skills → assessments → gaps → plan → approvals |
-| Mock data | `src/data/taxonomy.ts`, `src/data/catalog.ts`, `scripts/generate-mock-data.ts` | 5 BUs, 26 roles, 33 skills, 120 catalogue items (21 with full TH/EN lesson text), 213 employees |
-| Path engine | `src/lib/plan-rules.ts`, `src/lib/path.ts` | Rules shortlist → model sequencing → item ids checked against the catalogue; critical gaps always covered |
-| Retrieval | `src/lib/coach/retrieval.ts` | BM25 with Thai word segmentation (`Intl.Segmenter`, same output on Node and Workers). Production adds multilingual embeddings |
-| Guardrails | `src/lib/coach/guardrails.ts` | Layer 1: bilingual deterministic rules and PII masking before any model call. Layer 2: model intent classifier (live). Blocked categories get fixed, reviewed replies |
-| Coach | `src/lib/coach/coach.ts`, `prompt.ts` | Only the signed-in employee's own record is sent; sources are numbered and cited; streaming |
-| AI providers | `src/lib/ai.ts` | Cloudflare Workers AI (free default), OpenCode or Anthropic; streaming text and schema-checked JSON |
-| API + hosting | `worker/index.ts`, `wrangler.jsonc` | Cloudflare Worker serves the static Next.js export and `/api/status`, `/api/coach` (stream), `/api/path`, `/api/unlock`; best-effort rate limit; optional passcode gate |
-
-## Deploy (Cloudflare Workers)
-
-```bash
-npx wrangler login                       # once
-npx wrangler secret put OPENCODE_API_KEY # optional; the default provider is Workers AI (free, no key)
-npx wrangler secret put DEMO_PASSCODE    # optional: gate the whole site
-pnpm run deploy                          # next build (static export) + wrangler deploy
-```
-
-Use `pnpm run deploy`, not `pnpm deploy`: the latter is a built-in pnpm command. If your login has several Cloudflare accounts, set `CLOUDFLARE_ACCOUNT_ID`. The custom domain (`iris.kunanonj.com`) is set in `wrangler.jsonc`. Its zone must be in the same account; change or remove the `routes` entry to deploy elsewhere.
-
-It runs on the Workers free plan: the static assets are free, and the Worker bundle is about 290 KB gzipped against a 3 MB limit. The free plan caps each request at 10 ms of CPU time. Model calls are network waits, not CPU, but if requests hit error 1102, move to Workers Paid (USD 5 a month).
-
-## Tools used
-
-Built with Claude Code (Claude Opus 5.5) for code, mock data and lesson text. Playwright ran the automated UI walkthroughs. All design decisions were reviewed by the author.
+Before any deployment: complete real Clerk sign-in, final integrated local Worker/D1/browser acceptance, the full live AI quality gate, and production security/DPO decisions. Deployment, remote database changes, secret replacement and publication require separate authority. Follow [`../docs/implementation-progress.md`](../docs/implementation-progress.md) for current receipts.

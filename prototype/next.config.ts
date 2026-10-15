@@ -7,7 +7,7 @@ const isDev = process.env.NODE_ENV === "development";
 // In `next dev`, /api is proxied to `wrangler dev` on port 8787.
 const nextConfig: NextConfig = {
   ...(isDev
-    ? { rewrites: async () => [{ source: "/api/:path*", destination: "http://127.0.0.1:8787/api/:path*" }] }
+    ? { rewrites: async () => [{ source: "/api/:path*", destination: "http://127.0.0.1:8797/api/:path*" }] }
     : { output: "export" }),
   turbopack: {
     rules: {

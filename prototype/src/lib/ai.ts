@@ -161,7 +161,7 @@ async function chatCompletions(a: ChatArgs, stream: boolean) {
 // Workers AI streams either OpenAI-style chunks or legacy {"response": "..."} chunks.
 type ChatChunk = {
   response?: string;
-  choices?: { delta?: { content?: string | null } }[];
+  choices?: { delta?: { content?: string | null }; finish_reason?: string | null }[];
   usage?: { prompt_tokens?: number; completion_tokens?: number };
 };
 
@@ -180,28 +180,65 @@ async function* streamWorkersAI(a: ChatArgs) {
 
 async function* readSSE(body: ReadableStream<Uint8Array>, a: ChatArgs) {
   const reader = body.getReader();
-  const dec = new TextDecoder();
+  const dec = new TextDecoder("utf-8", { fatal: true });
   let buf = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    let nl: number;
-    while ((nl = buf.indexOf("\n")) >= 0) {
-      const line = buf.slice(0, nl).trim();
-      buf = buf.slice(nl + 1);
-      if (!line.startsWith("data:")) continue;
-      const data = line.slice(5).trim();
-      if (data === "[DONE]") return;
-      try {
-        const chunk = JSON.parse(data) as ChatChunk;
-        const text = chunk.choices?.[0]?.delta?.content ?? chunk.response;
-        if (text) yield text;
-        if (chunk.usage) a.onUsage?.({ input: chunk.usage.prompt_tokens ?? 0, output: chunk.usage.completion_tokens ?? 0, cacheRead: 0 });
-      } catch {
-        // keep-alive or partial line; ignore
-      }
+  let stopped = false, bodyEnded = false;
+  function frame(raw: string): { text?: string; done?: boolean } {
+    const lines = raw.split("\n");
+    const event = lines.find((line) => line.startsWith("event:"))?.slice(6).trim();
+    if (event === "error") throw new Error("Model stream returned an error event");
+    const data = lines.filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trimStart()).join("\n").trim();
+    if (!data) return {}; // SSE comments and keep-alive events carry no data.
+    if (data === "[DONE]") return { done: true };
+    let chunk: ChatChunk;
+    try {
+      const parsed: unknown = JSON.parse(data);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || "error" in parsed) throw new Error();
+      chunk = parsed as ChatChunk;
+    } catch { throw new Error("Model stream contained malformed data"); }
+    if ((chunk.response !== undefined && typeof chunk.response !== "string") || (chunk.choices !== undefined && !Array.isArray(chunk.choices)) ||
+      (chunk.response === undefined && chunk.choices === undefined && chunk.usage === undefined)) throw new Error("Model stream contained invalid data");
+    const choice = chunk.choices?.[0];
+    if (choice !== undefined && (!choice || typeof choice !== "object" || Array.isArray(choice) ||
+      (choice.delta !== undefined && (!choice.delta || typeof choice.delta !== "object" || Array.isArray(choice.delta))))) throw new Error("Model stream contained invalid choice data");
+    const text = choice?.delta?.content ?? chunk.response;
+    if (text !== undefined && typeof text !== "string") throw new Error("Model stream contained invalid text");
+    if (stopped && text) throw new Error("Model stream continued after its finish marker");
+    if (choice?.finish_reason != null) {
+      // OpenAI-compatible stop is a complete answer. Length, content filtering,
+      // or a tool-call finish cannot certify this plain-text coach response.
+      if (choice.finish_reason !== "stop") throw new Error("Model stream has an incomplete finish reason");
+      stopped = true;
     }
+    if (chunk.usage) a.onUsage?.({ input: chunk.usage.prompt_tokens ?? 0, output: chunk.usage.completion_tokens ?? 0, cacheRead: 0 });
+    return { text };
+  }
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      bodyEnded = done;
+      buf = (buf + dec.decode(value, { stream: !done })).replace(/\r\n/g, "\n");
+      if (buf.length > 1_048_576) throw new Error("Model stream frame exceeds limit");
+      let end: number;
+      while ((end = buf.indexOf("\n\n")) >= 0) {
+        const out = frame(buf.slice(0, end));
+        buf = buf.slice(end + 2);
+        if (out.text) yield out.text;
+        if (out.done) return;
+      }
+      if (done) break;
+    }
+    if (buf.trim()) {
+      const out = frame(buf);
+      if (out.text) yield out.text;
+      if (out.done) return;
+    }
+    // EOF alone proves only transport closure, not model completion. Legacy
+    // Workers AI must send [DONE]; compatible streams may send finish_reason=stop.
+    if (!stopped) throw new Error("Model stream ended without a completion terminal marker");
+  } finally {
+    if (!bodyEnded) await reader.cancel().catch(() => {});
+    reader.releaseLock();
   }
 }
 

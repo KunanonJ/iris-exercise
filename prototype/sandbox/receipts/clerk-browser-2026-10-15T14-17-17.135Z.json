@@ -1,0 +1,42 @@
+{
+  "kind": "clerk_authenticated_browser_journeys",
+  "status": "PASS",
+  "timestamp": "2026-10-15T14:17:17.147Z",
+  "origin": "http://localhost:8797",
+  "consoleErrors": 0,
+  "pageErrors": 0,
+  "roles": [
+    {
+      "role": "employee",
+      "employeeId": "E0001",
+      "heading": "สมชาย ใจดี",
+      "teamTabVisible": false,
+      "orgTabVisible": false,
+      "planAndCoachVerified": true
+    },
+    {
+      "role": "manager",
+      "employeeId": "E0002",
+      "heading": "มาลี สุขสันต์",
+      "teamTabVisible": true,
+      "directReportVisible": true,
+      "orgTabVisible": false,
+      "screenshot": "docs/screenshots/clerk-manager-live.png"
+    },
+    {
+      "role": "leader",
+      "employeeId": "E9001",
+      "heading": "ภาพรวมการเรียนรู้",
+      "learningTabVisible": false,
+      "teamTabVisible": false,
+      "orgTabVisible": true,
+      "screenshot": "docs/screenshots/clerk-leader-live.png"
+    }
+  ],
+  "screenshots": [
+    "docs/screenshots/clerk-signin-live.png",
+    "docs/screenshots/clerk-employee-live.png",
+    "docs/screenshots/clerk-manager-live.png",
+    "docs/screenshots/clerk-leader-live.png"
+  ]
+}

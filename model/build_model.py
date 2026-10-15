@@ -1,5 +1,9 @@
-"""Builds model/cost-model.xlsx: build cost, run cost, AI cost, pricing and value.
-All inputs live on the Assumptions sheet (blue = input); every other number is a formula."""
+"""Legacy formula/layout generator for the seven-sheet financial model.
+
+After regeneration, run `node recalculate.mjs` and `python3 verify_model.py`.
+The raw generator output has formulas without cached results and must not be
+submitted until the Artifact Tool recalculation and verification pass.
+"""
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter as L
@@ -539,4 +543,4 @@ from openpyxl.workbook.properties import CalcProperties
 
 wb.calculation = CalcProperties(fullCalcOnLoad=True)  # Excel / Numbers recompute on open
 wb.save("cost-model.xlsx")
-print("saved")
+print("Saved formula/layout source. Required next: node recalculate.mjs && python3 verify_model.py")

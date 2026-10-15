@@ -111,3 +111,11 @@ export function retrieve(query: string, lang: Lang, opts: { k?: number; pinned?:
 
 export const passageCount = PASSAGES.length;
 export const passageFor = (sourceId: string, lang: Lang) => PASSAGES.find((p) => p.sourceId === sourceId && p.lang === lang)?.text ?? "";
+
+// Reject a named course whose Latin topic token is absent from the approved
+// corpus. Generic scheduling words must not make an unknown title look known.
+const OFFER_WORDS = new Set("course courses workshop workshops certificate certification advanced attend registration register available location schedule date dates where when which learn learning please can could would show tell more about open session sessions teaching training".split(" "));
+const APPROVED_WORDS = new Set(PASSAGES.flatMap((p) => tokenize(p.text)));
+export function hasUnknownOfferTerm(query: string) {
+  return tokenize(query).some((token) => /^[a-z][a-z0-9+.-]{2,}$/.test(token) && !OFFER_WORDS.has(token) && !APPROVED_WORDS.has(token));
+}

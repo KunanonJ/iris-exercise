@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "createdAt": "2026-10-15T09:17:29.219Z",
+  "kind": "local_sandbox_only",
+  "hosted": "unconfigured",
+  "pins": {
+    "schema": 1,
+    "moodleVersion": "4.5.15",
+    "preparedAt": "2026-10-15T09:12:37.481Z",
+    "docker": {
+      "repository": "https://github.com/moodlehq/moodle-docker.git",
+      "ref": "main",
+      "commit": "f4c2324d32fb74d7753264381f0a9b418b6034b2",
+      "archiveSha256": "7e80c4a7a77b7d822a5a3ca35e8f52446613376fe6d38d3b38d55be5e493d8d2"
+    },
+    "moodle": {
+      "repository": "https://github.com/moodle/moodle.git",
+      "ref": "v4.5.15",
+      "commit": "215f44380bdc3ccf852a3a22e34f8423ff64033a",
+      "archiveSha256": "e245713de69f02cc8a5e6dce8201b0b104b767cdf68670d71386d42f3b1dfd84"
+    },
+    "images": {
+      "moodlehq/moodle-php-apache:8.3": "moodlehq/moodle-php-apache@sha256:501f19fa75ad3cdc8962f2a742f39d179b8aa8ffdc2ff233d8d27a32f14e0e05",
+      "postgres:17": "postgres@sha256:2d2b8998d31037bf721cfdf764d76ba74171b4fab3431b7f72c27c56ddbdf9e3"
+    }
+  },
+  "status": "PASS",
+  "receipts": [
+    {
+      "source": "synthetic-hr",
+      "check": "delta_replay_and_lifecycle",
+      "status": "PASS",
+      "evidence": {
+        "kind": "synthetic",
+        "initialSnapshotRecords": 3,
+        "lifecycle": [
+          "joiner",
+          "manager_transfer",
+          "leaver"
+        ],
+        "finalCursor": "6",
+        "replayIdentical": true
+      }
+    },
+    {
+      "source": "moodle-a",
+      "check": "catalogue_enrol_learner_activity_completion",
+      "status": "PASS",
+      "evidence": {
+        "origin": "http://127.0.0.1:8081",
+        "catalogueCount": 1,
+        "courseId": "moodle-a:2",
+        "syntheticEmployeeId": "E0001",
+        "serviceUserIsAdmin": false,
+        "allowlistedServiceFunctions": [
+          "core_course_get_courses_by_field",
+          "enrol_manual_enrol_users",
+          "core_enrol_get_users_courses",
+          "core_completion_get_course_completion_status"
+        ],
+        "enrolmentConfirmed": true,
+        "duplicateEnrolmentSkipped": true,
+        "completionBefore": false,
+        "completionAfter": true,
+        "activityCompletionActor": "enrolled_learner",
+        "completionTransition": "INCOMPLETE_TO_COMPLETE",
+        "completionObservedAt": "2026-10-15T09:17:29.000Z",
+        "repeatedCompletionIdentical": true
+      }
+    },
+    {
+      "source": "moodle-b",
+      "check": "catalogue_enrol_learner_activity_completion",
+      "status": "PASS",
+      "evidence": {
+        "origin": "http://127.0.0.1:8082",
+        "catalogueCount": 1,
+        "courseId": "moodle-b:2",
+        "syntheticEmployeeId": "E0001",
+        "serviceUserIsAdmin": false,
+        "allowlistedServiceFunctions": [
+          "core_course_get_courses_by_field",
+          "enrol_manual_enrol_users",
+          "core_enrol_get_users_courses",
+          "core_completion_get_course_completion_status"
+        ],
+        "enrolmentConfirmed": true,
+        "duplicateEnrolmentSkipped": true,
+        "completionBefore": false,
+        "completionAfter": true,
+        "activityCompletionActor": "enrolled_learner",
+        "completionTransition": "INCOMPLETE_TO_COMPLETE",
+        "completionObservedAt": "2026-10-15T09:17:30.000Z",
+        "repeatedCompletionIdentical": true
+      }
+    },
+    {
+      "source": "moodle-b",
+      "check": "one_source_unavailable_does_not_block_other_source",
+      "status": "PASS",
+      "evidence": {
+        "failedSource": "moodle-a",
+        "fault": "actual_webserver_container_paused",
+        "unaffectedSource": "moodle-b",
+        "unaffectedCatalogueCount": 1
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic HR service and self-created course content.",
+    "Separate local Moodle logins; Suite SSO is not Moodle SSO.",
+    "No client HR/LMS or hosted connector was verified.",
+    "D1 workflow reconciliation requires its separate integration acceptance test."
+  ]
+}

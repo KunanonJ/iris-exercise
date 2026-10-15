@@ -1,0 +1,36 @@
+{
+  "kind": "clerk_live_provider_api_proof",
+  "status": "PASS",
+  "timestamp": "2026-10-15T14:10:06.020Z",
+  "applicationId": "app_3FR2A54nq68wzHcRSjfMWabSBU5",
+  "issuer": "https://diverse-deer-89.clerk.accounts.dev",
+  "verifiedOrigin": "http://localhost:8797",
+  "actorsVerified": [
+    {
+      "employeeId": "E0001",
+      "role": "employee",
+      "clerkUserIdPrefix": "user_3KjZdec"
+    },
+    {
+      "employeeId": "E0002",
+      "role": "manager",
+      "clerkUserIdPrefix": "user_3KjZdxw"
+    },
+    {
+      "employeeId": "E9001",
+      "role": "leader",
+      "clerkUserIdPrefix": "user_3KjZeCN"
+    }
+  ],
+  "checks": {
+    "anonymousRejected": 401,
+    "unmappedClerkUserRejected": 403,
+    "wrongOriginRejected": 403,
+    "employeeSelfApproveRejected": 403,
+    "leaderLearningRejected": 403,
+    "leaderCoachRejected": 403,
+    "managerPrivateChatExcluded": true,
+    "leaderPrivacyMinimumCohort": 10,
+    "endToEndWorkflowRevision": 9
+  }
+}

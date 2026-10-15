@@ -1,0 +1,10 @@
+{
+  "$schema":"node_modules/wrangler/config-schema.json",
+  "name":"iris-learning-suite-local",
+  "main":"worker/index.ts",
+  "compatibility_date":"2026-06-01",
+  "compatibility_flags":["nodejs_compat"],
+  "assets":{"directory":"./out","binding":"ASSETS","run_worker_first":true,"not_found_handling":"404-page"},
+  "d1_databases":[{"binding":"DB","database_name":"iris-learning-suite-db","database_id":"local-suite-v2","migrations_dir":"db/migrations"}],
+  "vars":{"SANDBOX_MODE":"1","INTEGRATION_TENANT_ID":"iris-sandbox","APP_ORIGINS":"http://localhost:3000,http://localhost:8797","AI_PROVIDER":"workers-ai"}
+}
