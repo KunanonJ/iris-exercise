@@ -3,7 +3,7 @@
 // deterministic plan; the AI layer in path.ts only re-sequences this shortlist.
 import { CATALOG, itemById } from "../data/catalog";
 import { roleById, skillById } from "../data/taxonomy";
-import { nextRoleGaps } from "./skills";
+import { nextRoleGaps, profile } from "./skills";
 import type { Employee, Gap, LearningItem, LearningPlan, Level, PlanStep } from "./types";
 
 export const PLAN_START = "2026-10-26";
@@ -11,7 +11,12 @@ export const MAX_STEPS = 8;
 const FORMAT_ORDER = { video: 0, workshop: 1, project: 2 } as const;
 
 export function shortlist(emp: Employee, overrides?: Record<string, Level>) {
-  const gaps = nextRoleGaps(emp, overrides);
+  const nextGaps = nextRoleGaps(emp, overrides);
+  const gaps = nextGaps.length
+    ? nextGaps
+    : profile(emp, overrides)
+        .current.filter((g) => g.gap > 0)
+        .sort((a, b) => Number(b.critical) - Number(a.critical) || b.gap - a.gap);
   const gapSkills = new Set(gaps.map((g) => g.skillId));
   return gaps.map((gap) => {
     const items = CATALOG.filter((item) =>
@@ -46,7 +51,7 @@ function rationale(gap: Gap, item: LearningItem, targetRole: { en: string; th: s
 }
 
 export function rulesPlan(emp: Employee, overrides?: Record<string, Level>): LearningPlan {
-  const target = roleById(emp.nextRoleId!);
+  const target = roleById(emp.nextRoleId ?? emp.roleId);
   const chosen: { gap: Gap; item: LearningItem }[] = [];
   for (const { gap, items } of shortlist(emp, overrides)) {
     const learn = items.find((i) => i.format === "video");

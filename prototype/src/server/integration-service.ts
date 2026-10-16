@@ -20,7 +20,8 @@ const actionSchema=z.discriminatedUnion("type",[
 async function equalSecret(a:string,b:string){const digest=async(v:string)=>new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)));const [x,y]=await Promise.all([digest(a),digest(b)]);let n=0;for(let i=0;i<x.length;i++)n|=x[i]^y[i];return n===0;}
 export async function integrationService(req:Request,env:IntegrationEnv) {
  if(env.SANDBOX_MODE!=="1")throw new HttpError(404,"Endpoint not found");
- const supplied=req.headers.get("authorization")?.replace(/^Bearer /,"")??"";
+ const authHeader=req.headers.get("authorization")??"";
+ const supplied=authHeader.startsWith("Bearer ")?authHeader.slice(7):"";
  if(!env.INTEGRATION_SECRET || !supplied || supplied.length>512 || !await equalSecret(supplied,env.INTEGRATION_SECRET))throw new HttpError(401,"Integration service credential required");
  if(req.method!=="POST" || !req.headers.get("content-type")?.startsWith("application/json"))throw new HttpError(415,"JSON POST required");
  if(!env.DB || !env.INTEGRATION_TENANT_ID)throw new HttpError(503,"Local integration tenant is not configured");

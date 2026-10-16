@@ -51,6 +51,7 @@ export interface CoachMeta {
 
 export interface Prepared {
   meta: CoachMeta;
+  redactedMessage: string;
   stream: () => AsyncGenerator<string>;
   usage: Usage; // filled once the stream completes (live mode)
 }
@@ -122,30 +123,37 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
 
   let category = verdict.category;
   let classifier: Category | undefined;
-  if (live && category === "in_scope" && !policySource && !unsupportedOffer) {
+  if (live && category === "in_scope" && !unsupportedOffer) {
     classifier = await classify(verdict.redacted);
     // "Off-topic" never overrides a question that matched approved content (e.g. "SBI คืออะไร").
-    // The other categories (colleague data, pay, wellbeing, crisis, injection) always win.
-    if (classifier && !(classifier === "off_topic" && sources.length > 0)) category = stricter(category, classifier);
+    // Policy clarifications allow in-scope KB-01/KB-03 discussion without overriding on hr_decision/off_topic,
+    // while crisis, injection, wellbeing, and other_person_data always win.
+    if (
+      classifier &&
+      !(policySource && (classifier === "off_topic" || classifier === "hr_decision")) &&
+      !(classifier === "off_topic" && sources.length > 0)
+    ) {
+      category = stricter(category, classifier);
+    }
   }
 
   const meta: CoachMeta = {
     mode: live ? "live" : "demo", answerSource: live ? "model" : "demo", lang, category,
     rule: verdict.rule, classifier, sources: [], evaluatedSources: [], pii: verdict.piiFound,
-    classifierStatus: live && verdict.category === "in_scope" && !policySource && !unsupportedOffer ? (classifier ? "ok" : "unavailable") : "not_run",
+    classifierStatus: live && verdict.category === "in_scope" && !unsupportedOffer ? (classifier ? "ok" : "unavailable") : "not_run",
   };
 
   if (category !== "in_scope") {
     meta.answerSource = "safety_template";
     const reply = SAFE_REPLIES[category][lang];
-    return { meta, stream: () => chunked(reply), usage: { input: 0, output: 0, cacheRead: 0 } };
+    return { meta, redactedMessage: verdict.redacted, stream: () => chunked(reply), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
   // An unsupported question is a deterministic abstention, never a model invitation
   // to fill the gap. Personal-record answers may use the trusted employee context.
   if (unsupportedOffer || (sources.length === 0 && !OWN_RECORD_REQUEST.test(verdict.redacted))) {
     meta.answerSource = "no_source";
-    return { meta, stream: () => chunked(NO_SOURCE[lang]), usage: { input: 0, output: 0, cacheRead: 0 } };
+    return { meta, redactedMessage: verdict.redacted, stream: () => chunked(NO_SOURCE[lang]), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
   // The retrieval-backed answer is the demo-mode reply, and in live mode the
@@ -155,7 +163,7 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
 
   if (!live) {
     meta.sources = toRefs(retrievalAnswer.sources);
-    return { meta, stream: () => chunked(retrievalAnswer.text), usage: { input: 0, output: 0, cacheRead: 0 } };
+    return { meta, redactedMessage: verdict.redacted, stream: () => chunked(retrievalAnswer.text), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
   // Live sources come first (the model cites them as S1..Sn); sources only the
@@ -171,10 +179,12 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   // Keep the initial references exactly aligned with the live prompt. If the
   // fallback is used, replace references after the error, while evaluatedSources
   // continue to describe the actual model input.
+  const coachModel = models().coach;
+  const activeProvider = provider() ?? undefined;
   meta.sources = toRefs(sources);
   meta.evaluatedSources = sources.map((s, i) => ({ ...toRefs([s])[0], n: i + 1, text: s.text }));
-  meta.model = models().coach;
-  meta.provider = provider() ?? undefined;
+  meta.model = coachModel;
+  meta.provider = activeProvider;
   const lesson = input.lessonId ? itemById(input.lessonId) : undefined;
   const messages: { role: "user" | "assistant"; content: string }[] = [
     ...history.slice(0, -1).map((m) => ({
@@ -199,7 +209,7 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
     let sent = false;
     try {
       for await (const piece of streamText({
-        model: models().coach,
+        model: coachModel,
         maxTokens: 8000,
         effort: "low",
         system: COACH_SYSTEM,
@@ -217,7 +227,7 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
       yield* chunked(fallbackText + unavailable);
     }
   }
-  return { meta, stream, usage };
+  return { meta, redactedMessage: verdict.redacted, stream, usage };
 }
 
 // Non-streaming helper for the eval harness.

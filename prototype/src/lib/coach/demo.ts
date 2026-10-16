@@ -84,18 +84,19 @@ export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
   if (RE.explain.test(message) && !RE.policy.test(message)) {
     const p = profile(emp, d.overrides);
     const src = retrieve("results development only manager approves", lang, { pinned: ["KB-01"], k: 1 });
-    const gaps = p.nextGaps.filter((g) => g.gap > 0).sort((a, b) => Number(b.critical) - Number(a.critical)).slice(0, 3);
-    const met = p.nextGaps.filter((g) => g.gap === 0).length;
+    const roleGaps = p.nextGaps.length ? p.nextGaps : p.current;
+    const gaps = roleGaps.filter((g) => g.gap > 0).sort((a, b) => Number(b.critical) - Number(a.critical)).slice(0, 3);
+    const met = roleGaps.filter((g) => g.gap === 0).length;
     const lines = gaps.map((g) => {
       const s = skillById(g.skillId);
       return th
         ? `• ${s.name.th}: ระดับ ${g.current} → ${g.required}${g.critical ? " (ทักษะสำคัญ)" : ""} ระดับถัดไปคือ "${s.levels[Math.min(3, g.current) as 0 | 1 | 2 | 3].th}"`
         : `• ${s.name.en}: L${g.current} → L${g.required}${g.critical ? " (critical)" : ""}. Next level means: "${s.levels[Math.min(3, g.current) as 0 | 1 | 2 | 3].en}"`;
     });
-    const next = roleById(emp.nextRoleId!);
+    const next = roleById(emp.nextRoleId ?? emp.roleId);
     const text = th
-      ? `สำหรับตำแหน่ง${next.title.th} คุณผ่านเกณฑ์แล้ว ${met} จาก ${p.nextGaps.length} ทักษะค่ะ\nควรพัฒนาก่อน:\n${lines.join("\n")}\nผลนี้มาจากการประเมินตนเอง แบบทดสอบ และการอนุมัติของหัวหน้า และใช้เพื่อการพัฒนาเท่านั้น [S1] อยากให้โค้ชแนะนำขั้นตอนแรกไหมคะ`
-      : `For ${next.title.en} you already meet ${met} of ${p.nextGaps.length} skills.\nFocus first on:\n${lines.join("\n")}\nResults combine your self-assessment, a knowledge check and your manager's approval, and are used for development only [S1]. Want me to suggest a first step?`;
+      ? `สำหรับตำแหน่ง${next.title.th} คุณผ่านเกณฑ์แล้ว ${met} จาก ${roleGaps.length} ทักษะค่ะ\nควรพัฒนาก่อน:\n${lines.join("\n")}\nผลนี้มาจากการประเมินตนเอง แบบทดสอบ และการอนุมัติของหัวหน้า และใช้เพื่อการพัฒนาเท่านั้น [S1] อยากให้โค้ชแนะนำขั้นตอนแรกไหมคะ`
+      : `For ${next.title.en} you already meet ${met} of ${roleGaps.length} skills.\nFocus first on:\n${lines.join("\n")}\nResults combine your self-assessment, a knowledge check and your manager's approval, and are used for development only [S1]. Want me to suggest a first step?`;
     return { text, sources: src };
   }
 

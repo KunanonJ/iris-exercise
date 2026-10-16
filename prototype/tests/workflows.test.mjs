@@ -76,3 +76,15 @@ test('organisation metrics enforce the ten-person privacy threshold',()=>{
  const metrics=scopedView(cohort(10),leader,0).metrics;
  assert.equal(metrics.employees,10);assert.equal(metrics.groups.length,1);assert.equal(metrics.groups[0].count,10);
 });
+test('POST /api/coach persists redacted PII in D1 state rather than raw national ID',async()=>{
+ const {createWorker}=await import('../worker/index.ts');
+ const db=database();const s=base();await db.prepare('INSERT INTO suite_v2_state VALUES(?,?,?)').bind(employee.tenantId,0,JSON.stringify(s)).run();
+ const w=createWorker({authenticate:async()=>employee});
+ const env={DB:db,APP_ORIGINS:'http://localhost:3000',ASSETS:{fetch:async()=>new Response('ok')}};
+ const res=await w.fetch(new Request('http://localhost:3000/api/coach',{method:'POST',headers:{origin:'http://localhost:3000','content-type':'application/json'},body:JSON.stringify({message:'My ID card number is 1-2345-67890-12-3, can you check my plan?'})}),env);
+ assert.equal(res.status,200);await res.text();
+ const loaded=await loadTenant(db,employee.tenantId);
+ const userTurn=loaded.state.records.E0001.chats.general[0].content;
+ assert.doesNotMatch(userTurn,/67890/);
+ assert.match(userTurn,/\[THAI_NATIONAL_ID\]/);
+});

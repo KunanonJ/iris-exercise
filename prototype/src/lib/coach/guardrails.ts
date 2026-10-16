@@ -13,8 +13,8 @@ export interface Verdict {
 }
 
 const PII: [string, RegExp][] = [
-  ["thai_national_id", /\b\d[- ]?\d{4}[- ]?\d{5}[- ]?\d{2}[- ]?\d\b/g],
-  ["phone", /\b0\d{1,2}[- ]?\d{3}[- ]?\d{3,4}\b/g],
+  ["thai_national_id", /(?<!\d)\d[- ]?\d{4}[- ]?\d{5}[- ]?\d{2}[- ]?\d(?!\d)/g],
+  ["phone", /(?<!\d)0\d{1,2}[- ]?\d{3}[- ]?\d{3,4}(?!\d)/g],
   ["email", /[\w.+-]+@[\w-]+\.[\w.]+/g],
 ];
 
@@ -32,10 +32,11 @@ const RULES: [Category, string, RegExp][] = [
 // ("แผนภายใน" contains the name "นภา"). Match a Thai first name only after a
 // boundary or a person marker (คุณ, ของ, น้อง, พี่, กับ).
 const TH_MARKER = "(^|\\s|คุณ|ของ|น้อง|พี่|กับ|ให้)";
-function otherEmployeeMentioned(text: string, selfId: string, managerId: string | null) {
+function otherEmployeeMentioned(text: string, selfId: string, _managerId: string | null) {
+  void _managerId;
   const t = text.toLowerCase();
   return EMPLOYEES.some((e) => {
-    if (e.id === selfId || e.id === managerId) return false;
+    if (e.id === selfId) return false;
     const [fEn] = e.name.en.toLowerCase().split(" ");
     const [fTh] = e.name.th.split(" ");
     return (
