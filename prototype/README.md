@@ -63,7 +63,7 @@ npx vercel deploy          # preview
 npx vercel deploy --prod   # production
 ```
 
-Vercel project: `iris-learning-suite` (root `prototype`). CI deploys via `.github/workflows/vercel.yml`. Native Git linking needs a Vercel↔GitHub login connection, then set Production Branch to `production`. `npm run sso:sync-env` writes Clerk verification keys into **both** `.env.local` (Next) and `.dev.vars` (Worker).
+Vercel project: `iris-learning-suite` (root `prototype`). Git is connected; **Production Branch = `production`**. GitHub Actions `CI` verifies the app; Vercel Git deploys on push. Manual CLI redeploy: Actions → **Vercel**. `pnpm sso:sync-env` writes Clerk verification keys into **both** `.env.local` (Next) and `.dev.vars` (Worker).
 
 ## Verify the five journeys
 

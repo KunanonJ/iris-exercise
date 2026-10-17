@@ -24,9 +24,16 @@ Native Git integration deploys on push:
 - `production` → Production
 - all other branches / PRs → Preview
 
-## Optional CI deploy (Actions)
+## GitHub Actions
 
-`.github/workflows/vercel.yml` can also deploy via CLI secrets (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`). With Git connected, leave that workflow disabled or remove it to avoid **double deploys** on the same push.
+| Workflow | Trigger | Role |
+|---|---|---|
+| [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) | Push / PR to `main`, `preview`, `production` | Typecheck, lint, tests, offline evals, Next.js build, model/PDF/secret scan |
+| [`.github/workflows/vercel.yml`](../.github/workflows/vercel.yml) | Manual (`workflow_dispatch`) | Optional CLI redeploy using `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` |
+
+CI does **not** deploy. Hosting CD is Vercel Git. Keep the Vercel workflow manual-only so pushes are not double-deployed.
+
+Optional Cloudflare Worker/D1 sandbox (`pnpm deploy:worker`) is separate and not wired into Actions CD.
 
 ## Local branch tips
 
