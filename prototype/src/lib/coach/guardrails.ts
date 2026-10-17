@@ -60,6 +60,18 @@ export function programmePolicySource(text: string): string | undefined {
   return undefined;
 }
 
+/** Own-record assessment summaries pin KB-01 without treating the question as pure policy Q&A. */
+export function assessmentExplainPin(text: string): string | undefined {
+  if (/(explain my|where do i stand|my (results?|scores?|gaps?|levels?)|ผลประเมินของฉัน|อธิบายผล|จุดที่ต้องพัฒนา)/i.test(text)) return "KB-01";
+  return undefined;
+}
+
+/** Fixed reply when the user pasted PII. Stays in_scope; never reaches the model. */
+export const PII_REPLIES: Record<Lang, string> = {
+  en: "I've removed a personal ID or contact detail from your message. Please don't share national ID numbers, phone numbers or email addresses with the coach. Ask again about your results, plan or a lesson without including those details.",
+  th: "โค้ชลบเลขบัตรหรือข้อมูลติดต่อส่วนตัวออกจากข้อความของคุณแล้วค่ะ กรุณาอย่าส่งเลขบัตรประชาชน เบอร์โทร หรืออีเมลให้โค้ชนะคะ ลองถามใหม่เกี่ยวกับผลประเมิน แผนการเรียน หรือบทเรียน โดยไม่ใส่ข้อมูลเหล่านั้นค่ะ",
+};
+
 export function precheck(text: string, selfId: string, managerId: string | null): Verdict {
   let redacted = text;
   const piiFound: string[] = [];
