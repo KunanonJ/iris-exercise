@@ -24,7 +24,7 @@ export interface TenantState {
 export const blankRecord = (employee: Employee): LearningRecord => ({ employee, assessment: { status: "not_started", self: {}, quiz: {} }, overrides: {}, evidence: {}, chats: {} });
 export function seedTenant(employees: Employee[]): TenantState {
   return { records: Object.fromEntries(employees.map(e => [e.id, blankRecord(e)])), approvals: [], hrCursor: "0", lms: {}, integrations: [
-    { id: "clerk", label: "Clerk development authentication", status: "configured", detail: "API identity verified by Clerk; permissions belong to the Suite." },
+    { id: "clerk", label: "Clerk development authentication", status: "configured", detail: "API identity verified by Clerk (Google + LINE Login social connections enabled on the development instance); permissions still come from Suite memberships, not the IdP." },
     { id: "hr", label: "Synthetic HR service", status: "unconfigured", detail: "Local sandbox proof required; no vendor HRIS connection claimed." },
     ...["moodle-a", "moodle-b"].map(id => ({ id, label: `${id} REST`, status: "unconfigured" as const, detail: "Local sandbox only. Catalogue, enrolment and completion proof required." })),
   ] };

@@ -1,5 +1,12 @@
 # Copy to .dev.vars for local dev (wrangler and `pnpm eval` both read it).
 # No key = demo mode (scripted coach, rules-based path).
+# Prefer: `npx clerk env pull` then `npm run sso:sync-env` to fill Clerk fields.
+
+# Clerk development (public JWT verification — never commit real values)
+# CLERK_PUBLISHABLE_KEY=pk_test_…
+# CLERK_JWT_KEY="-----BEGIN PUBLIC KEY-----\n…\n-----END PUBLIC KEY-----"
+# CLERK_ISSUER_URL=https://<frontend-api>.clerk.accounts.dev
+# APP_ORIGINS=http://localhost:3000,http://localhost:8797
 
 # Option A (free): Cloudflare Workers AI. `wrangler dev` uses the AI binding; `pnpm eval` needs a token
 # AI_PROVIDER=workers-ai

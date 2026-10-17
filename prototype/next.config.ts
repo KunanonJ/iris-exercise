@@ -1,14 +1,21 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === "development";
+// Default: Next.js serves UI + /api (Vercel / `pnpm dev`).
+// USE_WORKER_API=1: proxy /api to Wrangler on 8797 (local Worker+D1 sandbox).
+// WORKER_STATIC_EXPORT=1: emit `out/` for Cloudflare Worker asset binding (`pnpm build:worker`).
+const useWorkerApi = process.env.USE_WORKER_API === "1";
+const workerStaticExport = process.env.WORKER_STATIC_EXPORT === "1";
 
-// Static export: the UI is client-rendered, so it ships as plain files that a
-// Cloudflare Worker serves as static assets. The API lives in worker/index.ts.
-// In `next dev`, /api is proxied to `wrangler dev` on port 8787.
 const nextConfig: NextConfig = {
-  ...(isDev
-    ? { rewrites: async () => [{ source: "/api/:path*", destination: "http://127.0.0.1:8797/api/:path*" }] }
-    : { output: "export" }),
+  ...(workerStaticExport
+    ? { output: "export" as const }
+    : useWorkerApi
+      ? {
+          rewrites: async () => [
+            { source: "/api/:path*", destination: "http://127.0.0.1:8797/api/:path*" },
+          ],
+        }
+      : {}),
   turbopack: {
     rules: {
       "*.css": {
