@@ -105,3 +105,7 @@ Do not treat the flag as billing evidence. The Worker requires `AI_FREE_ONLY_VER
 The original draft attributes initial implementation and earlier screenshots to Claude Code, Cursor and Playwright. Codex supported this continuation's authentication, workflows, evaluation integrity, integration/security review, financial verification and documentation. Historical live benchmarking used SEA-LION v4 with Qwen judging. No current assistant model identity or unperformed human review is claimed.
 
 Before any deployment: complete real Clerk sign-in, final integrated local Worker/D1/browser acceptance, the full live AI quality gate, and production security/DPO decisions. Deployment, remote database changes, secret replacement and publication require separate authority. Follow [`../docs/implementation-progress.md`](../docs/implementation-progress.md) for current receipts.
+
+## Deployment branches
+
+See [`docs/deployment.md`](../docs/deployment.md): `main`/`preview` → Vercel Preview; `production` → Production.
