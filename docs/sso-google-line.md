@@ -27,11 +27,13 @@ Then start the suite (`npm run dev`) and open the sign-in screen. Google and LIN
 
 Existing sandbox actors:
 
-| Role | Employee | Existing Clerk user (email) |
-|---|---|---|
-| employee | E0001 | `iris.e0001+clerk_test@example.com` |
-| manager | E0002 | `iris.e0002+clerk_test@example.com` |
-| leader | E9001 | `iris.e9001+clerk_test@example.com` |
+| Role | Employee | Clerk user (email) | `user_…` (IRIS Learning Suite app) |
+|---|---|---|---|
+| employee | E0001 | `iris.e0001+clerk_test@example.com` | `user_3KpAnUSiUxY6EBM7jFjJfBIRfF1` |
+| manager | E0002 | `iris.e0002+clerk_test@example.com` | `user_3KpAndkKT4suKKXjje7CxTOc0tg` |
+| leader | E9001 | `iris.e9001+clerk_test@example.com` | `user_3KpAnnfcjxQEUrwsG8ni8tKByNl` |
+
+These IDs are also in ignored `.wrangler/clerk-memberships.json` (mode 600).
 
 After someone signs in with Google or LINE, Clerk may create a **new** `user_…` id. Map it before they can load Suite data:
 

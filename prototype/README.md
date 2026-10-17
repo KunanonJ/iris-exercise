@@ -12,7 +12,7 @@ Clerk supplies session identity. The Worker verifies the public-key JWT and expe
 - Mutations use typed commands, an expected revision, idempotency key and atomic audit writes. The browser cannot replace shared state or claim verified lesson completion.
 - Suite-managed learning data and API bearer tokens stay in memory; the Suite persists only language preference. Clerk manages its own authentication cookies and storage. Legacy public reset and token-minting routes are retired.
 
-The client fails closed if its Clerk publishable key is absent. Verifier unit tests use local signed fixtures, and **real Clerk sign-in, cross-role API verification and authenticated browser journeys have been verified locally** against the linked development application (`app_3FR2A54nq68wzHcRSjfMWabSBU5`); receipts: [`sandbox/receipts/clerk-api-2026-10-15T14-10-06.023Z.json`](sandbox/receipts/clerk-api-2026-10-15T14-10-06.023Z.json) and [`sandbox/receipts/clerk-browser-2026-10-15T14-17-17.135Z.json`](sandbox/receipts/clerk-browser-2026-10-15T14-17-17.135Z.json). Suite and Moodle authentication remain separate.
+The client fails closed if its Clerk publishable key is absent. Verifier unit tests use local signed fixtures. The linked Clerk development application is **IRIS Learning Suite** (`app_3KpAThJJWmOUNJ445CxjVknazcT`). Earlier cross-role API/browser receipts against the previous Tutor Me app remain under [`sandbox/receipts/`](sandbox/receipts/); re-verify after this switch before citing them as current. Suite and Moodle authentication remain separate. See [`../docs/sso-google-line.md`](../docs/sso-google-line.md).
 
 ## Local setup
 
