@@ -845,8 +845,8 @@ export function IntegrationsPanel({
         </div>
         <p className="mt-2 text-sm text-ink-2">
           {th
-            ? "สถานะมาจากเซิร์ฟเวอร์ หลักฐานการเชื่อมต่อ Sandbox ใช้ได้เฉพาะระบบทดสอบนั้น ไม่ยืนยัน SSO, HR หรือ LMS ของลูกค้าจริง การเข้าสู่ระบบ Suite และ Moodle แยกจากกัน"
-            : "Statuses come from the server. Sandbox proof applies only to the tested sandbox; it does not verify client SSO, HR or LMS production connections. Suite and Moodle sign-in remain separate."}
+            ? "สถานะมาจากเซิร์ฟเวอร์ Clerk พัฒนาเปิด Google และ LINE Login แล้ว แต่สิทธิ์ยังมาจากรายการสมาชิก Suite หลักฐาน Sandbox ไม่ยืนยัน HR/LMS ของลูกค้าจริง การเข้าสู่ระบบ Suite และ Moodle แยกจากกัน"
+            : "Statuses come from the server. Clerk development has Google and LINE Login enabled; Suite permissions still come from memberships. Sandbox proof does not verify client HR/LMS production. Suite and Moodle sign-in remain separate."}
         </p>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
