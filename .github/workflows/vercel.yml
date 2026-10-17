@@ -1,23 +1,26 @@
+# Disabled auto-run: Vercel Git integration deploys on push.
+# Keep for manual CLI redeploys via Actions → Run workflow.
+#
 # Branch → Vercel environment mapping
-#   main       → Preview  (integration / default Git branch)
+#   main       → Preview
 #   preview    → Preview
 #   production → Production
-#
-# Requires repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-# Project rootDirectory on Vercel is `prototype`.
-# Builds run on Vercel (remote) to avoid local CLI pnpm spawn issues.
 
 name: Vercel
 
 on:
-  push:
-    branches: [main, preview, production]
-  pull_request:
-    branches: [main, preview, production]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Vercel environment
+        required: true
+        type: choice
+        options: [preview, production]
+        default: preview
 
 concurrency:
-  group: vercel-${{ github.ref }}
-  cancel-in-progress: true
+  group: vercel-manual-${{ github.run_id }}
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -25,7 +28,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    environment: ${{ github.ref_name == 'production' && github.event_name == 'push' && 'production' || 'preview' }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +43,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           set -euo pipefail
-          if [ "${{ github.ref_name }}" = "production" ] && [ "${{ github.event_name }}" = "push" ]; then
+          if [ "${{ inputs.environment }}" = "production" ]; then
             url=$(vercel deploy --yes --prod --token="$VERCEL_TOKEN")
             env_name=production
           else
@@ -56,9 +59,7 @@ jobs:
       - name: Summary
         run: |
           {
-            echo "### Vercel deploy"
-            echo "- Branch: \`${{ github.ref_name }}\`"
-            echo "- Event: \`${{ github.event_name }}\`"
+            echo "### Vercel deploy (manual)"
             echo "- Environment: \`${{ steps.deploy.outputs.environment }}\`"
             echo "- URL: ${{ steps.deploy.outputs.url }}"
           } >> "$GITHUB_STEP_SUMMARY"

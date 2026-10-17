@@ -14,34 +14,19 @@ PRs targeting `main`, `preview`, or `production` always deploy to **Preview**.
 
 - Project: `iris-learning-suite`
 - Root directory: `prototype`
+- Git: `KunanonJ/iris-exercise` (connected)
+- **Production branch: `production`**
 - Production URL: https://iris-learning-suite.vercel.app
 - Env vars are set for Vercel targets `development`, `preview`, and `production` (Clerk, Supabase, Prisma `DATABASE_URL` / `DIRECT_URL`)
 
-## CI deploy
+Native Git integration deploys on push:
 
-`.github/workflows/vercel.yml` deploys via the Vercel CLI (remote build) using repo secrets:
+- `production` → Production
+- all other branches / PRs → Preview
 
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
+## Optional CI deploy (Actions)
 
-GitHub Environments:
-
-| Environment | Allowed branches | Used when |
-|---|---|---|
-| `preview` | `main`, `preview`, `*` (PRs / feature heads) | Non-production deploys |
-| `production` | `production` only | Push to `production` |
-
-## Optional: native Vercel ↔ GitHub auto-deploy
-
-CLI linking currently fails until a Vercel **Login Connection** to GitHub exists:
-
-1. Open https://vercel.com/account/login-connections (or Vercel → Account Settings → Login Connections)
-2. Connect GitHub for `KunanonJ`
-3. In the project: Settings → Git → Connect `KunanonJ/iris-exercise`
-4. Set **Production Branch** to `production`
-
-After that, Vercel can deploy on push without the Actions workflow (you may disable the workflow if you prefer native git integration only).
+`.github/workflows/vercel.yml` can also deploy via CLI secrets (`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`). With Git connected, leave that workflow disabled or remove it to avoid **double deploys** on the same push.
 
 ## Local branch tips
 
