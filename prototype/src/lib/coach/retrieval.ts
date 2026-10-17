@@ -109,8 +109,6 @@ export function retrieve(query: string, lang: Lang, opts: { k?: number; pinned?:
   return out;
 }
 
-export const passageCount = PASSAGES.length;
-export const passageFor = (sourceId: string, lang: Lang) => PASSAGES.find((p) => p.sourceId === sourceId && p.lang === lang)?.text ?? "";
 
 // Reject a named course whose Latin topic token is absent from the approved
 // corpus. Generic scheduling words must not make an unknown title look known.

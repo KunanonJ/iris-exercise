@@ -5,7 +5,7 @@ import { itemById, KNOWLEDGE } from "@/data/catalog";
 import type { ConversationMessage } from "@/lib/suite-contracts";
 import type { Lang } from "@/lib/types";
 import { apiErrorMessage } from "./secure-client";
-import { Badge, Button, Card, cx, Icon } from "./ui";
+import { Badge, Button, Card, cx, Icon } from "./kit";
 
 export type SendCoach = (
   message: string,

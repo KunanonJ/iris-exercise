@@ -6,7 +6,9 @@ import type { Principal, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
 import type { Lang } from "@/lib/types";
 import { apiErrorMessage, assertPrincipal, consumeCoachStream, SuiteApiError } from "./secure-client";
 import { EmployeeJourney, LeaderJourney, ManagerJourney, IntegrationsPanel } from "./secure-journeys";
-import { Avatar, Badge, Button, Card, cx, Icon } from "./ui";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, Badge, Button, Card, cx, Icon } from "./kit";
 
 const subscribe = () => () => {};
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -17,47 +19,72 @@ export function SecureSuite() {
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   useEffect(() => { localStorage.removeItem("learning-suite-demo-v2"); }, []);
   if (!mounted) return <div className="grid min-h-dvh place-items-center p-6 text-ink-2" role="status">Learning Suite…</div>;
-  if (!publishableKey) return <main className="mx-auto max-w-xl p-6 pt-20"><Card>
-    <Badge tone="warn">Setup required · ต้องตั้งค่าระบบ</Badge>
-    <h1 className="mt-4 text-2xl font-bold">Learning Suite</h1>
-    <p className="mt-3 text-sm text-ink-2">Sign-in is not configured for this build. Ask the programme administrator to finish the development authentication setup and rebuild the frontend.</p>
-    <p className="mt-3 text-sm text-ink-2" lang="th">ยังไม่ได้ตั้งค่าการเข้าสู่ระบบสำหรับรุ่นนี้ โปรดให้ผู้ดูแลโปรแกรมตั้งค่าระบบยืนยันตัวตนและสร้างเว็บใหม่</p>
-    <p className="mt-4 text-xs text-ink-3">Synthetic case-study data only · ข้อมูลสมมติสำหรับกรณีศึกษา</p>
-  </Card></main>;
+  if (!publishableKey) {
+    return (
+      <main className="mx-auto max-w-xl p-6 pt-20">
+        <Card className="gap-0 py-0">
+          <CardHeader className="border-b">
+            <Badge tone="warn">Setup required · ต้องตั้งค่าระบบ</Badge>
+            <CardTitle className="font-display text-2xl font-bold">Learning Suite</CardTitle>
+            <CardDescription>
+              Sign-in is not configured for this build. Ask the programme administrator to finish the development
+              authentication setup and rebuild the frontend.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 py-4">
+            <p className="text-sm text-ink-2" lang="th">
+              ยังไม่ได้ตั้งค่าการเข้าสู่ระบบสำหรับรุ่นนี้ โปรดให้ผู้ดูแลโปรแกรมตั้งค่าระบบยืนยันตัวตนและสร้างเว็บใหม่
+            </p>
+            <p className="text-xs text-ink-3">Synthetic case-study data only · ข้อมูลสมมติสำหรับกรณีศึกษา</p>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
   return <ClerkProvider publishableKey={publishableKey} afterSignOutUrl="/" signInFallbackRedirectUrl="/" signUpFallbackRedirectUrl="/"><SessionGate /></ClerkProvider>;
 }
 
 function SessionGate() {
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
   if (!isLoaded) return <div className="grid min-h-dvh place-items-center" role="status">Loading secure sign-in · กำลังเตรียมการเข้าสู่ระบบ…</div>;
-  if (!isSignedIn || !userId) return <main className="mx-auto flex min-h-dvh max-w-4xl flex-col items-center justify-center gap-6 px-4 py-10">
-    <div className="max-w-md text-center">
-      <Badge tone="brand">IRIS · Learning Suite</Badge>
-      <h1 className="mt-4 text-3xl font-bold">Learn. Practise. Grow.</h1>
-      <p className="mt-3 text-sm text-ink-2">
-        Sign in with <strong className="font-semibold text-ink">Google</strong> or <strong className="font-semibold text-ink">LINE</strong> (Clerk social SSO), or your assigned case-study email. Access still comes from the administrator membership map — not from the identity provider.
-      </p>
-      <p className="mt-2 text-sm text-ink-2" lang="th">
-        เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> หรือ <strong className="font-semibold text-ink">LINE</strong> (SSO ผ่าน Clerk) หรืออีเมลกรณีศึกษา สิทธิ์ยังมาจากรายการสมาชิกที่ผู้ดูแลกำหนด ไม่ใช่จากผู้ให้บริการตัวตน
-      </p>
-    </div>
-    <SignIn
-      routing="hash"
-      appearance={{
-        elements: {
-          socialButtonsBlockButton: "border border-line bg-paper hover:bg-brand-soft",
-          formButtonPrimary: "bg-brand hover:bg-brand/90",
-        },
-      }}
-    />
-    <p className="max-w-md text-center text-xs text-ink-3">
-      Development SSO uses Clerk-shared Google/LINE credentials. Production needs your own OAuth clients.
-      <br />
-      Synthetic learning data. No client HR or LMS production connection.
-      <br />
-      ข้อมูลการเรียนสมมติ ไม่มีการเชื่อมต่อ HR หรือ LMS ของลูกค้าจริง
-    </p>
-  </main>;
+  if (!isSignedIn || !userId) {
+    return (
+      <main className="mx-auto flex min-h-dvh max-w-4xl flex-col items-center justify-center gap-6 px-4 py-10">
+        <Card className="w-full max-w-md gap-0 py-0 text-center">
+          <CardHeader>
+            <Badge tone="brand" className="mx-auto w-fit">IRIS · Learning Suite</Badge>
+            <CardTitle className="font-display text-3xl font-bold">Learn. Practise. Grow.</CardTitle>
+            <CardDescription className="text-balance">
+              Sign in with <strong className="font-semibold text-ink">Google</strong> or{" "}
+              <strong className="font-semibold text-ink">LINE</strong> (Clerk social SSO), or your assigned case-study
+              email. Access still comes from the administrator membership map — not from the identity provider.
+            </CardDescription>
+            <p className="text-sm text-muted-foreground" lang="th">
+              เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> หรือ{" "}
+              <strong className="font-semibold text-ink">LINE</strong> (SSO ผ่าน Clerk) หรืออีเมลกรณีศึกษา
+            </p>
+          </CardHeader>
+          <Separator />
+          <CardContent className="flex flex-col items-center gap-4 py-6">
+            <SignIn
+              routing="hash"
+              appearance={{
+                elements: {
+                  socialButtonsBlockButton: "border border-line bg-paper hover:bg-brand-soft",
+                  formButtonPrimary: "bg-brand hover:bg-brand/90",
+                },
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Development SSO uses Clerk-shared Google/LINE credentials. Production needs your own OAuth clients.
+              <br />
+              Synthetic learning data · ข้อมูลการเรียนสมมติ
+            </p>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
   return <SessionSuite key={`${sessionId}:${userId}`} userId={userId} getToken={getToken} />;
 }
 

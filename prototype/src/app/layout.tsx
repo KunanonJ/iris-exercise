@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Anuphan, Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const display = Bricolage_Grotesque({
   variable: "--font-display",
@@ -22,7 +23,8 @@ const thai = Anuphan({
 
 export const metadata: Metadata = {
   title: "Learning Suite · Siam Pinnacle Group",
-  description: "AI-powered learning suite prototype with a Thai/English AI coach, 70-20-10 path engine, and manager approvals. Mock data only.",
+  description:
+    "AI-powered learning suite prototype with a Thai/English AI coach, 70-20-10 path engine, and manager approvals. Mock data only.",
   robots: { index: false, follow: false },
 };
 
@@ -35,7 +37,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="th" className={`${display.variable} ${sans.variable} ${thai.variable} h-full antialiased`}>
+    <html
+      lang="th"
+      className={cn("h-full antialiased font-sans", display.variable, sans.variable, thai.variable)}
+    >
       <body className="min-h-full selection:bg-brand-soft selection:text-brand">{children}</body>
     </html>
   );

@@ -1,0 +1,65 @@
+# Disabled auto-run: Vercel Git integration deploys on push.
+# Keep for manual CLI redeploys via Actions → Run workflow.
+#
+# Branch → Vercel environment mapping
+#   main       → Preview
+#   preview    → Preview
+#   production → Production
+
+name: Vercel
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Vercel environment
+        required: true
+        type: choice
+        options: [preview, production]
+        default: preview
+
+concurrency:
+  group: vercel-manual-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        id: deploy
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            url=$(vercel deploy --yes --prod --token="$VERCEL_TOKEN")
+            env_name=production
+          else
+            url=$(vercel deploy --yes --token="$VERCEL_TOKEN")
+            env_name=preview
+          fi
+          {
+            echo "environment=$env_name"
+            echo "url=$url"
+          } >> "$GITHUB_OUTPUT"
+          echo "Deployed $url → $env_name"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Vercel deploy (manual)"
+            echo "- Environment: \`${{ steps.deploy.outputs.environment }}\`"
+            echo "- URL: ${{ steps.deploy.outputs.url }}"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -6,7 +6,7 @@ import { roleById, skillById } from "@/data/taxonomy";
 import type { LearningRecord, SuiteCommand } from "@/lib/suite-contracts";
 import type { Bilingual, Lang, Level, Role } from "@/lib/types";
 import { SecureCoach, type SendCoach } from "./secure-coach";
-import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./ui";
+import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./kit";
 
 type Command = (command: SuiteCommand) => Promise<void>;
 type JourneyProps = { record: LearningRecord; lang: Lang; busy: boolean; command: Command; generate: () => Promise<void>; coach: SendCoach };

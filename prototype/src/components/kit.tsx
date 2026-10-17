@@ -2,62 +2,80 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import type { Format } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Avatar as ShadAvatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge as ShadBadge } from "@/components/ui/badge";
+import { Button as ShadButton } from "@/components/ui/button";
+import { Card as ShadCard } from "@/components/ui/card";
 
+/** @deprecated prefer `cn` from `@/lib/utils` for new code */
 export function cx(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(" ");
 }
+
+const buttonVariantMap = {
+  primary: "default",
+  ghost: "ghost",
+  outline: "outline",
+  danger: "destructive",
+  soft: "secondary",
+} as const;
 
 export function Button({
   variant = "primary",
   className,
   ...p
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost" | "outline" | "danger" | "soft";
+  variant?: keyof typeof buttonVariantMap;
 }) {
   return (
-    <button
+    <ShadButton
       {...p}
-      className={cx(
-        "inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-medium transition-all duration-150 active:scale-[0.985] disabled:opacity-40 disabled:pointer-events-none cursor-pointer",
+      variant={buttonVariantMap[variant]}
+      size="lg"
+      className={cn(
+        "min-h-[38px] rounded-xl px-3.5 font-medium",
         variant === "primary" &&
-          "bg-brand text-white shadow-[0_1px_2px_rgba(12,65,70,0.22),inset_0_1px_0_rgba(255,255,255,0.16)] hover:bg-brand-2",
-        variant === "soft" &&
-          "bg-brand-soft text-brand ring-1 ring-inset ring-brand/20 hover:bg-brand hover:text-white",
-        variant === "outline" &&
-          "border border-line bg-surface text-ink shadow-[0_1px_2px_rgba(15,29,31,0.04)] hover:border-line-strong hover:bg-surface-2",
-        variant === "ghost" && "text-brand hover:bg-brand-soft/80",
-        variant === "danger" &&
-          "border border-danger/25 bg-surface text-danger hover:bg-danger-soft hover:border-danger/40",
-        className,
+          "shadow-[0_1px_2px_rgba(12,65,70,0.22),inset_0_1px_0_rgba(255,255,255,0.16)]",
+        variant === "soft" && "bg-brand-soft text-brand ring-1 ring-inset ring-brand/20 hover:bg-brand hover:text-white",
+        className
       )}
     />
   );
 }
+
+const badgeToneMap = {
+  neutral: "outline",
+  brand: "default",
+  gap: "secondary",
+  ok: "secondary",
+  warn: "secondary",
+  danger: "destructive",
+} as const;
 
 export function Badge({
   tone = "neutral",
   children,
   className,
 }: {
-  tone?: "neutral" | "brand" | "gap" | "ok" | "warn" | "danger";
+  tone?: keyof typeof badgeToneMap;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <span
-      className={cx(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap leading-snug",
-        tone === "neutral" && "bg-surface-2 text-ink-2 ring-1 ring-inset ring-line",
-        tone === "brand" && "bg-brand-soft text-brand ring-1 ring-inset ring-brand/20",
-        tone === "gap" && "bg-gap-soft text-gap ring-1 ring-inset ring-gap/25",
-        tone === "ok" && "bg-ok-soft text-ok ring-1 ring-inset ring-ok/20",
-        tone === "warn" && "bg-warn-soft text-warn ring-1 ring-inset ring-warn/25",
-        tone === "danger" && "bg-danger-soft text-danger ring-1 ring-inset ring-danger/25",
-        className,
+    <ShadBadge
+      variant={badgeToneMap[tone]}
+      className={cn(
+        "rounded-full px-2.5 text-[11px] font-medium leading-snug",
+        tone === "brand" && "bg-brand-soft text-brand ring-1 ring-inset ring-brand/20 border-transparent",
+        tone === "gap" && "bg-gap-soft text-gap ring-1 ring-inset ring-gap/25 border-transparent",
+        tone === "ok" && "bg-ok-soft text-ok ring-1 ring-inset ring-ok/20 border-transparent",
+        tone === "warn" && "bg-warn-soft text-warn ring-1 ring-inset ring-warn/25 border-transparent",
+        className
       )}
     >
       {children}
-    </span>
+    </ShadBadge>
   );
 }
 
@@ -71,7 +89,7 @@ export function Card({
   onClick?: () => void;
 }) {
   return (
-    <div
+    <ShadCard
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -85,15 +103,15 @@ export function Card({
             }
           : undefined
       }
-      className={cx(
-        "rounded-2xl border border-line bg-surface p-4 shadow-[0_1px_3px_rgba(15,29,31,0.03)] transition-all duration-150",
+      className={cn(
+        "rounded-2xl border border-line bg-surface p-4 shadow-[0_1px_3px_rgba(15,29,31,0.03)] ring-0 transition-all duration-150",
         onClick &&
           "cursor-pointer hover:border-brand/45 hover:shadow-[0_4px_14px_rgba(12,99,104,0.08)] active:scale-[0.992]",
-        className,
+        className
       )}
     >
       {children}
-    </div>
+    </ShadCard>
   );
 }
 
@@ -129,46 +147,18 @@ export function Avatar({
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
   const tone = AVATAR_TONES[Math.abs(hash) % AVATAR_TONES.length];
   return (
-    <div
+    <ShadAvatar
       aria-hidden
-      className={cx(
-        "grid shrink-0 place-items-center rounded-full font-display font-semibold ring-1 ring-inset select-none",
-        size === "sm" && "h-7 w-7 text-[11px]",
-        size === "md" && "h-9 w-9 text-xs",
-        size === "lg" && "h-11 w-11 text-sm",
-        tone,
-        className,
+      className={cn(
+        "ring-1 ring-inset select-none",
+        size === "sm" && "size-7 text-[11px]",
+        size === "md" && "size-9 text-xs",
+        size === "lg" && "size-11 text-sm",
+        className
       )}
     >
-      {initials}
-    </div>
-  );
-}
-
-export function PhoneFrame({ children, label }: { children: ReactNode; label?: string }) {
-  return (
-    <div className="mx-auto w-full max-w-[428px]">
-      {label && (
-        <div className="mb-2.5 flex items-center justify-center gap-2 text-xs text-ink-2 max-sm:hidden">
-          <span className="h-1.5 w-1.5 rounded-full bg-ok" />
-          <span className="font-medium">{label}</span>
-        </div>
-      )}
-      <div className="relative flex h-[min(836px,calc(100dvh-116px))] flex-col overflow-hidden rounded-[28px] border border-line-strong bg-surface-2 shadow-[0_18px_48px_rgba(12,35,38,0.11),0_2px_8px_rgba(12,35,38,0.05)] ring-4 ring-surface/80 max-sm:h-[calc(100dvh-49px)] max-sm:rounded-none max-sm:border-0 max-sm:ring-0 max-sm:shadow-none">
-        {/* Subtle iOS/Android status bar on desktop frame */}
-        <div className="flex items-center justify-between bg-surface px-5 pt-2 pb-1 text-[11px] font-semibold tabular-nums text-ink-2 select-none max-sm:hidden">
-          <span>09:41</span>
-          <div className="h-3.5 w-20 rounded-full bg-ink/8" />
-          <div className="flex items-center gap-1.5 text-[10px] text-ink-3">
-            <span>5G</span>
-            <span className="inline-block h-2.5 w-4 rounded-[3px] border border-ink-3/60 p-[1px]">
-              <span className="block h-full w-3/4 rounded-[1px] bg-ink-2" />
-            </span>
-          </div>
-        </div>
-        {children}
-      </div>
-    </div>
+      <AvatarFallback className={cn("font-display font-semibold", tone)}>{initials}</AvatarFallback>
+    </ShadAvatar>
   );
 }
 
@@ -178,13 +168,9 @@ export function LevelDots({ current, required }: { current: number; required: nu
       {[1, 2, 3, 4].map((n) => (
         <span
           key={n}
-          className={cx(
+          className={cn(
             "h-2 w-6 rounded-full transition-colors",
-            n <= current
-              ? "bg-brand"
-              : n <= required
-                ? "bg-gap/25 ring-1 ring-inset ring-gap/70"
-                : "bg-line",
+            n <= current ? "bg-brand" : n <= required ? "bg-gap/25 ring-1 ring-inset ring-gap/70" : "bg-line"
           )}
         />
       ))}
