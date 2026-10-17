@@ -1,6 +1,6 @@
 # Live Google + LINE Login SSO (Clerk)
 
-**Status (17 Oct 2026):** Enabled on the existing Clerk development instance (`app_3FR2A54nq68wzHcRSjfMWabSBU5` / `ins_3FR2A8hxTrDV8szYrSouYxIlHcA`). This is real Clerk social OAuth, not the retired local HS256 “mint OIDC JWT” demo.
+**Status (17 Oct 2026):** Linked to Clerk application **IRIS Learning Suite** (`app_3KpAThJJWmOUNJ445CxjVknazcT` / development `ins_3KpATcDrr7oYePzbZVpem6iy7gr`). Google + LINE Login enabled. This is real Clerk social OAuth, not the retired local HS256 “mint OIDC JWT” demo. (Previous sandbox app `app_3FR2A54…` / “Tutor Me” is no longer the linked target.)
 
 ## What is live
 
@@ -16,7 +16,7 @@ Suite permissions still come from D1 `suite_v2_memberships` keyed by `clerk_user
 From `prototype/` (requires `npx clerk auth login` as the app owner):
 
 ```bash
-npx clerk link --app app_3FR2A54nq68wzHcRSjfMWabSBU5
+npx clerk link --app app_3KpAThJJWmOUNJ445CxjVknazcT
 npm run sso:enable          # or: npm run sso:enable -- --dry-run
 npm run sso:sync-env        # writes ignored .env.local + .dev.vars (mode 600)
 ```
