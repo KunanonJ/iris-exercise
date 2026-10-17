@@ -1,0 +1,102 @@
+# Live Google + LINE Login SSO (Clerk)
+
+**Status (17 Oct 2026):** Linked to Clerk application **IRIS Learning Suite** (`app_3KpAThJJWmOUNJ445CxjVknazcT` / development `ins_3KpATcDrr7oYePzbZVpem6iy7gr`). Google + LINE Login enabled. This is real Clerk social OAuth, not the retired local HS256 “mint OIDC JWT” demo. (Previous sandbox app `app_3FR2A54…` / “Tutor Me” is no longer the linked target.)
+
+## What is live
+
+| Provider | Dev instance | Credentials |
+|---|---|---|
+| Google | Enabled + authenticatable | Clerk-shared (no custom client required in development) |
+| LINE Login | Enabled + authenticatable | Clerk-shared (no custom channel required in development) |
+
+Suite permissions still come from `suite_v2_memberships` keyed by `clerk_user_id` (**Supabase/Prisma** on the default Next.js + Vercel path; local D1 only when using `pnpm dev:worker`). The IdP does not grant a role by itself. Clerk `allowed_origins` includes `http://localhost:3000` and `https://iris-learning-suite.vercel.app`.
+
+## One-time / repeatable setup
+
+From `prototype/` (requires `npx clerk auth login` as the app owner):
+
+```bash
+npx clerk link --app app_3KpAThJJWmOUNJ445CxjVknazcT
+npm run sso:enable          # or: npm run sso:enable -- --dry-run
+npm run sso:sync-env        # writes ignored .env.local + .dev.vars (mode 600)
+```
+
+Then start the suite (`npm run dev`) and open the sign-in screen. Google and LINE buttons appear on the Clerk `<SignIn />` widget.
+
+## Mapping a Google/LINE identity to a role
+
+Existing sandbox actors:
+
+| Role | Employee | Clerk user (email) | `user_…` (IRIS Learning Suite app) |
+|---|---|---|---|
+| employee | E0001 | `iris.e0001+clerk_test@example.com` | `user_3KpAnUSiUxY6EBM7jFjJfBIRfF1` |
+| manager | E0002 | `iris.e0002+clerk_test@example.com` | `user_3KpAndkKT4suKKXjje7CxTOc0tg` |
+| leader | E9001 | `iris.e9001+clerk_test@example.com` | `user_3KpAnnfcjxQEUrwsG8ni8tKByNl` |
+
+These IDs are also in ignored `.wrangler/clerk-memberships.json` (mode 600).
+
+After someone signs in with Google or LINE, Clerk may create a **new** `user_…` id. Map it before they can load Suite data:
+
+1. `npx clerk users list` — copy the new `id`.
+2. Update ignored `.wrangler/clerk-memberships.json` (mode 600), for example:
+
+```json
+[
+  { "userId": "user_…googleOrLine…", "employeeId": "E0001", "role": "employee" },
+  { "userId": "user_…", "employeeId": "E0002", "role": "manager" },
+  { "userId": "user_…", "employeeId": "E9001", "role": "leader" }
+]
+```
+
+3. Provision memberships into the database the API actually reads:
+
+```sh
+# Default / Vercel (Supabase via Prisma)
+pnpm supabase:provision --memberships .wrangler/clerk-memberships.json
+
+# Optional Worker+D1 sandbox only
+pnpm sandbox:provision --memberships .wrangler/clerk-memberships.json
+```
+
+Alternatively, in the Clerk Dashboard, link Google/LINE to an existing case-study user (same email / account linking) so the `user_…` id stays unchanged.
+
+## Proof checklist (do not claim until done)
+
+- [ ] Sign-in screen shows Google and LINE.
+- [ ] Complete a Google sign-in; membership resolves; employee/manager/leader journey loads.
+- [ ] Complete a LINE Login sign-in; membership resolves; journey loads.
+- [ ] Save browser receipts/screenshots under `docs/screenshots/` (label as live SSO proof).
+- [ ] Update `SUBMISSION.md` / README boundaries only after those receipts exist.
+
+## Production (later)
+
+Development shared credentials are **not** valid for a production Clerk instance. Before production:
+
+1. Create a Google Cloud OAuth client; paste client ID/secret into Clerk `connection_oauth_google`.
+2. Create a LINE Login channel; paste channel ID/secret into Clerk `connection_oauth_line`.
+3. Set Clerk redirect / callback URLs from the Dashboard connection pages.
+4. Re-run membership mapping against the production instance.
+
+### Google Cloud project (in progress)
+
+| Field | Value |
+|---|---|
+| Project name | IRIS Learning Suite |
+| Project ID | `iris-learning-suite` |
+| Project number | `1091743526674` |
+| Clerk redirect URI (dev) | `https://literate-magpie-5641.clerk.accounts.dev/v1/oauth_callback` |
+| JS origin (local) | `http://localhost:3000` |
+
+Console shortcuts:
+
+- Consent / Auth overview: https://console.cloud.google.com/auth/overview?project=iris-learning-suite  
+- Create OAuth client: https://console.cloud.google.com/auth/clients/create?project=iris-learning-suite  
+- Clerk SSO connections: https://dashboard.clerk.com/apps/app_3KpAThJJWmOUNJ445CxjVknazcT/instances/ins_3KpATcDrr7oYePzbZVpem6iy7gr/user-authentication/sso-connections  
+
+After the client is created, paste **Client ID** + **Client Secret** here (or into chat) so they can be applied with `clerk config patch` — do not commit them to git.
+
+## Out of scope here
+
+- LINE Messaging / Flex push (delivery channel, separate from Login SSO)
+- Google Workspace SAML / `hd` domain restriction (can be added later)
+- Fabricated local JWT minting (`/api/sso/*` remains 410)

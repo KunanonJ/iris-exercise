@@ -8,7 +8,7 @@ import { planForPrompt } from "../path";
 import { employeeById, profileForPrompt } from "../skills";
 import type { Bilingual, Employee, Lang, LearningPlan, Level } from "../types";
 import { demoAnswer } from "./demo";
-import { precheck, programmePolicySource, SAFE_REPLIES, stricter, type Category } from "./guardrails";
+import { assessmentExplainPin, PII_REPLIES, precheck, programmePolicySource, SAFE_REPLIES, stricter, type Category } from "./guardrails";
 import { buildUserTurn, CLASSIFIER_SYSTEM, COACH_SYSTEM } from "./prompt";
 import { hasUnknownOfferTerm, retrieve, type Retrieved } from "./retrieval";
 
@@ -99,7 +99,26 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   const verdict = precheck(last.content, emp.id, emp.managerId);
   const live = isLive() && !input.forceDemo;
 
+  // Blocked categories win over PII handling (e.g. bulk scores + email → other_person_data).
+  // In-scope turns that still contain PII never reach the model — R12 previously
+  // summarised a plan after an ID paste.
+  if (verdict.category === "in_scope" && verdict.piiFound.length > 0) {
+    const meta: CoachMeta = {
+      mode: live ? "live" : "demo",
+      answerSource: "safety_template",
+      classifierStatus: "not_run",
+      evaluatedSources: [],
+      lang,
+      category: "in_scope",
+      rule: "pii_refusal",
+      sources: [],
+      pii: verdict.piiFound,
+    };
+    return { meta, stream: () => chunked(PII_REPLIES[lang]), usage: { input: 0, output: 0, cacheRead: 0 } };
+  }
+
   const policySource = programmePolicySource(verdict.redacted);
+  const assessmentPin = !policySource ? assessmentExplainPin(verdict.redacted) : undefined;
   const namedOfferRequest = /(course|workshop|certificate|คอร์ส|หลักสูตร)/i.test(verdict.redacted)
     && !/(this (course|workshop)|open (course|workshop)|คอร์สนี้|หลักสูตรนี้)/i.test(verdict.redacted);
   const offerSources = namedOfferRequest ? retrieve(verdict.redacted, lang).filter((s) => s.kind === "lesson") : [];
@@ -109,15 +128,16 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   const followUp = !namedOfferRequest && /^(and |what about|why|how so|แล้ว|ทำไม|ขออีก|อีกครั้ง)/i.test(verdict.redacted.trim());
   const previous = prevUser ? precheck(prevUser.content, emp.id, emp.managerId).redacted : "";
   const query = `${verdict.redacted} ${followUp ? previous.slice(0, 200) : ""}`;
+  const pinnedSource = policySource ?? assessmentPin ?? (input.lessonId ? input.lessonId : undefined);
   const retrieved = retrieve(query, lang, {
-    pinned: policySource ? [policySource] : input.lessonId ? [input.lessonId] : [],
+    pinned: pinnedSource ? [pinnedSource] : [],
     boost: input.plan?.steps.map((s) => s.itemId) ?? [],
   });
   // Chat beside a lesson: "summarise this" / "give an example" is about that lesson only,
   // so the model gets only that passage and cannot drift to a neighbouring one.
-  const lessonRequest = input.lessonId && !policySource && !OWN_RECORD_REQUEST.test(last.content);
-  const sources = unsupportedOffer ? [] : policySource
-    ? retrieved.filter((s) => s.sourceId === policySource)
+  const lessonRequest = input.lessonId && !policySource && !assessmentPin && !OWN_RECORD_REQUEST.test(last.content);
+  const sources = unsupportedOffer ? [] : policySource || assessmentPin
+    ? retrieved.filter((s) => s.sourceId === (policySource ?? assessmentPin))
     : lessonRequest ? retrieved.filter((s) => s.sourceId === input.lessonId) : retrieved;
 
   let category = verdict.category;

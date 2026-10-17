@@ -1,0 +1,68 @@
+// IRIS Learning Suite — Prisma schema (Supabase Postgres)
+// Sized for multi-tenant growth (~50k users): membership/audit indexes + pooled connections.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Tenant document store (JSON payload + CAS revision).
+model SuiteState {
+  tenantId String @id @map("tenant_id")
+  revision Int    @default(0)
+  payload  String
+
+  @@map("suite_v2_state")
+}
+
+/// Clerk user → tenant/employee/role mapping (one active membership per user in sandbox).
+model SuiteMembership {
+  clerkUserId String @map("clerk_user_id")
+  tenantId    String @map("tenant_id")
+  employeeId  String @map("employee_id")
+  role        String
+  active      Int    @default(1) @db.SmallInt
+
+  @@id([clerkUserId, tenantId])
+  @@index([clerkUserId, active], map: "idx_suite_v2_memberships_user_active")
+  @@index([tenantId, employeeId], map: "idx_suite_v2_memberships_tenant_employee")
+  @@map("suite_v2_memberships")
+}
+
+model SuiteAudit {
+  id         String   @id
+  tenantId   String   @map("tenant_id")
+  userId     String   @map("user_id")
+  employeeId String   @map("employee_id")
+  action     String
+  revision   Int
+  createdAt  DateTime @map("created_at") @db.Timestamptz(6)
+
+  @@index([tenantId, createdAt(sort: Desc)], map: "idx_suite_v2_audit_tenant")
+  @@index([tenantId, userId], map: "idx_suite_v2_audit_tenant_user")
+  @@map("suite_v2_audit")
+}
+
+model SuiteIdempotency {
+  tenantId    String @map("tenant_id")
+  userId      String @map("user_id")
+  key         String
+  fingerprint String
+  response    String
+
+  @@id([tenantId, userId, key])
+  @@map("suite_v2_idempotency")
+}
+
+model SuiteQuota {
+  key  String @id
+  day  String
+  used Int    @default(0)
+
+  @@index([day], map: "idx_suite_v2_quotas_day")
+  @@map("suite_v2_quotas")
+}
