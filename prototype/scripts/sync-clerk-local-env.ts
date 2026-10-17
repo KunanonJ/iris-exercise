@@ -1,13 +1,14 @@
 #!/usr/bin/env npx tsx
-// Pull Clerk publishable/secret keys and materialise Worker JWT verification
-// settings into ignored .env.local and .dev.vars (mode 600).
+// Pull Clerk publishable/secret keys and materialise JWT verification settings
+// into ignored .env.local (Next.js / Vercel) and .dev.vars (Worker), mode 600.
 import { execFileSync } from "node:child_process";
 import { chmodSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { createPublicKey } from "node:crypto";
 
 execFileSync("npx", ["clerk", "env", "pull"], { stdio: "inherit" });
 
-const envLocal = readFileSync(".env.local", "utf8");
+const envLocalPath = ".env.local";
+const envLocal = readFileSync(envLocalPath, "utf8");
 const publishable = envLocal.match(/^NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=(.+)$/m)?.[1]?.trim();
 if (!publishable?.startsWith("pk_")) throw new Error("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY missing after clerk env pull");
 
@@ -25,16 +26,45 @@ const pem = createPublicKey({ key: jwks.keys[0], format: "jwk" })
   .trim();
 const jwtKey = pem.replace(/\n/g, "\\n");
 
-const existing = existsSync(".dev.vars") ? readFileSync(".dev.vars", "utf8") : "";
-const keep = existing.split("\n").filter((line) => line && !/^(CLERK_|APP_ORIGINS=|# Clerk development)/.test(line));
-const block = [
-  `# Clerk development — synced ${new Date().toISOString()} (do not commit)`,
-  `CLERK_PUBLISHABLE_KEY=${publishable}`,
-  `CLERK_JWT_KEY="${jwtKey}"`,
-  `CLERK_ISSUER_URL=${issuer}`,
-  `APP_ORIGINS=http://localhost:3000,http://localhost:8797`,
-];
-writeFileSync(".dev.vars", [...keep, "", ...block, ""].join("\n").replace(/\n{3,}/g, "\n\n"), { mode: 0o600 });
-chmodSync(".dev.vars", 0o600);
-chmodSync(".env.local", 0o600);
-console.log(`Synced Clerk local env. Issuer ${issuer}. Files mode 600.`);
+const appOrigins = [
+  "http://localhost:3000",
+  "http://localhost:8797",
+  process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://iris-learning-suite.vercel.app",
+].join(",");
+
+const clerkBlock: Record<string, string> = {
+  CLERK_PUBLISHABLE_KEY: publishable,
+  CLERK_JWT_KEY: `"${jwtKey}"`,
+  CLERK_ISSUER_URL: issuer,
+  APP_ORIGINS: appOrigins,
+};
+
+function upsertEnvFile(path: string, updates: Record<string, string>, banner: string) {
+  const existing = existsSync(path) ? readFileSync(path, "utf8") : "";
+  const lines = existing.split("\n");
+  const keys = new Set(Object.keys(updates));
+  const kept = lines.filter((line) => {
+    if (!line || line.startsWith("# Clerk development")) return false;
+    const key = line.split("=", 1)[0];
+    return !keys.has(key);
+  });
+  const block = [
+    banner,
+    ...Object.entries(updates).map(([k, v]) => `${k}=${v}`),
+  ];
+  writeFileSync(path, [...kept.filter(Boolean), "", ...block, ""].join("\n").replace(/\n{3,}/g, "\n\n"), {
+    mode: 0o600,
+  });
+  chmodSync(path, 0o600);
+}
+
+upsertEnvFile(envLocalPath, clerkBlock, `# Clerk development — synced ${new Date().toISOString()} (do not commit)`);
+upsertEnvFile(
+  ".dev.vars",
+  clerkBlock,
+  `# Clerk development — synced ${new Date().toISOString()} (do not commit)`
+);
+
+console.log(`Synced Clerk local env into .env.local and .dev.vars. Issuer ${issuer}. Files mode 600.`);

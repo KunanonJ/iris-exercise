@@ -9,7 +9,7 @@
 | Google | Enabled + authenticatable | Clerk-shared (no custom client required in development) |
 | LINE Login | Enabled + authenticatable | Clerk-shared (no custom channel required in development) |
 
-Suite permissions still come from D1 `suite_v2_memberships` keyed by `clerk_user_id`. The IdP does not grant a role by itself.
+Suite permissions still come from `suite_v2_memberships` keyed by `clerk_user_id` (**Supabase/Prisma** on the default Next.js + Vercel path; local D1 only when using `pnpm dev:worker`). The IdP does not grant a role by itself. Clerk `allowed_origins` includes `http://localhost:3000` and `https://iris-learning-suite.vercel.app`.
 
 ## One-time / repeatable setup
 
@@ -48,7 +48,15 @@ After someone signs in with Google or LINE, Clerk may create a **new** `user_…
 ]
 ```
 
-3. `pnpm sandbox:provision --memberships .wrangler/clerk-memberships.json`
+3. Provision memberships into the database the API actually reads:
+
+```sh
+# Default / Vercel (Supabase via Prisma)
+pnpm supabase:provision --memberships .wrangler/clerk-memberships.json
+
+# Optional Worker+D1 sandbox only
+pnpm sandbox:provision --memberships .wrangler/clerk-memberships.json
+```
 
 Alternatively, in the Clerk Dashboard, link Google/LINE to an existing case-study user (same email / account linking) so the `user_…` id stays unchanged.
 
@@ -68,6 +76,24 @@ Development shared credentials are **not** valid for a production Clerk instance
 2. Create a LINE Login channel; paste channel ID/secret into Clerk `connection_oauth_line`.
 3. Set Clerk redirect / callback URLs from the Dashboard connection pages.
 4. Re-run membership mapping against the production instance.
+
+### Google Cloud project (in progress)
+
+| Field | Value |
+|---|---|
+| Project name | IRIS Learning Suite |
+| Project ID | `iris-learning-suite` |
+| Project number | `1091743526674` |
+| Clerk redirect URI (dev) | `https://literate-magpie-5641.clerk.accounts.dev/v1/oauth_callback` |
+| JS origin (local) | `http://localhost:3000` |
+
+Console shortcuts:
+
+- Consent / Auth overview: https://console.cloud.google.com/auth/overview?project=iris-learning-suite  
+- Create OAuth client: https://console.cloud.google.com/auth/clients/create?project=iris-learning-suite  
+- Clerk SSO connections: https://dashboard.clerk.com/apps/app_3KpAThJJWmOUNJ445CxjVknazcT/instances/ins_3KpATcDrr7oYePzbZVpem6iy7gr/user-authentication/sso-connections  
+
+After the client is created, paste **Client ID** + **Client Secret** here (or into chat) so they can be applied with `clerk config patch` — do not commit them to git.
 
 ## Out of scope here
 

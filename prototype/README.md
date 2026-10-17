@@ -1,10 +1,12 @@
 # Learning Suite prototype — implementation and local proof
 
-The Next.js static frontend and Cloudflare Worker/D1 API implement the five learning journeys using synthetic case-study data. **The revised version is local and has not been deployed.** Historical public screenshots and demo links do not verify this version.
+The Next.js app (UI + `/api`) hosts on **Vercel** with **Supabase Postgres** for `suite_v2_*` state and memberships, accessed through **Prisma 7** (`@prisma/adapter-pg` + transaction pooler) so the API can scale toward tens of thousands of users without exhausting Postgres connections. The UI uses **shadcn/ui** (Radix + Tailwind v4) under `src/components/ui/`, with suite-specific wrappers in `src/components/kit.tsx`. The Cloudflare Worker/D1 path remains available for local Moodle/HR sandbox work (`pnpm dev:worker`) and optional Workers AI. Production URL: [iris-learning-suite.vercel.app](https://iris-learning-suite.vercel.app).
+
+Add components with `npx shadcn@latest add <name>`.
 
 ## Authentication and permissions
 
-Clerk supplies session identity. The Worker verifies the public-key JWT and expected issuer, authorised party, user/session claims and session status. D1 membership records map the verified user to one tenant, employee and role; the browser cannot choose a persona or grant itself a role.
+Clerk supplies session identity. The Next.js API (or Worker) verifies the public-key JWT and expected issuer, authorised party, user/session claims and session status. Supabase (or local D1) membership records map the verified user to one tenant, employee and role; the browser cannot choose a persona or grant itself a role.
 
 - Employees access their own learning record.
 - Managers can learn on their own record and review their current direct reports. Team views exclude private coach conversations; self-approval is blocked.
@@ -16,29 +18,52 @@ The client fails closed if its Clerk publishable key is absent. Verifier unit te
 
 ## Local setup
 
-Use the repository's installed Node/pnpm versions, Docker Desktop with its daemon running, and the existing dependencies. Run commands from `prototype/`. This guide makes no changes to production D1 or hosted secrets.
+Use the repository's installed Node/pnpm versions and dependencies. Run commands from `prototype/`. Copy `.env.example` → `.env.local` (mode 600). Never put token values in commands, tracked files or screenshots.
 
-1. Select the existing Clerk development application. The user may authenticate its official CLI with `pnpm dlx clerk@latest auth login`; do not create an unrelated app automatically.
-2. Configure the frontend's `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` through its ignored local environment convention. It is bundled at build time, so rebuild when it changes.
-3. Configure `CLERK_PUBLISHABLE_KEY`, public `CLERK_JWT_KEY`, `CLERK_ISSUER_URL` and `APP_ORIGINS` for the local Worker. Use the existing ignored local secret mechanism for integration credentials; never put token values in commands, tracked files or screenshots.
-4. Prepare a protected membership input containing the selected Clerk `userId` values and synthetic employee/role mappings. Provision locally:
+### Default: Next.js + Supabase (matches Vercel)
+
+1. Select the Clerk development app **IRIS Learning Suite** (`app_3KpAThJJWmOUNJ445CxjVknazcT`) via `pnpm dlx clerk@latest auth login` / `npx clerk link`.
+2. Link the CLI to the hosted project (once): `npx supabase link --project-ref cyxbhietwlcqpdjafate`.
+3. Set Clerk + Supabase keys in `.env.local` (`npm run sso:sync-env` helps with Clerk; `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` from the project API settings).
+4. Provision the synthetic tenant and memberships:
+
+```sh
+pnpm supabase:provision --memberships /absolute/path/to/protected-memberships.json
+pnpm dev
+```
+
+`APP_ORIGINS` must include every browser origin that will call `/api` (e.g. `http://localhost:3000` and the Vercel URL). Schema lives in `supabase/migrations/` (already applied remotely).
+
+### Optional: Worker + local D1
 
 ```sh
 pnpm sandbox:provision --memberships /absolute/path/to/protected-memberships.json
-pnpm build
+pnpm dev:worker
 ```
 
-Start the explicitly local Worker/D1 configuration, then the frontend in a second terminal:
+`USE_WORKER_API=1` proxies `/api` to Wrangler on port **8797** (8787 is occupied elsewhere). Moodle/HR connector proofs still use this path.
+
+Worker asset deploy (static `out/` export):
 
 ```sh
-pnpm exec wrangler dev --config wrangler.sandbox.jsonc --local --persist-to .wrangler/suite-v2 --port 8797 --inspector-port 0
+pnpm deploy:worker   # runs WORKER_STATIC_EXPORT=1 next build && wrangler deploy
 ```
+
+### Deploy (Vercel)
+
+Branch model (see [`docs/deployment.md`](../docs/deployment.md)):
+
+| Branch | Vercel env |
+|---|---|
+| `main`, `preview`, PRs | Preview |
+| `production` (push) | Production |
 
 ```sh
-pnpm exec next dev --port 3000
+npx vercel deploy          # preview
+npx vercel deploy --prod   # production
 ```
 
-Use the configured localhost origin. The `dev` and `preview` scripts use this isolated local sandbox configuration. Port 8797 is intentional because an unrelated service occupies 8787; the Next.js development API proxy targets 8797. Do not infer production authentication or integration readiness from a successful build.
+Vercel project: `iris-learning-suite` (root `prototype`). CI deploys via `.github/workflows/vercel.yml`. Native Git linking needs a Vercel↔GitHub login connection, then set Production Branch to `production`. `npm run sso:sync-env` writes Clerk verification keys into **both** `.env.local` (Next) and `.dev.vars` (Worker).
 
 ## Verify the five journeys
 

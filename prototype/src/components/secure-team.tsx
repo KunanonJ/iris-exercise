@@ -6,7 +6,7 @@ import metricsData from "@/data/generated/metrics.json";
 import { BUSINESS_UNITS, roleById, skillById } from "@/data/taxonomy";
 import type { IntegrationStatus, LearningRecord, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
 import type { Approval, Bilingual, Lang, Level, Role } from "@/lib/types";
-import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./ui";
+import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./kit";
 
 type Command = (command: SuiteCommand) => Promise<void>;
 type SimPoint = { id: string; readiness: number; kpi: number };

@@ -65,22 +65,13 @@ function base64UrlEncodeJson(obj: unknown): string {
   return base64UrlEncode(new TextEncoder().encode(JSON.stringify(obj)));
 }
 
-function base64UrlDecodeString(str: string): string {
-  const pad = str.length % 4 === 0 ? "" : "=".repeat(4 - (str.length % 4));
-  const b64 = str.replace(/-/g, "+").replace(/_/g, "/") + pad;
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
-}
-
 async function hmacKey(secret: string): Promise<CryptoKey> {
   return crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign", "verify"]
+    ["sign"]
   );
 }
 
@@ -90,27 +81,6 @@ export async function signJwtHs256(payload: SsoClaims, secret = DEFAULT_JWT_SECR
   const key = await hmacKey(secret);
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(signingInput));
   return `${signingInput}.${base64UrlEncode(new Uint8Array(sig))}`;
-}
-
-export async function verifyJwtHs256(token: string, secret = DEFAULT_JWT_SECRET): Promise<SsoClaims | null> {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const [h, p, s] = parts;
-    const key = await hmacKey(secret);
-    const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
-    const b64 = s.replace(/-/g, "+").replace(/_/g, "/") + pad;
-    const bin = atob(b64);
-    const sigBytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) sigBytes[i] = bin.charCodeAt(i);
-    const valid = await crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(`${h}.${p}`));
-    if (!valid) return null;
-    const claims = JSON.parse(base64UrlDecodeString(p)) as SsoClaims;
-    if (claims.exp * 1000 < Date.now()) return null;
-    return claims;
-  } catch {
-    return null;
-  }
 }
 
 export async function logIntegrationEvent(
