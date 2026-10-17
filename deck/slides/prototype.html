@@ -1,6 +1,6 @@
 <section id="prototype" data-transition="fade" style="background:#F7F6F2;color:#22383A;font-family:'IBM Plex Sans', 'IBM Plex Sans Thai', Arial, sans-serif;padding:80px 112px 112px;display:flex;flex-direction:column;gap:22px">
 <p style="font-size:24px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#0E6B70">8 · Implementation, proof and tools</p>
-<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">Clerk sign-in and local Moodle integrations are proven; the live AI release gate remains open</h2>
+<h2 style="font-family:'Source Serif 4', Georgia, serif;font-size:50px;font-weight:600;line-height:1.12;color:#10292B">Hosted Clerk + Prisma stack is live; Google/LINE Login enabled; live AI release gate still open</h2>
 <div style="display:flex;gap:20px;align-items:start">
 <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/g-coach-guardrails-th.png" alt="Prior illustrative UI: Coach chat in Thai blocking a colleague-score question and a salary question, with guardrail labels" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Guardrails</p></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><img src="../../docs/screenshots/f-lesson-chat-th.png" alt="Prior illustrative UI: Lesson page with the coach chat beside it, answering with a citation" style="width:215px;height:400px;object-fit:contain"><p style="font-size:24px;color:#66767A">Coach + lesson</p></div>
@@ -9,11 +9,11 @@
 <div style="display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:28px">
 <div style="display:flex;flex-direction:column;gap:6px">
 <h3 style="font-size:28px;font-weight:600;color:#0E6B70">Current status</h3>
-<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Prior illustrative UI shown above. Revised Clerk client is local, not deployed; hosted connectors are unconfigured.</p>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Hosted: <b>iris-learning-suite.vercel.app</b> (Next.js + Clerk + Prisma/Supabase). Google + LINE Login enabled on Clerk development. Moodle/HR connectors remain local-sandbox proofs only.</p>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
 <h3 style="font-size:28px;font-weight:600;color:#10292B">Implementation and proof</h3>
-<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Proven locally: real Clerk sign-in + cross-role API/browser journeys, atomic approvals, two Moodle 4.5.15 REST flows and synthetic HR. Live AI gate remains unpassed.</p>
+<p style="font-size:24px;line-height:1.32;color:#3B4A4C">Proven: hosted /api/status (Clerk + prisma+supabase); local Clerk email journeys + dual Moodle + synthetic HR. Google/LINE browser federation receipts still required before claiming IdP federation. Live AI gate remains FAIL (93.1%).</p>
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
 <h3 style="font-size:28px;font-weight:600;color:#10292B">Tools I used</h3>
@@ -24,5 +24,5 @@
 <p style="font-size:24px;color:#66767A">Mock data only: fictional company, people and courses</p>
 <p style="font-size:24px;color:#66767A">12</p>
 </div>
-<aside>The revised prototype requires Clerk identity and provisioned D1 membership; no local persona bypass remains. Real Clerk sign-in and cross-role API/browser journeys passed (clerk-api-2026-10-15T14-10-06.023Z.json, clerk-browser-2026-10-15T14-17-17.135Z.json). Local Moodle/HR proof receipt: 2026-10-15T09-17-29.219Z.json. Offline 55/55 passed; complete 55-case live Workers AI run achieved 93.1% groundedness (27/29) and remains below the 95% release gate (2026-10-15T14-18-58-089Z-f48e1caf). The recalculated seven-sheet model has 1,207 caches, zero errors, 143 independent checks and four sensitivities. Existing screenshots are prior illustrative UI. The new app is not deployed.</aside>
+<aside>Prototype requires Clerk identity and provisioned suite_v2_memberships (Supabase/Prisma on Vercel; D1 only for Worker sandbox). Hosted app: https://iris-learning-suite.vercel.app. Clerk email journeys: clerk-api-2026-10-15T14-10-06.023Z.json, clerk-browser-2026-10-15T14-17-17.135Z.json. Moodle/HR: 2026-10-15T09-17-29.219Z.json. Offline 55/55; live Workers AI 93.1% groundedness FAIL (2026-10-15T14-18-58-089Z-f48e1caf). Screenshots above remain prior illustrative UI unless labelled otherwise. LINE OA Messaging is Phase-2 (Login SSO ≠ push).</aside>
 </section>

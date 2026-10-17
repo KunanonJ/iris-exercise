@@ -1,0 +1,42 @@
+{
+  "kind": "hosted-sso-oauth-redirect",
+  "at": "2026-10-17T15-40-43.222Z",
+  "host": "https://iris-learning-suite.vercel.app",
+  "apiStatus": {
+    "url": "https://iris-learning-suite.vercel.app/api/status",
+    "body": {
+      "service": "Learning Suite",
+      "authentication": "Clerk",
+      "data": "prisma+supabase",
+      "host": "vercel",
+      "database": "configured"
+    }
+  },
+  "clerkApp": "IRIS Learning Suite app_3KpAThJJWmOUNJ445CxjVknazcT",
+  "providers": {
+    "google": {
+      "buttonVisible": true,
+      "oauthRedirectObserved": true,
+      "accountsHost": "accounts.google.com",
+      "clerkCallbackHost": "clerk.shared.lcl.dev",
+      "screenshot": "docs/screenshots/hosted-google-oauth-live.png",
+      "mappedMembershipProof": false,
+      "note": "OAuth authorize URL reached from hosted SignIn. Completing login into a mapped suite_v2_membership requires a real Google account owned by the operator."
+    },
+    "line": {
+      "buttonVisible": true,
+      "oauthRedirectObserved": true,
+      "accountsHost": "access.line.me",
+      "clerkCallbackHost": "clerk.shared.lcl.dev",
+      "mappedMembershipProof": false,
+      "note": "LINE Login authorize URL reached from hosted SignIn. Completing login into a mapped suite_v2_membership requires a real LINE account owned by the operator."
+    }
+  },
+  "membershipsProvisioned": [
+    "E0001",
+    "E0002",
+    "E9001"
+  ],
+  "submissionClaim": "Google and LINE Login are enabled; both OAuth authorize URLs start from the hosted app. Do not claim completed federation into Suite roles until mappedMembershipProof is true for each provider.",
+  "updatedAt": "2026-10-17T15:45:10.361451+00:00"
+}
