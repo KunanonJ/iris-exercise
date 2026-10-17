@@ -19,11 +19,18 @@ PRs targeting `main`, `preview`, or `production` always deploy to **Preview**.
 
 ## CI deploy
 
-`.github/workflows/vercel.yml` deploys via the Vercel CLI using repo secrets:
+`.github/workflows/vercel.yml` deploys via the Vercel CLI (remote build) using repo secrets:
 
 - `VERCEL_TOKEN`
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
+
+GitHub Environments:
+
+| Environment | Allowed branches | Used when |
+|---|---|---|
+| `preview` | `main`, `preview`, `*` (PRs / feature heads) | Non-production deploys |
+| `production` | `production` only | Push to `production` |
 
 ## Optional: native Vercel ↔ GitHub auto-deploy
 
