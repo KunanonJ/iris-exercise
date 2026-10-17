@@ -36,7 +36,7 @@ Update this draft only after the final evidence changes. Add a prototype link an
 |---|---|
 | Why this cohort? | Eighteen shared frameworks cover the proposed 12,000 RD/PK employees while testing frontline mobile constraints. Headcounts and SME capacity are case assumptions to confirm in week 1. |
 | What does week 12 prove? | All 12,000 can access the five thin capabilities; target at least 30% assessed by the forum, 70% within eight weeks. Show coverage and missing records, not a complete 12,000-person measured baseline. |
-| What authenticates users? | Clerk integration verifies issuer, authorised party, subject, session and status; D1 memberships supply permissions. Real Clerk development sign-in and cross-role API/browser journeys are verified locally across employee, manager and leader accounts. Google Workspace/LINE federation is proposed, not demonstrated. |
+| What authenticates users? | Clerk integration verifies issuer, authorised party, subject, session and status; D1 memberships supply permissions. Real Clerk development sign-in and cross-role API/browser journeys are verified locally across employee, manager and leader accounts. **Google + LINE Login are enabled** on the Clerk development instance; browser proof into mapped memberships is still required before claiming live federation in the email. |
 | What can each role see? | Employees and managers can learn on their own records. Managers review current direct reports, without their private coach conversations; they cannot approve themselves. Leaders receive aggregates with groups below 10 suppressed. |
 | What integration proof exists? | Two separate local Moodle instances: catalogue, enrolment, upstream completion, replay and partial outage. Synthetic HR: cursor-based joiner, manager transfer and leaver. Suite/Moodle logins remain separate; hosted connections are unconfigured. |
 | What prevents invented courses? | The path generator selects from an approved shortlist and validates item IDs. Grounding and safety still require empirical evaluation; no prompt can guarantee the live model never hallucinates. |
@@ -46,7 +46,7 @@ Update this draft only after the final evidence changes. Add a prototype link an
 | How much staffing? | The model assumes 14.2 average FTE across approximately 17 individuals over the delivery period; average capacity and headcount are different measures. |
 | What supports the money? | Seven sheets, 1,207 cached formulas, no errors, 143 independent checks and four sensitivity scenarios. Three-year spend THB 80,342,000; IRIS GP THB 30,962,919.32, or 38.5389%. Value estimates require a client baseline and comparison design. |
 | What is the AI cost basis? | Frozen planning quote: 2,800 uncached input + 1,200 cached input + 450 output tokens/turn, with adoption and buffer assumptions. It is not a measured provider bill. Model choice and prices must be revalidated before purchase. |
-| Which proposed features are absent locally? | Enterprise federation, LINE delivery, xAPI/LTI, workshop seat reservation, batch approval, automated SLA escalation and production retention jobs have no completion claim in the revised sandbox. |
+| Which proposed features are absent locally? | Google/LINE Login enabled but browser proof pending; LINE delivery, xAPI/LTI, workshop seat reservation, batch approval, automated SLA escalation and production retention jobs have no completion claim yet. |
 
 ## Before submission
 

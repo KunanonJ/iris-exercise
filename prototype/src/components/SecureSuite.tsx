@@ -31,9 +31,32 @@ function SessionGate() {
   const { isLoaded, isSignedIn, userId, sessionId, getToken } = useAuth();
   if (!isLoaded) return <div className="grid min-h-dvh place-items-center" role="status">Loading secure sign-in · กำลังเตรียมการเข้าสู่ระบบ…</div>;
   if (!isSignedIn || !userId) return <main className="mx-auto flex min-h-dvh max-w-4xl flex-col items-center justify-center gap-6 px-4 py-10">
-    <div className="max-w-md text-center"><Badge tone="brand">IRIS · Learning Suite</Badge><h1 className="mt-4 text-3xl font-bold">Learn. Practise. Grow.</h1><p className="mt-3 text-sm text-ink-2">Sign in with your assigned case-study account. Your access is set by the programme administrator.</p><p className="mt-2 text-sm text-ink-2" lang="th">เข้าสู่ระบบด้วยบัญชีกรณีศึกษาของคุณ สิทธิ์การเข้าถึงกำหนดโดยผู้ดูแลโปรแกรม</p></div>
-    <SignIn routing="hash" />
-    <p className="text-center text-xs text-ink-3">Synthetic learning data. No client HR or LMS production connection.<br />ข้อมูลการเรียนสมมติ ไม่มีการเชื่อมต่อ HR หรือ LMS ของลูกค้าจริง</p>
+    <div className="max-w-md text-center">
+      <Badge tone="brand">IRIS · Learning Suite</Badge>
+      <h1 className="mt-4 text-3xl font-bold">Learn. Practise. Grow.</h1>
+      <p className="mt-3 text-sm text-ink-2">
+        Sign in with <strong className="font-semibold text-ink">Google</strong> or <strong className="font-semibold text-ink">LINE</strong> (Clerk social SSO), or your assigned case-study email. Access still comes from the administrator membership map — not from the identity provider.
+      </p>
+      <p className="mt-2 text-sm text-ink-2" lang="th">
+        เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> หรือ <strong className="font-semibold text-ink">LINE</strong> (SSO ผ่าน Clerk) หรืออีเมลกรณีศึกษา สิทธิ์ยังมาจากรายการสมาชิกที่ผู้ดูแลกำหนด ไม่ใช่จากผู้ให้บริการตัวตน
+      </p>
+    </div>
+    <SignIn
+      routing="hash"
+      appearance={{
+        elements: {
+          socialButtonsBlockButton: "border border-line bg-paper hover:bg-brand-soft",
+          formButtonPrimary: "bg-brand hover:bg-brand/90",
+        },
+      }}
+    />
+    <p className="max-w-md text-center text-xs text-ink-3">
+      Development SSO uses Clerk-shared Google/LINE credentials. Production needs your own OAuth clients.
+      <br />
+      Synthetic learning data. No client HR or LMS production connection.
+      <br />
+      ข้อมูลการเรียนสมมติ ไม่มีการเชื่อมต่อ HR หรือ LMS ของลูกค้าจริง
+    </p>
   </main>;
   return <SessionSuite key={`${sessionId}:${userId}`} userId={userId} getToken={getToken} />;
 }

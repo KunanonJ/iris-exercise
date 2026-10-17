@@ -16,7 +16,9 @@
     "sandbox:provision": "tsx scripts/provision-sandbox.ts",
     "eval:release": "tsx scripts/eval.ts --live --release",
     "sandbox:verify": "tsx scripts/verify-suite-integrations.ts",
-    "sandbox:connect": "tsx scripts/configure-local-integrations.ts"
+    "sandbox:connect": "tsx scripts/configure-local-integrations.ts",
+    "sso:enable": "tsx scripts/enable-google-line-sso.ts",
+    "sso:sync-env": "tsx scripts/sync-clerk-local-env.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
