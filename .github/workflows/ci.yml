@@ -55,6 +55,9 @@ jobs:
       - name: Prisma generate
         run: pnpm db:generate
 
+      - name: Generate Next.js route types
+        run: pnpm exec next typegen
+
       - name: Typecheck
         run: pnpm exec tsc --noEmit --incremental false
 
