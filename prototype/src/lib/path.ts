@@ -79,8 +79,8 @@ export async function aiPlan(emp: Employee, overrides?: Record<string, Level>): 
     steps.sort((a, b) => a.week - b.week);
     steps.forEach((s, i) => (s.order = i + 1));
     return { ...base, steps, summary: { en: out.summary_en, th: out.summary_th }, generatedBy: "ai" };
-  } catch (err) {
-    console.error("aiPlan failed, using rules plan", err);
+  } catch {
+    // Provider details can contain sensitive response data; do not log them.
     return base;
   }
 }

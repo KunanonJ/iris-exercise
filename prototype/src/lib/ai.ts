@@ -154,7 +154,11 @@ async function chatCompletions(a: ChatArgs, stream: boolean) {
       messages: [{ role: "system", content: a.system }, ...a.messages],
     }),
   });
-  if (!res.ok) throw new Error(`${t.name} ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) {
+    // Provider error bodies can echo prompts or keys; keep only the status.
+    await res.body?.cancel().catch(() => {});
+    throw new Error(`${t.name} HTTP ${res.status}`);
+  }
   return res;
 }
 
