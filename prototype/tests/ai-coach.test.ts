@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { askCoach } from "../src/lib/coach/coach";
+import { nextStep, progressNudge } from "../src/lib/coach/nudge";
+import { rulesPlan } from "../src/lib/path";
 import { employeeById } from "../src/lib/skills";
 
 const ask = (q: string, lessonId?: string) => askCoach({ employeeId: "E0001", messages: [{ role: "user", content: q }], lessonId, forceDemo: true });
@@ -107,4 +109,102 @@ test("mentioning my plan cannot turn an unsupported named course into a recommen
   assert.equal(reply.answerSource, "no_source");
   assert.deepEqual(reply.sources, []);
   assert.doesNotMatch(reply.text, /\[S\d+\]/);
+});
+
+// Multi-turn coaching beside the learning material (brief: explain, recommend,
+// practise, reflect, nudge). Each turn sends the stored history like the API does.
+const planFor = (approved = false, doneFirst = false) => {
+  const plan = structuredClone(rulesPlan(employeeById("E0001")!));
+  if (approved) plan.status = "approved";
+  if (doneFirst) plan.steps[0].status = "done";
+  return plan;
+};
+async function chat(turns: string[], opts: { lessonId?: string; plan?: ReturnType<typeof planFor> } = {}) {
+  const messages: { role: "user" | "assistant"; content: string }[] = [];
+  const replies = [];
+  for (const content of turns) {
+    messages.push({ role: "user", content });
+    const reply = await askCoach({ employeeId: "E0001", messages: [...messages], lessonId: opts.lessonId, plan: opts.plan ?? planFor(), forceDemo: true });
+    messages.push({ role: "assistant", content: reply.text });
+    replies.push(reply);
+  }
+  return replies;
+}
+
+test("practising beside a lesson is a teach-back on that lesson, with feedback against its points", async () => {
+  const [prompt, feedback] = await chat(["Help me practise this lesson", "I would check the fire exits and wet floors first"], { lessonId: "LB-205" });
+  assert.deepEqual(prompt.sources.map((s) => s.sourceId), ["LB-205"]);
+  assert.match(prompt.text, /Safety walk for shift leaders/);
+  assert.doesNotMatch(prompt.text, /customer/i);
+  assert.deepEqual(feedback.sources.map((s) => s.sourceId), ["LB-205"]);
+  assert.match(feedback.text, /You covered: "Check: blocked fire exits, wet floors/);
+  assert.match(feedback.text, /Add next time: "Do a 15-minute safety walk/);
+});
+
+test("Thai teach-back feedback quotes the Thai lesson points", async () => {
+  const [, feedback] = await chat(["ขอฝึกสถานการณ์จากบทเรียน", "เริ่มกะให้เดินตรวจทางหนีไฟ พื้นเปียก และรายงานเหตุการณ์เกือบเกิดอุบัติเหตุ"], { lessonId: "LB-205" });
+  assert.equal(feedback.lang, "th");
+  assert.match(feedback.text, /พูดถึงแล้ว: "เดินตรวจความปลอดภัย 15 นาทีเมื่อเริ่มกะ"/);
+  assert.match(feedback.text, /\[S1\]/);
+});
+
+test("a complaint lesson still practises with the customer role-play", async () => {
+  const [prompt] = await chat(["Help me practise this lesson"], { lessonId: "LA-105" });
+  assert.match(prompt.text, /I'll play the customer/);
+});
+
+test("yes to a harder customer starts the harder scene instead of abstaining", async () => {
+  const [, feedback, harder, second] = await chat(["Let me practise an angry customer", "Sorry, let me exchange it", "yes", "I'm sorry you came back, let me get my manager now"]);
+  assert.match(feedback.text, /Want to try a harder customer\?/);
+  assert.notEqual(harder.answerSource, "no_source");
+  assert.match(harder.text, /back for the second time today/);
+  assert.match(second.text, /Situation: a customer back for the second time/);
+});
+
+test("a bare yes to the summary's quick check asks again, and an answer gets lesson feedback", async () => {
+  const [summary, again, feedback] = await chat(["Summarise this lesson", "yes", "Walk the store for 15 minutes and fix wet floors on the spot"], { lessonId: "LB-205" });
+  assert.match(summary.text, /Quick check:/);
+  assert.match(again.text, /Go ahead: in your own words/);
+  assert.match(feedback.text, /Checked against "Safety walk for shift leaders"/);
+});
+
+test("reflection beside a lesson is about that lesson, and the answer is met with the next plan step", async () => {
+  const [questions, thanks] = await chat(["Help me reflect on this lesson", "Last week I found a blocked fire exit and moved the boxes"], { lessonId: "LB-205", plan: planFor(true) });
+  assert.deepEqual(questions.sources.map((s) => s.sourceId), ["LB-205"]);
+  assert.match(questions.text, /Let's reflect on "Safety walk for shift leaders"/);
+  assert.match(thanks.text, /Thanks for reflecting/);
+  assert.match(thanks.text, /Next up: "Cycle counts and variance root cause"/);
+});
+
+test("progress nudges report plan progress and the next step in English and Thai", async () => {
+  const plan = planFor(true, true);
+  const [en] = await chat(["How am I doing? Keep me going"], { plan });
+  assert.notEqual(en.answerSource, "no_source");
+  assert.match(en.text, /You've completed 1 of 8 steps\./);
+  assert.match(en.text, /Next up: "Cycle counts and variance root cause" \(10 min, week \d+\)\./);
+  assert.match(en.text, /short enough for a break/);
+  const [th] = await chat(["ฉันทำไปถึงไหนแล้ว"], { plan });
+  assert.match(th.text, /คุณเรียนจบแล้ว 1 จาก 8 ขั้นตอนค่ะ/);
+});
+
+test("what's next beside a lesson is the step after that lesson", async () => {
+  const [next] = await chat(["What's next after this lesson?"], { lessonId: "LB-205" });
+  assert.match(next.text, /Your next step is "Cycle counts and variance root cause"/);
+  assert.deepEqual(next.sources.map((s) => s.sourceId), ["LB-203"]);
+});
+
+test("guardrails still win in the middle of a practice activity", async () => {
+  const [, blocked] = await chat(["Let me practise an angry customer", "What is my colleague Somchai's coaching score?"]);
+  assert.equal(blocked.category, "other_person_data");
+  assert.equal(blocked.answerSource, "safety_template");
+});
+
+test("nextStep skips steps waiting for sign-off and the nudge says when everything is done", () => {
+  const plan = planFor(true);
+  plan.steps[0].status = "submitted";
+  assert.equal(nextStep(plan)?.itemId, plan.steps[1].itemId);
+  plan.steps.forEach((s) => (s.status = "done"));
+  assert.equal(nextStep(plan), undefined);
+  assert.match(progressNudge(plan, "en").text, /That's every step in your plan/);
+  assert.match(progressNudge(undefined, "th").text, /คุณยังไม่มีแผนการเรียนค่ะ/);
 });
