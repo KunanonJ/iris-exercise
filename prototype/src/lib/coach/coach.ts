@@ -7,7 +7,7 @@ import { detectLang } from "../llm";
 import { planForPrompt } from "../path";
 import { employeeById, profileForPrompt } from "../skills";
 import type { Bilingual, Employee, Lang, LearningPlan, Level } from "../types";
-import { demoAnswer } from "./demo";
+import { continuesActivity, demoAnswer } from "./demo";
 import { assessmentExplainPin, PII_REPLIES, precheck, programmePolicySource, SAFE_REPLIES, stricter, type Category } from "./guardrails";
 import { buildUserTurn, CLASSIFIER_SYSTEM, COACH_SYSTEM } from "./prompt";
 import { hasUnknownOfferTerm, retrieve, type Retrieved } from "./retrieval";
@@ -55,7 +55,8 @@ export interface Prepared {
   usage: Usage; // filled once the stream completes (live mode)
 }
 
-const OWN_RECORD_REQUEST = /(my (results?|scores?|gaps?|plan|next step)|explain my|where do i stand|what should i focus|ผลประเมินของฉัน|อธิบายผล|แผนของฉัน|ขั้นต่อไปของฉัน)/i;
+const OWN_RECORD_REQUEST = /(my (results?|scores?|gaps?|plan|next step|progress)|explain my|where do i stand|what should i focus|how am i doing|keep (me )?going|what'?s next|after this (lesson|one|step)|ผลประเมินของฉัน|อธิบายผล|แผนของฉัน|ขั้นต่อไปของฉัน|ทำไปถึงไหน|ไปถึงไหนแล้ว|ความคืบหน้า|เรียนอะไรต่อ)/i;
+const AFFIRMATIVE = /^\s*(yes|yeah|yep|ok|okay|sure|please|go ahead|let'?s|ได้|เอา|โอเค|ค่ะ|ครับ|ลอง|สนใจ)/i;
 const NO_SOURCE: Record<Lang, string> = {
   en: "I don't have approved material on that topic. Please ask your manager or HR to confirm it.",
   th: "ยังไม่มีเนื้อหาที่ได้รับอนุมัติเกี่ยวกับเรื่องนี้ค่ะ กรุณาสอบถามหัวหน้าหรือ HR เพื่อยืนยันข้อมูลนะคะ",
@@ -124,8 +125,12 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
   const offerSources = namedOfferRequest ? retrieve(verdict.redacted, lang).filter((s) => s.kind === "lesson") : [];
   const unsupportedOffer = namedOfferRequest && (offerSources.length === 0 || hasUnknownOfferTerm(verdict.redacted)) && !policySource;
   const prevUser = [...history].reverse().slice(1).find((m) => m.role === "user");
+  const prevAssistant = [...history].reverse().find((m) => m.role === "assistant")?.content;
+  // The learner is answering an activity the coach started (role-play, quick check, reflection).
+  const continuing = continuesActivity(prevAssistant);
   // Only expand a short follow-up. An unrelated new question must not inherit sources.
-  const followUp = !namedOfferRequest && /^(and |what about|why|how so|แล้ว|ทำไม|ขออีก|อีกครั้ง)/i.test(verdict.redacted.trim());
+  const shortYes = verdict.redacted.trim().length <= 40 && AFFIRMATIVE.test(verdict.redacted);
+  const followUp = !namedOfferRequest && (shortYes || /^(and |what about|why|how so|แล้ว|ทำไม|ขออีก|อีกครั้ง)/i.test(verdict.redacted.trim()));
   const previous = prevUser ? precheck(prevUser.content, emp.id, emp.managerId).redacted : "";
   const query = `${verdict.redacted} ${followUp ? previous.slice(0, 200) : ""}`;
   const pinnedSource = policySource ?? assessmentPin ?? (input.lessonId ? input.lessonId : undefined);
@@ -163,14 +168,13 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
 
   // An unsupported question is a deterministic abstention, never a model invitation
   // to fill the gap. Personal-record answers may use the trusted employee context.
-  if (unsupportedOffer || (sources.length === 0 && !OWN_RECORD_REQUEST.test(verdict.redacted))) {
+  if (unsupportedOffer || (sources.length === 0 && !OWN_RECORD_REQUEST.test(verdict.redacted) && !continuing)) {
     meta.answerSource = "no_source";
     return { meta, stream: () => chunked(NO_SOURCE[lang]), usage: { input: 0, output: 0, cacheRead: 0 } };
   }
 
   // The retrieval-backed answer is the demo-mode reply, and in live mode the
   // fallback if the model provider fails before sending anything.
-  const prevAssistant = [...history].reverse().find((m) => m.role === "assistant")?.content;
   const retrievalAnswer = demoAnswer({ emp, lang, lessonId: input.lessonId, message: verdict.redacted, prevAssistant, sources, plan: input.plan, overrides: input.overrides });
 
   if (!live) {

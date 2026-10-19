@@ -5,6 +5,7 @@ import { itemById } from "@/data/catalog";
 import { roleById, skillById } from "@/data/taxonomy";
 import type { LearningRecord, SuiteCommand } from "@/lib/suite-contracts";
 import type { Bilingual, Lang, Level, Role } from "@/lib/types";
+import { progressNudge } from "@/lib/coach/nudge";
 import { SecureCoach, type SendCoach } from "./secure-coach";
 import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./kit";
 
@@ -286,6 +287,24 @@ function Lesson({ itemId, record, lang, busy, command, coach, onClose, onSelectL
   </Card><SecureCoach key={itemId} messages={record.chats[itemId] ?? []} lessonId={itemId} lang={lang} busy={busy} send={coach} onOpenLesson={onSelectLesson} /></div></div>;
 }
 
+// "Keep going" nudge on the home screen: plan progress and the next step,
+// from the same helper the coach uses.
+function NextStepCard({ record, lang, onArea, onOpen }: { record: LearningRecord; lang: Lang; onArea: (area: "assessment" | "plan" | "coach") => void; onOpen: (id: string) => void }) {
+  const th = lang === "th";
+  const approved = record.assessment.status === "approved";
+  const nudge = record.plan ? progressNudge(record.plan, lang) : undefined;
+  const next = nudge?.next;
+  const text = nudge ? nudge.text : approved ? (th ? "เปิดแผนการเรียนเพื่อสร้างเส้นทางของคุณ" : "Open your learning path to build your plan.") : (th ? "ประเมินทักษะและส่งให้หัวหน้าตรวจสอบ" : "Complete your skill assessment for manager review.");
+  return <Card className="border-brand/25 bg-brand-soft/35"><div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex min-w-0 flex-1 items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand ring-1 ring-inset ring-brand/25"><Icon name={nudge ? "trendUp" : approved ? "path" : "clock"} className="h-5 w-5" /></span><div className="min-w-0 flex-1">
+      <h2 className="font-semibold">{nudge ? (th ? "เรียนต่ออีกนิด" : "Keep going") : (th ? "ขั้นตอนถัดไป" : "Your next step")}</h2>
+      <p className="mt-1 text-sm text-ink-2">{text}</p>
+      {nudge && nudge.total > 0 && <div className="mt-2.5 h-2 max-w-sm overflow-hidden rounded-full bg-line" role="progressbar" aria-label={th ? "ความคืบหน้าของแผน" : "Plan progress"} aria-valuemin={0} aria-valuemax={nudge.total} aria-valuenow={nudge.done}><div className="h-full bg-brand transition-all duration-300" style={{ width: `${Math.round((nudge.done / nudge.total) * 100)}%` }} /></div>}
+    </div></div>
+    <div className="flex flex-wrap gap-2">{nudge && <Button variant="outline" onClick={() => onArea("coach")}><Icon name="coach" className="h-3.5 w-3.5" />{th ? "ถามโค้ช" : "Ask the coach"}</Button>}<Button onClick={() => (next ? onOpen(next.itemId) : onArea(approved ? "plan" : "assessment"))}>{next ? (th ? "เปิดขั้นตอนถัดไป" : "Open next step") : th ? "ไปต่อ" : "Continue"}</Button></div>
+  </div></Card>;
+}
+
 export function EmployeeJourney(props: JourneyProps) {
   const [area, setArea] = useState<"overview" | "assessment" | "plan" | "coach">("overview");
   const [lessonId, setLessonId] = useState<string>();
@@ -298,7 +317,7 @@ export function EmployeeJourney(props: JourneyProps) {
     ["coach", th ? "โค้ช AI" : "AI coach", "coach"],
   ];
   return <div className="grid items-start gap-5 lg:grid-cols-[232px_minmax(0,1fr)]"><aside className="rounded-2xl border border-line bg-surface p-3"><nav aria-label={th ? "การเรียนของฉัน" : "My learning sections"} className="flex flex-wrap gap-1.5 lg:flex-col">{navItems.map(([value, text, icon]) => <button key={value} type="button" onClick={() => setArea(value)} aria-current={area === value ? "page" : undefined} className={cx("inline-flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium cursor-pointer", area === value ? "bg-brand-soft text-brand" : "text-ink-2 hover:bg-surface-2")}><Icon name={icon} className="h-4 w-4 shrink-0" /><span>{text}</span></button>)}</nav><p className="mt-3 hidden border-t border-line pt-3 text-xs leading-relaxed text-ink-3 lg:block">{th ? "ประเมิน → หัวหน้าอนุมัติ → สร้างแผน → หัวหน้าอนุมัติ → เรียนและทำโปรเจกต์" : "Assess → manager review → create path → manager review → learn and practise"}</p></aside><div className="min-w-0 space-y-4">
-    {area === "overview" && <><Card className="border-brand/25 bg-brand-soft/35"><div className="flex flex-wrap items-center justify-between gap-2"><div className="flex items-start gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand ring-1 ring-inset ring-brand/25"><Icon name={props.record.assessment.status === "approved" ? "path" : "clock"} className="h-5 w-5" /></span><div><h2 className="font-semibold">{th ? "ขั้นตอนถัดไป" : "Your next step"}</h2><p className="mt-1 text-sm text-ink-2">{props.record.assessment.status === "approved" ? (th ? "เปิดแผนการเรียนเพื่อเลือกกิจกรรมถัดไป" : "Open your learning path to choose your next activity.") : (th ? "ประเมินทักษะและส่งให้หัวหน้าตรวจสอบ" : "Complete your skill assessment for manager review.")}</p></div></div><Button onClick={() => setArea(props.record.assessment.status === "approved" ? "plan" : "assessment")}>{th ? "ไปต่อ" : "Continue"}</Button></div></Card><Profile {...props} onAskCoach={() => setArea("coach")} /></>}
+    {area === "overview" && <><NextStepCard record={props.record} lang={props.lang} onArea={setArea} onOpen={setLessonId} /><Profile {...props} onAskCoach={() => setArea("coach")} /></>}
     {area === "assessment" && <Assessment {...props} />}
     {area === "plan" && <LearningPlan {...props} onOpen={setLessonId} />}
     {area === "coach" && <SecureCoach messages={props.record.chats.general ?? []} lang={props.lang} busy={props.busy} send={props.coach} onOpenLesson={setLessonId} />}

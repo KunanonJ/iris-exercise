@@ -362,17 +362,20 @@ export function SecureCoach({
           "ยกตัวอย่างในงานของฉัน",
           "ขอฝึกสถานการณ์จากบทเรียน",
           "ชวนสะท้อนคิดจากบทเรียน",
+          "หลังบทนี้ควรเรียนอะไรต่อ",
         ]
       : [
           "Summarise this lesson",
           "Give me an example from my job",
           "Help me practise this lesson",
           "Help me reflect on this lesson",
+          "What's next after this lesson?",
         ]
     : th
       ? [
           "อธิบายผลประเมินของฉันหน่อย",
           "ควรทำอะไรต่อ",
+          "ฉันทำไปถึงไหนแล้ว",
           "ขอฝึกรับมือลูกค้าที่โกรธ",
           "ผลประเมินมีผลกับโบนัสไหม",
           "คะแนนการโค้ชของเพื่อนร่วมงานเท่าไหร่",
@@ -380,6 +383,7 @@ export function SecureCoach({
       : [
           "Explain my results",
           "What should I do next?",
+          "How am I doing?",
           "Let me practise an angry customer",
           "Will my results affect my bonus?",
           "What is my colleague's coaching score?",
