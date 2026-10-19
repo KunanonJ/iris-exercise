@@ -9,7 +9,7 @@
   "assets": {
     "directory": "./out",
     "binding": "ASSETS",
-    // Every request hits the Worker first so the optional passcode gate covers pages too
+    // Every request hits the Worker first so /api/* routes are authenticated by Clerk JWT verification
     "run_worker_first": true,
     "not_found_handling": "404-page"
   },
@@ -21,12 +21,13 @@
     {
       "binding": "DB",
       "database_name": "iris-learning-suite-db",
-      "database_id": "3dc3d1f7-0ac0-4cec-ab8f-6d8bcc71570d"
+      "database_id": "3dc3d1f7-0ac0-4cec-ab8f-6d8bcc71570d",
+      "migrations_dir": "db/migrations"
     }
   ],
-  // Free models: Workers AI (10,000 neurons/day free). Switch with AI_PROVIDER=opencode | anthropic
+  // Free models: Workers AI (10,000 neurons/day free). Live inference requires AI_FREE_ONLY_VERIFIED=1
   "ai": { "binding": "AI" },
-  "vars": { "AI_PROVIDER": "workers-ai" },
+  "vars": { "AI_PROVIDER": "workers-ai", "APP_ORIGINS": "https://iris.kunanonj.com" },
   "observability": { "enabled": true }
-  // Secrets (never in this file): wrangler secret put OPENCODE_API_KEY | ANTHROPIC_API_KEY | DEMO_PASSCODE
+  // Secrets (never in this file): wrangler secret put CLERK_PUBLISHABLE_KEY | CLERK_JWT_KEY | CLERK_ISSUER_URL | ANTHROPIC_API_KEY | OPENCODE_API_KEY
 }

@@ -13,8 +13,9 @@ export interface Verdict {
 }
 
 const PII: [string, RegExp][] = [
-  ["thai_national_id", /\b\d[- ]?\d{4}[- ]?\d{5}[- ]?\d{2}[- ]?\d\b/g],
-  ["phone", /\b0\d{1,2}[- ]?\d{3}[- ]?\d{3,4}\b/g],
+  // Digit lookarounds instead of \b, so an ID glued to letters ("ID1234...") is still caught.
+  ["thai_national_id", /(?<!\d)\d[- ]?\d{4}[- ]?\d{5}[- ]?\d{2}[- ]?\d(?!\d)/g],
+  ["phone", /(?<!\d)0\d{1,2}[- ]?\d{3}[- ]?\d{3,4}(?!\d)/g],
   ["email", /[\w.+-]+@[\w-]+\.[\w.]+/g],
 ];
 
@@ -32,10 +33,11 @@ const RULES: [Category, string, RegExp][] = [
 // ("แผนภายใน" contains the name "นภา"). Match a Thai first name only after a
 // boundary or a person marker (คุณ, ของ, น้อง, พี่, กับ).
 const TH_MARKER = "(^|\\s|คุณ|ของ|น้อง|พี่|กับ|ให้)";
-function otherEmployeeMentioned(text: string, selfId: string, managerId: string | null) {
+// The caller's manager is another person too: their results are not the caller's to see.
+function otherEmployeeMentioned(text: string, selfId: string) {
   const t = text.toLowerCase();
   return EMPLOYEES.some((e) => {
-    if (e.id === selfId || e.id === managerId) return false;
+    if (e.id === selfId) return false;
     const [fEn] = e.name.en.toLowerCase().split(" ");
     const [fTh] = e.name.th.split(" ");
     return (
@@ -72,7 +74,7 @@ export const PII_REPLIES: Record<Lang, string> = {
   th: "โค้ชลบเลขบัตรหรือข้อมูลติดต่อส่วนตัวออกจากข้อความของคุณแล้วค่ะ กรุณาอย่าส่งเลขบัตรประชาชน เบอร์โทร หรืออีเมลให้โค้ชนะคะ ลองถามใหม่เกี่ยวกับผลประเมิน แผนการเรียน หรือบทเรียน โดยไม่ใส่ข้อมูลเหล่านั้นค่ะ",
 };
 
-export function precheck(text: string, selfId: string, managerId: string | null): Verdict {
+export function precheck(text: string, selfId: string): Verdict {
   let redacted = text;
   const piiFound: string[] = [];
   for (const [label, re] of PII) {
@@ -86,7 +88,7 @@ export function precheck(text: string, selfId: string, managerId: string | null)
     if (category === "hr_decision" && programmePolicySource(text) && (rule === "promotion_decision" || programmePolicySource(text) === "KB-01")) continue;
     return { category, rule, redacted, piiFound };
   }
-  if (DATA_WORDS.test(text) && otherEmployeeMentioned(text, selfId, managerId))
+  if (DATA_WORDS.test(text) && otherEmployeeMentioned(text, selfId))
     return { category: "other_person_data", rule: "named_colleague", redacted, piiFound };
   return { category: "in_scope", redacted, piiFound };
 }

@@ -47,6 +47,10 @@ function configureDemoAi() {
   }
 }
 
+// Every tenant write bumps one revision, so an unrelated write during a slow AI call
+// conflicts. Only that conflict is retried; precondition and idempotency errors are not.
+const revisionConflict = (e: unknown) => e instanceof HttpError && e.status === 409 && e.message.startsWith("Data changed");
+
 export async function handleSuiteApi(req: Request, path: string): Promise<Response> {
   if (retired.has(path) || (path === "/api/state" && req.method !== "GET")) {
     return json({ error: "Legacy demo authority retired" }, 410);
@@ -112,9 +116,16 @@ export async function handleSuiteApi(req: Request, path: string): Promise<Respon
       }
       await reserveQuota(db, `${p.tenantId}:user:${p.userId}`, 20);
       await reserveQuota(db, `${p.tenantId}:ai`, 100);
-      return json(
-        await commitTenant(db, p, revision, storeGeneratedPlan(state, p, await aiPlan(r.employee, r.overrides)), key, hash, "plan.generate")
-      );
+      const generated = await aiPlan(r.employee, r.overrides);
+      for (let attempt = 0; ; attempt++) {
+        const current = attempt === 0 ? { state, revision } : await loadTenant(db, p.tenantId);
+        const next = storeGeneratedPlan(current.state, p, generated);
+        try {
+          return json(await commitTenant(db, p, current.revision, next, key, hash, "plan.generate"));
+        } catch (err) {
+          if (!revisionConflict(err) || attempt === 4) throw err;
+        }
+      }
     }
 
     if (path === "/api/coach") {
@@ -151,16 +162,25 @@ export async function handleSuiteApi(req: Request, path: string): Promise<Respon
                 answer += text;
                 controller.enqueue(event("text", { text }));
               }
-              const latest = await loadTenant(db, p.tenantId);
-              const record = latest.state.records[p.employeeId];
-              if (!record) throw new HttpError(403, "Employee access was removed");
-              record.chats[key] = [
-                ...(record.chats[key] ?? []).slice(-38),
-                { role: "user", content: parsed.data.message },
-                { role: "assistant", content: answer, meta: prepared.meta as unknown as Record<string, unknown> },
-              ];
               const id = crypto.randomUUID();
-              await commitTenant(db, p, latest.revision, latest.state, id, await fingerprint(id), "coach.message");
+              const fp = await fingerprint(id);
+              for (let attempt = 0; ; attempt++) {
+                const latest = await loadTenant(db, p.tenantId);
+                const record = latest.state.records[p.employeeId];
+                if (!record) throw new HttpError(403, "Employee access was removed");
+                // Persist the redacted message so a pasted ID or phone number never reaches stored state.
+                record.chats[key] = [
+                  ...(record.chats[key] ?? []).slice(-38),
+                  { role: "user", content: prepared.redactedMessage },
+                  { role: "assistant", content: answer, meta: prepared.meta as unknown as Record<string, unknown> },
+                ];
+                try {
+                  await commitTenant(db, p, latest.revision, latest.state, id, fp, "coach.message");
+                  break;
+                } catch (err) {
+                  if (!revisionConflict(err) || attempt === 4) throw err;
+                }
+              }
               controller.enqueue(event("final", { meta: prepared.meta }));
             } catch (error) {
               controller.enqueue(

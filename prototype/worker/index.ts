@@ -18,6 +18,9 @@ function requestKey(req:Request){const key=req.headers.get("idempotency-key");if
 const revisionSchema=z.object({expectedRevision:z.number().int().nonnegative()}).strict();
 const chatSchema=z.object({message:z.string().trim().min(1).max(1000),lessonId:z.string().max(64).optional()}).strict();
 const retired=new Set(["/api/sso/token","/api/sso/session","/api/state/reset","/api/unlock","/api/integrations/hris-sync","/api/integrations/lms-xapi","/api/integrations/lti-launch","/api/integrations/line-push"]);
+// Every tenant write bumps one revision, so an unrelated write during a slow AI call
+// conflicts. Only that conflict is retried; precondition and idempotency errors are not.
+const revisionConflict=(e:unknown)=>e instanceof HttpError&&e.status===409&&e.message.startsWith("Data changed");
 export function createWorker(deps:{authenticate?:typeof authenticate}={}){
  return {async fetch(req:Request,env:Env):Promise<Response>{
   const path=new URL(req.url).pathname;
@@ -46,7 +49,12 @@ export function createWorker(deps:{authenticate?:typeof authenticate}={}){
     if(parsed.data.expectedRevision!==revision)throw new HttpError(409,"Data changed. Refresh before generating a plan.");const r=state.records[p.employeeId];
     if(r.assessment.status!=="approved"||(r.plan&&!["draft","changes_requested"].includes(r.plan.status)))throw new HttpError(409,"An approved assessment and editable plan are required");
     await reserveQuota(db,`${p.tenantId}:user:${p.userId}`,20);await reserveQuota(db,`${p.tenantId}:ai`,100);
-    return json(await commitTenant(db,p,revision,storeGeneratedPlan(state,p,await aiPlan(r.employee,r.overrides)),key,hash,"plan.generate"));
+    const generated=await aiPlan(r.employee,r.overrides);
+    for(let attempt=0;;attempt++){
+     const cur=attempt===0?{state,revision}:await loadTenant(db,p.tenantId);const next=storeGeneratedPlan(cur.state,p,generated);
+     try{return json(await commitTenant(db,p,cur.revision,next,key,hash,"plan.generate"));}
+     catch(err){if(!revisionConflict(err)||attempt===4)throw err;}
+    }
    }
    if(path==="/api/coach"){
     if(p.role==="leader")throw new HttpError(403,"Learning permission required");const parsed=chatSchema.safeParse(await readJson(req));if(!parsed.success)throw new HttpError(422,"A message of 1-1000 characters is required");
@@ -57,9 +65,15 @@ export function createWorker(deps:{authenticate?:typeof authenticate}={}){
     const enc=new TextEncoder();const event=(name:string,data:unknown)=>enc.encode(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`);
     return new Response(new ReadableStream<Uint8Array>({async start(controller){let answer="";
      try{for await(const text of prepared.stream()){answer+=text;controller.enqueue(event("text",{text}));}
-      const latest=await loadTenant(db,p.tenantId);const record=latest.state.records[p.employeeId];if(!record)throw new HttpError(403,"Employee access was removed");
-      record.chats[key]=[...(record.chats[key]??[]).slice(-38),{role:"user",content:parsed.data.message},{role:"assistant",content:answer,meta:prepared.meta as unknown as Record<string,unknown>}];const id=crypto.randomUUID();
-      await commitTenant(db,p,latest.revision,latest.state,id,await fingerprint(id),"coach.message");controller.enqueue(event("final",{meta:prepared.meta}));
+      const id=crypto.randomUUID();const fp=await fingerprint(id);
+      for(let attempt=0;;attempt++){
+       const latest=await loadTenant(db,p.tenantId);const record=latest.state.records[p.employeeId];if(!record)throw new HttpError(403,"Employee access was removed");
+       // Persist the redacted message so a pasted ID or phone number never reaches stored state.
+       record.chats[key]=[...(record.chats[key]??[]).slice(-38),{role:"user",content:prepared.redactedMessage},{role:"assistant",content:answer,meta:prepared.meta as unknown as Record<string,unknown>}];
+       try{await commitTenant(db,p,latest.revision,latest.state,id,fp,"coach.message");break;}
+       catch(err){if(!revisionConflict(err)||attempt===4)throw err;}
+      }
+      controller.enqueue(event("final",{meta:prepared.meta}));
      }catch(error){controller.enqueue(event("error",{error:error instanceof HttpError?error.message:"The response could not be completed or saved. Please refresh."}));}finally{controller.close();}
     }}),{headers:{"content-type":"text/event-stream; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"}});
    }
