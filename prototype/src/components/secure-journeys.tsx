@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { itemById } from "@/data/catalog";
+import { DEFAULT_LEARNING_MINUTES } from "@/data/certificates";
 import { roleById, skillById } from "@/data/taxonomy";
 import type { LearningRecord, SuiteCommand } from "@/lib/suite-contracts";
 import type { Bilingual, Lang, Level, Role } from "@/lib/types";
 import { progressNudge } from "@/lib/coach/nudge";
 import { SecureCoach, type SendCoach } from "./secure-coach";
+import { LearningContextFields, LearningContextSummary } from "./secure-learning-context";
 import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./kit";
 
 type Command = (command: SuiteCommand) => Promise<void>;
@@ -125,6 +127,8 @@ function Assessment({ record, lang, busy, command }: Pick<JourneyProps, "record"
   });
   const [answers, setAnswers] = useState<(number | undefined)[]>([]);
   const [mode, setMode] = useState<"wizard" | "all">("wizard");
+  const [minutes, setMinutes] = useState<number>(record.assessment.minutesPerMonth ?? DEFAULT_LEARNING_MINUTES);
+  const [certificates, setCertificates] = useState<string[]>(record.assessment.certificates ?? []);
   const [stepIndex, setStepIndex] = useState(0);
   const editable = ["not_started", "changes_requested"].includes(record.assessment.status);
   const ready = ids.length > 0 && ids.every(id => self[id]) && QUESTIONS.every((_, i) => Number.isInteger(answers[i]));
@@ -208,8 +212,9 @@ function Assessment({ record, lang, busy, command }: Pick<JourneyProps, "record"
                   </button>
                 ))}</div>
               </div>
+              <LearningContextFields lang={lang} skillIds={ids} minutes={minutes} onMinutes={setMinutes} certificates={certificates} onCertificates={setCertificates} disabled={busy} />
               <div className="flex items-start gap-2.5 rounded-xl bg-surface-2 p-3 text-xs text-ink-2 ring-1 ring-inset ring-line"><Icon name="shield" className="mt-0.5 h-4 w-4 shrink-0 text-brand" /><span>{th ? "ระบบจะรวมคะแนนของคุณกับคำตอบสถานการณ์ แล้วส่งให้หัวหน้าอนุมัติ ผลประเมินใช้เพื่อการพัฒนาเท่านั้น ไม่มีผลต่อเงินเดือนหรือการเลื่อนตำแหน่งค่ะ" : "We combine your ratings with your scenario answers and send the result to your manager. Results are for development only, never pay or promotion."}</span></div>
-              <Button type="button" disabled={busy || !ready} onClick={() => ready && void command({ type: "assessment.submit", self, answers: answers as number[] })} className="w-full">{th ? "ส่งให้หัวหน้า" : "Send to my manager"}</Button>
+              <Button type="button" disabled={busy || !ready} onClick={() => ready && void command({ type: "assessment.submit", self, answers: answers as number[], minutesPerMonth: minutes, certificates })} className="w-full">{th ? "ส่งให้หัวหน้า" : "Send to my manager"}</Button>
             </div>
           )}
           <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3">
@@ -218,13 +223,14 @@ function Assessment({ record, lang, busy, command }: Pick<JourneyProps, "record"
           </div>
         </div>
       ) : (
-        <form className="mt-5" onSubmit={event => { event.preventDefault(); if (ready) void command({ type: "assessment.submit", self, answers: answers as number[] }); }}>
+        <form className="mt-5" onSubmit={event => { event.preventDefault(); if (ready) void command({ type: "assessment.submit", self, answers: answers as number[], minutesPerMonth: minutes, certificates }); }}>
           <div className="space-y-4">{ids.map(id => { const skill = skillById(id); return <fieldset key={id} disabled={busy} className="rounded-xl border border-line p-3"><legend className="px-1 text-sm font-semibold">{skill?.name[lang] ?? id}</legend><div className="grid gap-2 sm:grid-cols-2">{([1, 2, 3, 4] as const).map(level => <label key={level} className={cx("flex cursor-pointer items-start gap-2 rounded-xl border p-3 text-xs leading-relaxed", self[id] === level ? "border-brand bg-brand-soft" : "border-line")}><input type="radio" name={`skill-${id}`} value={level} checked={self[id] === level} onChange={() => setSelf(current => ({ ...current, [id]: level }))} required className="mt-1 accent-brand" /><span><strong>L{level}</strong> · {skill?.levels[level - 1]?.[lang]}</span></label>)}</div></fieldset>; })}</div>
           <div className="mt-5 space-y-4">{QUESTIONS.map((question, index) => <fieldset key={index} disabled={busy} className="rounded-xl border border-line p-3"><legend className="px-1 text-sm font-semibold">{index + 1}. {question.q[lang]}</legend><div className="space-y-2">{question.options.map((option, choice) => <label key={choice} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg bg-surface-2 p-3 text-sm"><input type="radio" name={`question-${index}`} checked={answers[index] === choice} onChange={() => setAnswers(current => { const next = [...current]; next[index] = choice; return next; })} required className="mt-1 accent-brand" /><span>{option[lang]}</span></label>)}</div></fieldset>)}</div>
+          <div className="mt-5"><LearningContextFields lang={lang} skillIds={ids} minutes={minutes} onMinutes={setMinutes} certificates={certificates} onCertificates={setCertificates} disabled={busy} /></div>
           <Button type="submit" disabled={busy || !ready} className="mt-5 w-full">{th ? "ส่งให้หัวหน้า" : "Send to my manager"}</Button>
         </form>
       )
-    ) : <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface"><div className="grid grid-cols-[1fr_64px_64px_76px] items-center border-b border-line bg-surface-2 px-3.5 py-2 text-[11px] font-semibold text-ink-3"><span>{th ? "ทักษะ" : "Skill"}</span><span className="text-center">{th ? "ประเมินตนเอง" : "Self"}</span><span className="text-center">{th ? "สถานการณ์" : "Scenario"}</span><span className="text-right">{th ? "ที่อนุมัติ" : "Approved"}</span></div><div className="divide-y divide-line">{ids.map(id => <div key={id} className="grid grid-cols-[1fr_64px_64px_76px] items-center px-3.5 py-2.5 text-sm"><span className="truncate font-medium">{skillById(id)?.name[lang] ?? id}</span><span className="text-center font-display text-xs tabular-nums text-ink-2">L{record.assessment.self[id] ?? "—"}</span><span className="text-center font-display text-xs tabular-nums text-ink-3">{record.assessment.quiz[id] ? `L${record.assessment.quiz[id]}` : "—"}</span><span className="text-right">{record.assessment.final?.[id] ? <Badge tone="brand">L{record.assessment.final[id]}</Badge> : "—"}</span></div>)}</div></div>}
+    ) : <><div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface"><div className="grid grid-cols-[1fr_64px_64px_76px] items-center border-b border-line bg-surface-2 px-3.5 py-2 text-[11px] font-semibold text-ink-3"><span>{th ? "ทักษะ" : "Skill"}</span><span className="text-center">{th ? "ประเมินตนเอง" : "Self"}</span><span className="text-center">{th ? "สถานการณ์" : "Scenario"}</span><span className="text-right">{th ? "ที่อนุมัติ" : "Approved"}</span></div><div className="divide-y divide-line">{ids.map(id => <div key={id} className="grid grid-cols-[1fr_64px_64px_76px] items-center px-3.5 py-2.5 text-sm"><span className="truncate font-medium">{skillById(id)?.name[lang] ?? id}</span><span className="text-center font-display text-xs tabular-nums text-ink-2">L{record.assessment.self[id] ?? "—"}</span><span className="text-center font-display text-xs tabular-nums text-ink-3">{record.assessment.quiz[id] ? `L${record.assessment.quiz[id]}` : "—"}</span><span className="text-right">{record.assessment.final?.[id] ? <Badge tone="brand">L{record.assessment.final[id]}</Badge> : "—"}</span></div>)}</div></div><LearningContextSummary lang={lang} assessment={record.assessment} /></>}
   </Card>;
 }
 

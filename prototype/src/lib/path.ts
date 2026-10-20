@@ -5,7 +5,8 @@
 import { z } from "zod";
 import { skillById } from "../data/taxonomy";
 import { generateJSON, isLive, models } from "./ai";
-import { MAX_STEPS, PLAN_START, rulesPlan, shortlist } from "./plan-rules";
+import { fitToLearningTime, MAX_STEPS, PLAN_START, rulesPlan, shortlist, type LearningContext } from "./plan-rules";
+import { certificateById } from "../data/certificates";
 import { profileForPrompt } from "./skills";
 import type { Employee, LearningPlan, Level, PlanStep } from "./types";
 
@@ -29,15 +30,19 @@ const PATH_SYSTEM = `You design a 12-week personal learning path for one employe
 Rules:
 - Use only items from the shortlist, by exact itemId. Do not invent items.
 - At most ${MAX_STEPS} steps. Cover every critical gap. Prefer learn (video) before practise (workshop) before apply (project) for the same skill.
-- Paid learning time is 2 hours per month for videos and workshops; projects happen on the job. Spread the load across the 12 weeks.
+- Fit videos into the employee's monthly learning time (in <employee>). Workshops are scheduled with the manager and projects happen on the job. Spread the load across the 12 weeks.
 - Workshops must be scheduled in the week of one of their listed sessions (week 1 starts ${PLAN_START}).
 - Write each rationale in one sentence that a frontline employee understands: what gap it closes and why this item, in both English and natural Thai (polite, simple).
 - The summary is two sentences in each language.`;
 
-export async function aiPlan(emp: Employee, overrides?: Record<string, Level>): Promise<LearningPlan> {
-  const base = rulesPlan(emp, overrides);
+const contextForPrompt = (context: LearningContext) =>
+  (context.minutesPerMonth ? `\nMonthly learning time for videos: ${context.minutesPerMonth} minutes` : "") +
+  (context.certificates?.length ? `\nCertificates held: ${context.certificates.map((id) => certificateById(id)?.name.en ?? id).join(", ")}` : "");
+
+export async function aiPlan(emp: Employee, overrides?: Record<string, Level>, context: LearningContext = {}): Promise<LearningPlan> {
+  const base = rulesPlan(emp, overrides, context);
   if (!isLive()) return base;
-  const list = shortlist(emp, overrides);
+  const list = shortlist(emp, overrides, context);
   const allowed = new Map(list.flatMap(({ gap, items }) => items.map((i) => [i.id, { item: i, gap }] as const)));
   const shortlistText = list
     .map(({ gap, items }) =>
@@ -51,14 +56,14 @@ export async function aiPlan(emp: Employee, overrides?: Record<string, Level>): 
       maxTokens: 16000,
       effort: "medium",
       system: PATH_SYSTEM,
-      messages: [{ role: "user", content: `<employee>\n${profileForPrompt(emp, overrides)}\n</employee>\n\n<shortlist>\n${shortlistText}\n</shortlist>` }],
+      messages: [{ role: "user", content: `<employee>\n${profileForPrompt(emp, overrides)}${contextForPrompt(context)}\n</employee>\n\n<shortlist>\n${shortlistText}\n</shortlist>` }],
       schema: PlanSchema,
       shape: '{"summary_en": string, "summary_th": string, "steps": [{"itemId": string, "skillId": string, "week": number, "rationale_en": string, "rationale_th": string}]}',
     });
     if (!out) return base;
     const seen = new Set<string>();
-    const steps: PlanStep[] = out.steps
-      .filter((s) => allowed.has(s.itemId) && !seen.has(s.itemId) && seen.add(s.itemId))
+    const unique = out.steps.filter((s) => allowed.has(s.itemId) && !seen.has(s.itemId) && seen.add(s.itemId));
+    const steps: PlanStep[] = fitToLearningTime(unique, context.minutesPerMonth)
       .slice(0, MAX_STEPS)
       .map((s, i) => ({
         itemId: s.itemId,

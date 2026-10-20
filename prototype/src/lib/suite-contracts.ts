@@ -5,7 +5,7 @@ export interface Principal { userId: string; tenantId: string; employeeId: strin
 export interface ConversationMessage { role: "user" | "assistant"; content: string; meta?: Record<string, unknown> }
 export interface LearningRecord {
   employee: Employee;
-  assessment: { status: "not_started" | "submitted" | "approved" | "changes_requested"; self: Record<string, Level>; quiz: Record<string, Level>; final?: Record<string, Level>; managerNote?: string };
+  assessment: { status: "not_started" | "submitted" | "approved" | "changes_requested"; self: Record<string, Level>; quiz: Record<string, Level>; final?: Record<string, Level>; managerNote?: string; minutesPerMonth?: number; certificates?: string[] };
   overrides: Record<string, Level>;
   plan?: LearningPlan;
   evidence: Record<string, string>;
@@ -15,7 +15,7 @@ export interface IntegrationStatus { id: string; label: string; status: "unconfi
 export interface OrgMetrics { employees: number; assessed: number; approved: number; plansActive: number; completedSteps: number; pendingApprovals: number; groups: { bu: string; count: number; readiness: number }[]; suppressedGroups: number }
 export interface SuiteView { principal: Principal; revision: number; self?: LearningRecord; team?: LearningRecord[]; approvals: Approval[]; metrics?: OrgMetrics; integrations: IntegrationStatus[] }
 export type SuiteCommand =
-  | { type: "assessment.submit"; self: Record<string, Level>; answers: number[] }
+  | { type: "assessment.submit"; self: Record<string, Level>; answers: number[]; minutesPerMonth?: number; certificates?: string[] }
   | { type: "plan.submit" }
   | { type: "learning.start"; itemId: string }
   | { type: "project.submit"; itemId: string; evidence: string }
