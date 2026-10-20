@@ -55,13 +55,12 @@ function SessionGate() {
             <Badge tone="brand" className="mx-auto w-fit">IRIS · Learning Suite</Badge>
             <CardTitle className="font-display text-3xl font-bold">Learn. Practise. Grow.</CardTitle>
             <CardDescription className="text-balance">
-              Sign in with <strong className="font-semibold text-ink">Google</strong> or{" "}
-              <strong className="font-semibold text-ink">LINE</strong> (Clerk social SSO), or your assigned case-study
-              email. Access still comes from the administrator membership map — not from the identity provider.
+              Sign in with <strong className="font-semibold text-ink">Google</strong> (Clerk social SSO) or your
+              assigned case-study email. Access still comes from the administrator membership map — not from the
+              identity provider.
             </CardDescription>
             <p className="text-sm text-muted-foreground" lang="th">
-              เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> หรือ{" "}
-              <strong className="font-semibold text-ink">LINE</strong> (SSO ผ่าน Clerk) หรืออีเมลกรณีศึกษา
+              เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> (SSO ผ่าน Clerk) หรืออีเมลกรณีศึกษา
             </p>
           </CardHeader>
           <Separator />
@@ -71,12 +70,15 @@ function SessionGate() {
               appearance={{
                 elements: {
                   socialButtonsBlockButton: "border border-line bg-paper hover:bg-brand-soft",
+                  // LINE Login stays enabled in Clerk but is hidden for the case submission.
+                  socialButtonsBlockButton__line: { display: "none" },
+                  socialButtonsIconButton__line: { display: "none" },
                   formButtonPrimary: "bg-brand hover:bg-brand/90",
                 },
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Development SSO uses Clerk-shared Google/LINE credentials. Production needs your own OAuth clients.
+              Development SSO uses Clerk-shared Google credentials. Production needs your own OAuth clients.
               <br />
               Synthetic learning data · ข้อมูลการเรียนสมมติ
             </p>
