@@ -167,6 +167,11 @@ export async function handleSuiteApi(req: Request, path: string): Promise<Respon
         plan: r.plan,
         overrides: r.overrides,
         lessonId: parsed.data.lessonId,
+        journey: {
+          assessment: r.assessment.status,
+          minutesPerMonth: r.assessment.minutesPerMonth,
+          certificates: r.assessment.certificates,
+        },
       });
       const enc = new TextEncoder();
       const event = (name: string, data: unknown) => enc.encode(`event: ${name}\ndata: ${JSON.stringify(data)}\n\n`);

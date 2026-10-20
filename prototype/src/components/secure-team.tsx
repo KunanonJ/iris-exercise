@@ -4,7 +4,7 @@ import { useState } from "react";
 import { itemById } from "@/data/catalog";
 import metricsData from "@/data/generated/metrics.json";
 import { BUSINESS_UNITS, roleById, skillById } from "@/data/taxonomy";
-import type { IntegrationStatus, LearningRecord, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
+import type { IntegrationStatus, LearningRecord, OrgMetrics, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
 import type { Approval, Bilingual, Lang, Level, Role } from "@/lib/types";
 import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./kit";
 import { LearningContextSummary } from "./secure-learning-context";
@@ -639,6 +639,39 @@ function Wave1SimulationPreview({ lang }: { lang: Lang }) {
   );
 }
 
+// Totals only: helpfulness ratings and "no approved source" answers, never chat text.
+function CoachQualityCard({ stats, lang }: { stats: NonNullable<OrgMetrics["coach"]>; lang: Lang }) {
+  const th = lang === "th";
+  const pct = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : "–");
+  const items = [
+    { label: th ? "ได้รับคะแนนว่ามีประโยชน์" : "Rated helpful", value: pct(stats.helpful, stats.rated), sub: th ? `จาก ${stats.rated} คำตอบที่มีคนให้คะแนน` : `of ${stats.rated} rated answers` },
+    { label: th ? "ส่งตรวจทานรายสัปดาห์" : "Flagged for weekly review", value: String(stats.rated - stats.helpful), sub: th ? "คำตอบที่ถูกกดว่าไม่มีประโยชน์" : "answers marked not helpful" },
+    { label: th ? "ไม่พบแหล่งข้อมูลที่อนุมัติ" : "No approved source", value: pct(stats.noSource, stats.answers), sub: th ? `จาก ${stats.answers} คำตอบทั้งหมด` : `of ${stats.answers} answers` },
+  ];
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-semibold text-ink">{th ? "คุณภาพโค้ช AI" : "AI coach quality"}</h3>
+        <Badge tone="neutral">{th ? "ตัวเลขรวม ไม่มีข้อความแชต" : "Totals only, no chat text"}</Badge>
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        {items.map((item) => (
+          <div key={item.label} className="rounded-xl border border-line bg-surface-2 p-3">
+            <p className="text-xs text-ink-3">{item.label}</p>
+            <p className="font-display mt-1 text-2xl font-bold tabular-nums text-ink">{item.value}</p>
+            <p className="mt-0.5 text-xs text-ink-3">{item.sub}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-ink-3">
+        {th
+          ? "ผู้เชี่ยวชาญตรวจคำตอบที่ถูกแจ้งทุกสัปดาห์ และสัดส่วน \"ไม่พบแหล่งข้อมูล\" ที่สูงบอกว่าเนื้อหาส่วนไหนยังขาดอยู่"
+          : "Subject experts review flagged answers every week, and a high \"no approved source\" rate shows where content is missing."}
+      </p>
+    </Card>
+  );
+}
+
 export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
   const th = lang === "th";
   const [showSim, setShowSim] = useState(false);
@@ -781,6 +814,8 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
       </Card>
 
       {showSim && <Wave1SimulationPreview lang={lang} />}
+
+      {metrics.coach && <CoachQualityCard stats={metrics.coach} lang={lang} />}
 
       <Card>
         <Badge tone="neutral">
