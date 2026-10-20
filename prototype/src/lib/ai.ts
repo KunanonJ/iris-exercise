@@ -53,7 +53,7 @@ export const isLive = () => provider() !== null;
 // the free-allowance models we tried; Qwen3 judges, so the coach is not grading itself.
 const SEA_LION = "@cf/aisingapore/gemma-sea-lion-v4-27b-it";
 const DEFAULTS: Record<Provider, { strong: string; classifier: string; judge: string }> = {
-  anthropic: { strong: "claude-opus-5-5", classifier: "claude-haiku-5-5", judge: "claude-sonnet-5-5" },
+  anthropic: { strong: "claude-sonnet-5-5", classifier: "claude-haiku-5-5", judge: "claude-sonnet-5-5" },
   opencode: { strong: "claude-sonnet-5-5", classifier: "claude-haiku-5-5", judge: "claude-sonnet-5-5" },
   "workers-ai": { strong: SEA_LION, classifier: SEA_LION, judge: "@cf/qwen/qwen3-30b-a3b-fp8" },
 };

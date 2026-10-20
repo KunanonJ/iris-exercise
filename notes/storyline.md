@@ -2,15 +2,18 @@
 
 Each slide title states the slide's conclusion. Every number traces to `model/cost-model.xlsx` or `notes/research.md`.
 
+Format (consulting style): a section tracker on every slide (Summary · Client · Product · AI · Technology · Delivery · Commercials · Next steps), an action title of at most two lines, at most three content blocks, one "So what" takeaway bar and one source line. Technical choices stay visible in plain words with the term in brackets; implementation specifics live in the speaker notes.
+
 1. **Exec summary.** Launch a thin, integrated skills-and-coach layer for 12,000 frontline staff in 12 weeks, then scale to 45,000 within a year.
    - The date is fixed, so scope and cohort are the variables.
    - Nothing is replaced: the HR system and both LMSs stay.
    - The AI chooses from approved content and never invents it.
    - Security and PDPA are the critical path, so they start in week 1.
    - Price: THB 15.5M fixed + THB 39 per employee per month. Client spend over 3 years: THB 80M. IRIS gross margin: 38%. Value: about THB 53M a year at scale.
-2. **Assumptions and cohort.** Wave 1 is chosen for headcount per framework, frontline proof and measurable KPIs.
+2. **Client and wave 1.** Start where 18 role frameworks cover 12,000 people and results show within quarters.
    - RD Thailand 8,500 + PK Thailand 3,500, 18 roles, about 85% frontline.
-   - Success criteria are set for the leadership forum.
+   - Week-12 success criteria for the leadership forum.
+   - All assumptions to confirm in week 1 in one box.
 3. **Scope.** Ship all five parts thin rather than three parts deep. Now / Next / Later, plus what we leave out and why.
 4. **Journeys.** Frontline staff get in from LINE in one tap; managers approve three things, in batches. Uses prototype screenshots.
 5. **AI design I.** The AI picks from approved content and the employee's own record. It never invents courses, rules or scores. Covers the path engine, the coach, Thai handling and the two-layer guardrails.
@@ -20,7 +23,7 @@ Each slide title states the slide's conclusion. Every number traces to `model/co
 9. **Plan.** 12 weeks with a staged go-live from week 10. The critical path runs through security, data and frameworks. Includes the team.
 10. **Risks and scale.** The top risks to the date have weekly owners. Scaling to 45,000 means producing more frameworks, not rebuilding the platform.
 11. **Business.** THB 15.5M to build and about THB 25 per employee per month to run, priced at THB 39 with AI included. Value is 2.5x the subscription.
-12. **Prototype, tools and next steps.**
+12. **Next steps.** Four decisions this week keep the forum date safe; a compact panel of what the prototype proves today (live link, offline 55/55, live gate not yet passed); the AI tools disclosure.
 
 Key numbers (from the model, verified with zero formula errors):
 
