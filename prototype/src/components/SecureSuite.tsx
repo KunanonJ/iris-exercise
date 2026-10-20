@@ -72,6 +72,8 @@ function SessionGate() {
           <CardContent className="flex flex-col items-center gap-4 py-6">
             <SignIn
               routing="hash"
+              // New reviewers sign up inside this card, so the hosted sign-up page (and its LINE button) never shows.
+              withSignUp
               appearance={{
                 elements: {
                   socialButtonsBlockButton: "border border-line bg-paper hover:bg-brand-soft",
