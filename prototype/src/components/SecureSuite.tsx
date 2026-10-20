@@ -55,12 +55,16 @@ function SessionGate() {
             <Badge tone="brand" className="mx-auto w-fit">IRIS · Learning Suite</Badge>
             <CardTitle className="font-display text-3xl font-bold">Learn. Practise. Grow.</CardTitle>
             <CardDescription className="text-balance">
-              Sign in with <strong className="font-semibold text-ink">Google</strong> (Clerk social SSO) or your
-              assigned case-study email. Access still comes from the administrator membership map — not from the
-              identity provider.
+              Sign in with <strong className="font-semibold text-ink">Google</strong> or your case-study email. What
+              you see depends on the role given to your account.
             </CardDescription>
             <p className="text-sm text-muted-foreground" lang="th">
-              เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> (SSO ผ่าน Clerk) หรืออีเมลกรณีศึกษา
+              เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> หรืออีเมลกรณีศึกษา
+              สิ่งที่คุณเห็นขึ้นอยู่กับบทบาทของบัญชีค่ะ
+            </p>
+            <p className="rounded-xl bg-brand-soft px-3 py-2 text-xs text-ink-2">
+              Reviewing the case? Use a test account from the cover email: choose “Use another method”, then
+              “Email code”, and enter 424242.
             </p>
           </CardHeader>
           <Separator />
@@ -78,9 +82,9 @@ function SessionGate() {
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Development SSO uses Clerk-shared Google credentials. Production needs your own OAuth clients.
+              Demo sign-in (Clerk development mode) · synthetic data only
               <br />
-              Synthetic learning data · ข้อมูลการเรียนสมมติ
+              ระบบเดโม · ใช้ข้อมูลสมมติเท่านั้น
             </p>
           </CardContent>
         </Card>
@@ -187,27 +191,27 @@ function SessionSuite({ userId, getToken }: { userId: string; getToken: () => Pr
   const tabs: [Tab, string, "home" | "team" | "skills" | "shield"][] = [
     ...(role === "leader" ? [["dashboard", th ? "ภาพรวมองค์กร" : "Organisation", "skills"] as [Tab, string, "skills"]] : [["learning", th ? "การเรียนของฉัน" : "My learning", "home"] as [Tab, string, "home"]]),
     ...(role === "manager" ? [["team", th ? "ทีมและการอนุมัติ" : "Team & approvals", "team"] as [Tab, string, "team"]] : []),
-    ["integrations", th ? "สถานะการเชื่อมต่อ" : "Connections", "shield"],
+    ["integrations", th ? "การเชื่อมต่อ" : "Connections", "shield"],
   ];
   const canRetry = pending && (!error || !(error instanceof SuiteApiError) || [0, 429, 500, 502, 503, 504].includes(error.status));
 
   return <div className="min-h-dvh pb-12">
     <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur-xs"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
       <div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-sm font-bold text-white shadow-xs">IR</span><div><p className="font-display text-lg font-bold leading-tight text-brand">IRIS <span className="font-normal text-ink">Learning Suite</span></p><p className="text-xs text-ink-3">{th ? "เรียนรู้ ฝึกฝน และเติบโต" : "Learn, practise and grow"}</p></div></div>
-      <div className="flex items-center gap-2.5"><Badge tone="neutral">{th ? "ข้อมูลสมมติ · Sandbox" : "Synthetic data · Sandbox"}</Badge><button type="button" onClick={() => changeLanguage(th ? "en" : "th")} className="min-h-10 rounded-xl border border-line bg-surface-2 px-3 text-xs font-semibold transition hover:border-brand/40 cursor-pointer" aria-label={th ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}>{th ? "EN" : "ไทย"}</button><UserButton /></div>
+      <div className="flex items-center gap-2.5"><Badge tone="neutral">{th ? "เดโม · ข้อมูลสมมติ" : "Demo · synthetic data"}</Badge><button type="button" onClick={() => changeLanguage(th ? "en" : "th")} className="min-h-10 rounded-xl border border-line bg-surface-2 px-3 text-xs font-semibold transition hover:border-brand/40 cursor-pointer" aria-label={th ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}>{th ? "EN" : "ไทย"}</button><UserButton /></div>
     </div></header>
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
-      {view && <><div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-2xs"><div className="flex items-center gap-3.5"><Avatar name={view.self?.employee.name[lang] ?? "IRIS"} size="lg" /><div><h1 className="text-xl font-bold">{view.self?.employee.name[lang] ?? (th ? "ภาพรวมการเรียนรู้" : "Learning overview")}</h1><p className="mt-0.5 text-xs text-ink-3">{role === "manager" ? (th ? "หัวหน้างาน · เข้าถึงเฉพาะทีมที่รับผิดชอบ" : "Manager · current direct reports only") : role === "leader" ? (th ? "HR / ผู้บริหาร · ข้อมูลสรุปที่ปกป้องความเป็นส่วนตัว" : "HR / leadership · privacy-protected aggregates") : (th ? "พนักงาน · ข้อมูลการเรียนของคุณเท่านั้น" : "Employee · your learning record only")}</p></div></div><Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "โหลดข้อมูลล่าสุด" : "Refresh latest"}</Button></div><nav aria-label={th ? "เมนูหลัก" : "Main navigation"} className="mb-5 flex gap-2 overflow-x-auto pb-1">{tabs.map(([id, label, icon]) => <button key={id} type="button" onClick={() => setTab(id)} aria-current={actualTab === id ? "page" : undefined} className={cx("inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-medium transition cursor-pointer", actualTab === id ? "bg-brand text-white shadow-xs" : "border border-line bg-surface text-ink-2 hover:bg-surface-2")}><Icon name={icon} className="h-4 w-4 shrink-0" /><span>{label}{id === "team" && view.approvals.some(a => a.status === "pending") ? ` (${view.approvals.filter(a => a.status === "pending").length})` : ""}</span></button>)}</nav></>}
-      {error != null && <div role="alert" className="mb-5 rounded-2xl border border-danger/25 bg-danger-soft p-4"><p className="text-sm text-danger">{apiErrorMessage(error, th)}</p><div className="mt-3 flex flex-wrap gap-2">{canRetry && <Button variant="outline" disabled={busy || loading} onClick={() => pending && void perform(pending)}>{th ? "ลองคำสั่งเดิมอีกครั้ง" : "Retry same request"}</Button>}<Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "โหลดข้อมูลล่าสุด" : "Refresh latest"}</Button></div></div>}
-      {loading && <p role="status" className="py-10 text-center text-sm text-ink-2">{th ? "กำลังโหลดข้อมูลที่คุณมีสิทธิ์เข้าถึง…" : "Loading your permitted learning records…"}</p>}
+      {view && <><div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-2xs"><div className="flex items-center gap-3.5"><Avatar name={view.self?.employee.name[lang] ?? "IRIS"} size="lg" /><div><h1 className="text-xl font-bold">{view.self?.employee.name[lang] ?? (th ? "ภาพรวมการเรียนรู้" : "Learning overview")}</h1><p className="mt-0.5 text-xs text-ink-3">{role === "manager" ? (th ? "หัวหน้า · เห็นเฉพาะลูกทีมของคุณ" : "Manager · your direct reports only") : role === "leader" ? (th ? "HR และผู้บริหาร · ภาพรวมกลุ่มเท่านั้น ไม่มีข้อมูลรายบุคคล" : "HR and leaders · group totals only, no individual records") : (th ? "พนักงาน · ข้อมูลการเรียนของคุณเอง" : "Employee · your own learning record")}</p></div></div><Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "อัปเดตข้อมูล" : "Refresh"}</Button></div><nav aria-label={th ? "เมนูหลัก" : "Main navigation"} className="mb-5 flex gap-2 overflow-x-auto pb-1">{tabs.map(([id, label, icon]) => <button key={id} type="button" onClick={() => setTab(id)} aria-current={actualTab === id ? "page" : undefined} className={cx("inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-medium transition cursor-pointer", actualTab === id ? "bg-brand text-white shadow-xs" : "border border-line bg-surface text-ink-2 hover:bg-surface-2")}><Icon name={icon} className="h-4 w-4 shrink-0" /><span>{label}{id === "team" && view.approvals.some(a => a.status === "pending") ? ` (${view.approvals.filter(a => a.status === "pending").length})` : ""}</span></button>)}</nav></>}
+      {error != null && <div role="alert" className="mb-5 rounded-2xl border border-danger/25 bg-danger-soft p-4"><p className="text-sm text-danger">{apiErrorMessage(error, th)}</p><div className="mt-3 flex flex-wrap gap-2">{canRetry && <Button variant="outline" disabled={busy || loading} onClick={() => pending && void perform(pending)}>{th ? "ลองอีกครั้ง" : "Try again"}</Button>}<Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "อัปเดตข้อมูล" : "Refresh"}</Button></div></div>}
+      {loading && <p role="status" className="py-10 text-center text-sm text-ink-2">{th ? "กำลังโหลดข้อมูลการเรียนของคุณ…" : "Loading your learning…"}</p>}
       {!loading && view && <>
         {actualTab === "learning" && view.self && <EmployeeJourney key={view.self.employee.id} record={view.self} lang={lang} busy={busy} command={command} generate={generate} coach={coach} />}
         {actualTab === "team" && role === "manager" && <ManagerJourney view={view} lang={lang} busy={busy} command={command} />}
         {actualTab === "dashboard" && role === "leader" && <LeaderJourney view={view} lang={lang} />}
         {actualTab === "integrations" && <IntegrationsPanel integrations={view.integrations} lang={lang} />}
       </>}
-      {!loading && !view && !error && <p role="status">{th ? "ไม่พบข้อมูลการเรียนสำหรับบัญชีนี้" : "No learning record is available for this account."}</p>}
-      <footer className="mt-10 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">{th ? "ต้นแบบสำหรับกรณีศึกษา ใช้ข้อมูลสมมติทั้งหมด ความคืบหน้าทักษะเป็นข้อมูลการพัฒนา ไม่ใช่การตัดสินใจเรื่องเงินเดือนหรือเลื่อนตำแหน่ง การเชื่อมต่อ Sandbox ไม่ได้ยืนยันการเชื่อมต่อระบบของลูกค้าจริง" : "Case-study prototype using synthetic data. Skill progress supports development; it does not determine pay or promotion. Sandbox connection proof does not establish connectivity to client production systems."}</footer>
+      {!loading && !view && !error && <p role="status">{th ? "ไม่พบข้อมูลการเรียนของบัญชีนี้ โปรดติดต่อผู้ดูแลโปรแกรมเพื่อตรวจสอบสิทธิ์ค่ะ" : "We couldn't find a learning record for this account. Ask your programme admin to check your access."}</p>}
+      <footer className="mt-10 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">{th ? "ต้นแบบสำหรับกรณีศึกษา ใช้ข้อมูลสมมติทั้งหมด ผลประเมินทักษะใช้เพื่อการพัฒนาเท่านั้น ไม่มีผลต่อเงินเดือนหรือการเลื่อนตำแหน่ง การเชื่อมต่อ HR และ LMS เป็นระบบทดสอบ ไม่ใช่ระบบจริงของลูกค้า" : "Case-study prototype with synthetic data. Skill results are for development only and never affect pay or promotion. The HR and LMS connections are test systems, not the client's live systems."}</footer>
     </main>
   </div>;
 }
