@@ -9,7 +9,7 @@ const ROLE_OPTIONS: { role: Role; icon: "home" | "team" | "skills"; title: Bilin
     role: "employee",
     icon: "home",
     title: { en: "Employee", th: "พนักงาน" },
-    persona: { en: "Somchai Jaidee · Senior Store Associate", th: "สมชาย ใจดี · พนักงานขายอาวุโส" },
+    persona: { en: "As a Senior Store Associate", th: "ในบทบาทพนักงานขายอาวุโส" },
     detail: {
       en: "Take the skill check, build a learning plan and practise with the AI coach.",
       th: "ทำแบบประเมินทักษะ สร้างแผนการเรียน และฝึกกับโค้ช AI",
@@ -19,7 +19,7 @@ const ROLE_OPTIONS: { role: Role; icon: "home" | "team" | "skills"; title: Bilin
     role: "manager",
     icon: "team",
     title: { en: "Employee + team lead", th: "พนักงาน + หัวหน้าทีม" },
-    persona: { en: "Malee Suksan · Store Manager", th: "มาลี สุขสันต์ · ผู้จัดการสาขา" },
+    persona: { en: "As a Store Manager", th: "ในบทบาทผู้จัดการสาขา" },
     detail: {
       en: "Your own learning, plus reviewing and approving your team's skill checks, plans and projects.",
       th: "การเรียนของคุณเอง พร้อมตรวจและอนุมัติผลประเมิน แผนการเรียน และโปรเจกต์ของลูกทีม",
@@ -29,7 +29,7 @@ const ROLE_OPTIONS: { role: Role; icon: "home" | "team" | "skills"; title: Bilin
     role: "leader",
     icon: "skills",
     title: { en: "HR / Executive", th: "HR / ผู้บริหาร" },
-    persona: { en: "Arunee Srisuk · HR Business Partner", th: "อรุณี ศรีสุข · HR Business Partner" },
+    persona: { en: "As an HR Business Partner", th: "ในบทบาท HR Business Partner" },
     detail: {
       en: "The organisation overview: adoption, skill readiness and impact, with group totals only.",
       th: "ภาพรวมองค์กร: การใช้งาน ความพร้อมด้านทักษะ และผลลัพธ์ เห็นเฉพาะตัวเลขรวมของกลุ่ม",
