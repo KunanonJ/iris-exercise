@@ -1,6 +1,6 @@
 # IRIS case submission — draft and final checks
 
-**Status: DRAFT — READY TO SEND after you confirm recipient/deadline and authorise sending.** Do not reuse PIN login instructions. Hosted prototype is live.
+**Status: DRAFT. Do not send until the hosted login works** (20 Oct: Clerk accepts the test accounts, but `/api/session` returns 401 because the Vercel Clerk issuer/JWT key still point to the old Clerk app). Then confirm recipient/deadline and send it yourself.
 
 **Candidate:** Kunanon Jarat  
 **Role:** Digital & AI Solution Product Manager  
@@ -10,25 +10,26 @@
 ## Email draft
 
 **To:** reply to the verified original recruitment email  
-**Subject:** Case Assessment Submission — Digital & AI Solution Product Manager — Kunanon Jarat  
-**Attachments:** `IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf` (12 slides) and `model/cost-model.xlsx`  
-**Optional prototype:** https://iris-learning-suite.vercel.app — Clerk development SignIn with Google / LINE / case-study email. Access still requires mapped `suite_v2_memberships` (not IdP alone).
+**Subject:** Case Assessment Submission: Digital & AI Solution Product Manager, Kunanon Jarat  
+**Attachments:** `IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf` (12 slides) and `model/cost-model.xlsx`
 
 > Hi Barge,
 >
-> Please find attached my Learning Suite case response: a 12-slide PDF covering the launch recommendation, five product capabilities, AI and integration design, delivery, privacy controls and commercial model. The accompanying seven-sheet workbook supports the build, run and pricing assumptions.
+> Please find attached my response to the Learning Suite case: a 12-slide PDF, plus the cost model (Excel) behind the build, run and pricing numbers.
 >
-> I propose a staged launch for 12,000 employees across 18 roles in Retail & Distribution and Packaging within 12 weeks, followed by expansion to approximately 45,000 over the next year. The forum target distinguishes enabled access from measured assessment coverage.
+> In short: the date is fixed, so scope and cohort are the variables. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI only selects from approved content, and security and PDPA approval start in week 1 because they are the real critical path. I propose a THB 15.5M fixed build fee plus THB 39 per employee per month, which is THB 80M of client spend over three years at a 38.5% gross margin for IRIS.
 >
-> Optional working prototype (sandbox): https://iris-learning-suite.vercel.app — Next.js on Vercel with Clerk authentication and Prisma/Supabase for suite state. Google and LINE Login are enabled on the Clerk development instance; hosted SignIn shows both buttons and Google OAuth starts from that page. Completing Google/LINE into a mapped membership still needs an operator-owned account before claiming full federation. Email-code Clerk journeys and cross-role API/browser proofs were verified earlier against the development instance. Local Moodle×2 + synthetic HR proofs remain sandbox-only (not hosted client connectors).
+> There is also an optional working prototype with synthetic data: https://iris-learning-suite.vercel.app
 >
-> Offline AI regression passed 55/55. The last complete 55-case live Workers AI evaluation (`2026-10-15T14-18-58-089Z-f48e1caf`) achieved 93.1% groundedness (27/29) and remains **below the 95% release gate** (FAIL). A 17 Oct re-run was blocked here (no Workers AI credentials in the local free-tier path). Demo mode cannot certify a live model.
+> - Employee: iris.e0001+clerk_test@example.com
+> - Manager: iris.e0002+clerk_test@example.com
+> - Leader: iris.e9001+clerk_test@example.com
 >
-> Wave-1 deliberately leaves LINE Official Account push, workshop seat inventory, batch approval/SLA bots, and client production HRIS/LMS hosting as Phase-2 / configure items — Login SSO is not Messaging.
+> Enter one of these emails, choose "Use another method", then "Email code", and enter 424242 (a test code, so no inbox is needed). The accounts are shared, so you may see changes made by other reviewers.
 >
-> The financial model has recalculated formula caches and independent checks. Its THB 80.342M three-year spend and 38.5389% IRIS gross margin are planning outputs, subject to validation of the underlying commercial assumptions.
+> On AI quality: the offline test set passes 55/55, but a live run on a free stand-in model failed 4 of 7 release checks, so the release gate is not passed yet. Slide 6 shows the detail and the next step.
 >
-> All business and employee data are synthetic. Tools: Claude Code/Cursor (original draft); Cursor for auth, Vercel/Prisma hosting, security, evals, integrations, model checks and docs. Live AI benchmarking used Cloudflare Workers AI (SEA-LION v4) and a Qwen3 judge. The deck distinguishes proposed production capabilities from demonstrated sandbox behaviour.
+> AI tools used: Claude Code and Cursor for the original draft; Codex and Cursor for sign-in, security, evaluations, integrations and docs; Claude Code for coach updates, security fixes and the deck. The live evaluation used SEA-LION v4 as the coach with a Qwen3 judge.
 >
 > Best regards,  
 > Kunanon Jarat
@@ -45,7 +46,7 @@ Sending remains a separate authorised action.
 | What can each role see? | Employees and managers learn on their own records. Managers review current direct reports without private coach chats; no self-approval. Leaders get aggregates with groups below 10 suppressed. |
 | What integration proof exists? | Two local Moodle 4.5.15 instances: catalogue, enrol, completion, replay, partial outage. Synthetic HR: joiner, manager transfer, leaver. Suite/Moodle logins remain separate; hosted LMS/HRIS connectors unconfigured. |
 | What prevents invented courses? | Path generator uses approved shortlist + ID validation. Live grounding still empirical; no prompt guarantees the model never hallucinates. |
-| Has the AI passed? | Offline 55/55. Live Workers AI 93.1% groundedness → **FAIL**. 17 Oct re-run blocked (missing Workers AI credentials). Keep FAIL explicit until a new complete live pass. |
+| Has the AI passed? | Offline 55/55. Live run (SEA-LION v4 on Workers AI, 15 Oct) **failed 4 of 7 checks**: red team 18/19 (R12: ID masked, answer ungrounded), golden 31/36, language 50/55, grounded 27/29 (93.1%); citations 27/27 and Thai 4.94/5 passed. The run predates PRs #5/#6. Next run: Claude Sonnet 5.5 (the costed model, now the Anthropic default), which needs an Anthropic API key. Keep FAIL explicit until a complete live pass. |
 | What happens when AI fails? | Provenance distinguishes model, safety template, no-source, demo and provider fallback. Demo/fallback cannot certify live success. |
 | Is PDPA approval complete? | No. Deck proposes controls for client/DPO validation. Not permission to launch while approval is late. |
 | How much staffing? | Model assumes ~14.2 average FTE across ~17 individuals over delivery. |
@@ -70,6 +71,10 @@ Sending remains a separate authorised action.
 ## Before submission
 
 - [ ] Confirm recipient, deadline and attachment rules from the original email.
+- [ ] Hosted login works end to end with the three `+clerk_test` accounts (code 424242). On 20 Oct Clerk sign-in succeeded but `/api/session` returned 401: set Vercel `CLERK_ISSUER_URL` and `CLERK_JWT_KEY` to the current Clerk app (`literate-magpie-5641`), confirm `APP_ORIGINS` includes the Vercel URL, then redeploy.
+- [ ] Production branch promoted to `main` (PR #6 security fixes live).
+- [x] Slide 6 states the full live-run result (4 of 7 checks failed), not only groundedness.
+- [x] Tools disclosure matches between deck slide 12 and the email.
 - [x] Export the updated deck and verify **12 pages** at 1920×1080.
 - [x] Preserve labels identifying prior screenshots and production proposals.
 - [x] Workbook verification evidence remains under `model/verification/`.

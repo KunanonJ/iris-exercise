@@ -57,8 +57,8 @@ The AI planning quote uses **2,800 uncached input + 1,200 cached input + 450 out
 
 ## Review the package
 
-- [`deck/`](deck/) — 12 slide sources in their existing order. Slides 1–11 describe the proposed rollout; slide 12 distinguishes implementation from evidence.
-- [`IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf`](IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf) — regenerate and inspect after integrating the updated sources; the existing PDF may predate this continuation.
+- [`deck/`](deck/) — 12 slide sources in a consulting format: section tracker, action titles, a "So what" bar and a source line on every slide. Slides 1–11 describe the proposed rollout; slide 12 covers next steps, prototype proof and the tools used.
+- [`IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf`](IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf) — the 12-slide PDF, generated from `deck/` with `python3 deck/export_pdf.py` (text-based, 1920×1080 pt pages).
 - [`prototype/README.md`](prototype/README.md) — local authentication, workflow and verification guide.
 - [`prototype/sandbox/README.md`](prototype/sandbox/README.md) — isolated Moodle/HR lab and proof commands.
 - [`model/cost-model.xlsx`](model/cost-model.xlsx) — recalculated planning workbook; [`model/verification/`](model/verification/) contains model checks.
