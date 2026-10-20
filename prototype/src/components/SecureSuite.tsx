@@ -18,7 +18,7 @@ type PendingMutation = { path: string; body: string; key: string };
 export function SecureSuite() {
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   useEffect(() => { localStorage.removeItem("learning-suite-demo-v2"); }, []);
-  if (!mounted) return <div className="grid min-h-dvh place-items-center p-6 text-ink-2" role="status">Learning Suite…</div>;
+  if (!mounted) return <div className="grid min-h-dvh place-items-center p-6 text-ink-2" role="status">กำลังโหลด · Loading…</div>;
   if (!publishableKey) {
     return (
       <main className="mx-auto max-w-xl p-6 pt-20">
@@ -62,7 +62,7 @@ function SessionGate() {
               เข้าสู่ระบบด้วย <strong className="font-semibold text-ink">Google</strong> หรืออีเมลกรณีศึกษา
               สิ่งที่คุณเห็นขึ้นอยู่กับบทบาทของบัญชีค่ะ
             </p>
-            <p className="rounded-xl bg-brand-soft px-3 py-2 text-xs text-ink-2">
+            <p className="mb-4 rounded-xl bg-brand-soft px-3 py-2 text-xs text-ink-2">
               Reviewing the case? Use a test account from the cover email: choose “Use another method”, then
               “Email code”, and enter 424242.
             </p>
