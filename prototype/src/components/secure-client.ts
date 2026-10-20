@@ -20,6 +20,7 @@ export function apiErrorMessage(error: unknown, th: boolean): string {
     404: ["This item is no longer available. Refresh to see the latest.", "ไม่พบรายการนี้แล้ว โปรดอัปเดตข้อมูลค่ะ"],
     409: ["This was updated while you were working. Refresh, check the latest version, then send it again.", "ข้อมูลนี้ถูกอัปเดตระหว่างที่คุณทำรายการ โปรดอัปเดตข้อมูล ตรวจสอบอีกครั้ง แล้วส่งใหม่ค่ะ"],
     422: ["Some required fields are empty or too long. Fix them and send again.", "บางช่องยังว่างหรือยาวเกินไป โปรดตรวจข้อมูลแล้วส่งอีกครั้งค่ะ"],
+    428: ["Choose a role to continue.", "โปรดเลือกบทบาทเพื่อใช้งานต่อค่ะ"],
     429: ["You've reached the usage limit. Please wait a moment, then try again.", "ใช้งานถึงขีดจำกัดแล้ว โปรดรอสักครู่แล้วลองอีกครั้งค่ะ"],
     503: ["Something went wrong on our side. Try again (it won't be saved twice) or refresh.", "ระบบขัดข้องชั่วคราว กดลองอีกครั้งได้เลย ระบบจะไม่บันทึกซ้ำ หรืออัปเดตข้อมูลค่ะ"],
   };

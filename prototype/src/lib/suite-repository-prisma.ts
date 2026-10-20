@@ -25,12 +25,17 @@ export async function loadTenant(db: PrismaClient, tenantId: string) {
   return { revision: row.revision, state: parseTenantPayload(row.payload) };
 }
 
-export async function lookupPrincipal(db: PrismaClient, userId: string): Promise<Principal> {
+export async function lookupPrincipal(
+  db: PrismaClient,
+  userId: string,
+  options: { allowRoleChoice?: boolean } = {}
+): Promise<Principal> {
   const rows = await db.suiteMembership.findMany({
     where: { clerkUserId: userId, active: 1 },
     select: { tenantId: true, employeeId: true, role: true },
     take: 2,
   });
+  if (rows.length === 0 && options.allowRoleChoice) throw new HttpError(428, "Choose a demo role to continue");
   if (rows.length !== 1) throw new HttpError(403, "An administrator must assign one sandbox membership");
   const r = rows[0];
   if (!ROLES.has(r.role as Principal["role"])) {
@@ -42,6 +47,29 @@ export async function lookupPrincipal(db: PrismaClient, userId: string): Promise
     employeeId: r.employeeId,
     role: r.role as Principal["role"],
   };
+}
+
+/** Demo only: binds the account to one synthetic persona and records the choice in the audit log. */
+export async function chooseDemoRole(
+  db: PrismaClient,
+  userId: string,
+  tenantId: string,
+  employeeId: string,
+  role: Principal["role"]
+): Promise<Principal> {
+  const { state, revision } = await loadTenant(db, tenantId);
+  if (!state.records[employeeId]) throw new HttpError(503, "Demo persona is not provisioned");
+  await db.$transaction([
+    db.suiteMembership.upsert({
+      where: { clerkUserId_tenantId: { clerkUserId: userId, tenantId } },
+      create: { clerkUserId: userId, tenantId, employeeId, role, active: 1 },
+      update: { employeeId, role, active: 1 },
+    }),
+    db.suiteAudit.create({
+      data: { id: crypto.randomUUID(), tenantId, userId, employeeId, action: `demo.role.${role}`, revision, createdAt: new Date() },
+    }),
+  ]);
+  return { userId, tenantId, employeeId, role };
 }
 
 export async function priorResult(

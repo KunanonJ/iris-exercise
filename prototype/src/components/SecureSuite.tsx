@@ -6,6 +6,7 @@ import type { Principal, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
 import type { Lang } from "@/lib/types";
 import { apiErrorMessage, assertPrincipal, consumeCoachStream, SuiteApiError } from "./secure-client";
 import { EmployeeJourney, LeaderJourney, ManagerJourney, IntegrationsPanel } from "./secure-journeys";
+import { RolePicker } from "./secure-roles";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, Badge, Button, Card, cx, Icon } from "./kit";
@@ -63,8 +64,8 @@ function SessionGate() {
               สิ่งที่คุณเห็นขึ้นอยู่กับบทบาทของบัญชีค่ะ
             </p>
             <p className="mb-4 rounded-xl bg-brand-soft px-3 py-2 text-xs text-ink-2">
-              Reviewing the case? Use a test account from the cover email: choose “Use another method”, then
-              “Email code”, and enter 424242.
+              Reviewing the case? Sign in with Google, then choose a role. No Google account? Use a test email from
+              the cover email: “Use another method”, then “Email code”, and enter 424242.
             </p>
           </CardHeader>
           <Separator />
@@ -102,6 +103,8 @@ function SessionSuite({ userId, getToken }: { userId: string; getToken: () => Pr
   const [error, setError] = useState<unknown>();
   const [tab, setTab] = useState<Tab>("learning");
   const [pending, setPending] = useState<PendingMutation>();
+  const [rolePicker, setRolePicker] = useState<"required" | "switch">();
+  const [demoRoles, setDemoRoles] = useState(false);
   const principal = useRef<Principal | undefined>(undefined);
   const lifetime = useRef<AbortController | undefined>(undefined);
   const lock = useRef(false);
@@ -136,25 +139,42 @@ function SessionSuite({ userId, getToken }: { userId: string; getToken: () => Pr
   }, [request, acceptView]);
 
   const fail = useCallback((failure: unknown) => {
+    // Demo role picker: an account without a role chooses one instead of seeing an error.
+    if (failure instanceof SuiteApiError && failure.status === 428) { setRolePicker("required"); setView(undefined); setPending(undefined); return; }
     setError(failure);
     if (failure instanceof SuiteApiError && (failure.status === 401 || failure.status === 403)) { setView(undefined); setPending(undefined); }
   }, []);
 
   const load = useCallback(async () => {
-    const session = await (await request("/api/session")).json() as { principal: Principal };
+    const session = await (await request("/api/session")).json() as { principal: Principal; demoRoles?: boolean };
     if (session.principal?.userId !== userId) throw new SuiteApiError(401);
     const next = await (await request("/api/state")).json() as SuiteView;
     assertPrincipal(session.principal, next.principal);
-    return { principal: session.principal, view: next };
+    return { principal: session.principal, view: next, demoRoles: session.demoRoles === true };
   }, [request, userId]);
 
   useEffect(() => {
     const controller = new AbortController(); lifetime.current = controller;
-    void load().then(result => { if (!controller.signal.aborted) { principal.current = result.principal; acceptView(result.view); } }).catch(failure => { if (!controller.signal.aborted) fail(failure); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    void load().then(result => { if (!controller.signal.aborted) { principal.current = result.principal; setDemoRoles(result.demoRoles); acceptView(result.view); } }).catch(failure => { if (!controller.signal.aborted) fail(failure); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => { controller.abort(); principal.current = undefined; };
   }, [load, fail, acceptView]);
 
-  const refresh = () => { setLoading(true); setError(undefined); setPending(undefined); void load().then(result => { principal.current = result.principal; acceptView(result.view); }).catch(fail).finally(() => setLoading(false)); };
+  const refresh = () => { setLoading(true); setError(undefined); setPending(undefined); void load().then(result => { principal.current = result.principal; setDemoRoles(result.demoRoles); acceptView(result.view); }).catch(fail).finally(() => setLoading(false)); };
+
+  const chooseRole = async (next: Principal["role"]) => {
+    if (lock.current) return;
+    lock.current = true; setBusy(true); setError(undefined);
+    try {
+      await request("/api/demo/role", { method: "POST", body: JSON.stringify({ role: next }) });
+      // The account now plays a different persona, so start from a fresh session view.
+      principal.current = undefined; setView(undefined); setPending(undefined); setRolePicker(undefined);
+      setTab(next === "leader" ? "dashboard" : "learning");
+      setLoading(true);
+      const result = await load();
+      principal.current = result.principal; setDemoRoles(result.demoRoles); acceptView(result.view);
+    } catch (failure) { fail(failure); }
+    finally { lock.current = false; setBusy(false); setLoading(false); }
+  };
 
   const perform = async (mutation: PendingMutation) => {
     if (lock.current) return;
@@ -198,19 +218,20 @@ function SessionSuite({ userId, getToken }: { userId: string; getToken: () => Pr
   return <div className="min-h-dvh pb-12">
     <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur-xs"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
       <div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-sm font-bold text-white shadow-xs">IR</span><div><p className="font-display text-lg font-bold leading-tight text-brand">IRIS <span className="font-normal text-ink">Learning Suite</span></p><p className="text-xs text-ink-3">{th ? "เรียนรู้ ฝึกฝน และเติบโต" : "Learn, practise and grow"}</p></div></div>
-      <div className="flex items-center gap-2.5"><Badge tone="neutral">{th ? "เดโม · ข้อมูลสมมติ" : "Demo · synthetic data"}</Badge><button type="button" onClick={() => changeLanguage(th ? "en" : "th")} className="min-h-10 rounded-xl border border-line bg-surface-2 px-3 text-xs font-semibold transition hover:border-brand/40 cursor-pointer" aria-label={th ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}>{th ? "EN" : "ไทย"}</button><UserButton /></div>
+      <div className="flex items-center gap-2.5"><Badge tone="neutral">{th ? "เดโม · ข้อมูลสมมติ" : "Demo · synthetic data"}</Badge>{demoRoles && view && !rolePicker && <button type="button" onClick={() => setRolePicker("switch")} disabled={busy} className="min-h-10 rounded-xl border border-line bg-surface-2 px-3 text-xs font-semibold transition hover:border-brand/40 cursor-pointer">{th ? "เปลี่ยนบทบาท" : "Switch role"}</button>}<button type="button" onClick={() => changeLanguage(th ? "en" : "th")} className="min-h-10 rounded-xl border border-line bg-surface-2 px-3 text-xs font-semibold transition hover:border-brand/40 cursor-pointer" aria-label={th ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}>{th ? "EN" : "ไทย"}</button><UserButton /></div>
     </div></header>
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
-      {view && <><div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-2xs"><div className="flex items-center gap-3.5"><Avatar name={view.self?.employee.name[lang] ?? "IRIS"} size="lg" /><div><h1 className="text-xl font-bold">{view.self?.employee.name[lang] ?? (th ? "ภาพรวมการเรียนรู้" : "Learning overview")}</h1><p className="mt-0.5 text-xs text-ink-3">{role === "manager" ? (th ? "หัวหน้า · เห็นเฉพาะลูกทีมของคุณ" : "Manager · your direct reports only") : role === "leader" ? (th ? "HR และผู้บริหาร · ภาพรวมกลุ่มเท่านั้น ไม่มีข้อมูลรายบุคคล" : "HR and leaders · group totals only, no individual records") : (th ? "พนักงาน · ข้อมูลการเรียนของคุณเอง" : "Employee · your own learning record")}</p></div></div><Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "อัปเดตข้อมูล" : "Refresh"}</Button></div><nav aria-label={th ? "เมนูหลัก" : "Main navigation"} className="mb-5 flex gap-2 overflow-x-auto pb-1">{tabs.map(([id, label, icon]) => <button key={id} type="button" onClick={() => setTab(id)} aria-current={actualTab === id ? "page" : undefined} className={cx("inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-medium transition cursor-pointer", actualTab === id ? "bg-brand text-white shadow-xs" : "border border-line bg-surface text-ink-2 hover:bg-surface-2")}><Icon name={icon} className="h-4 w-4 shrink-0" /><span>{label}{id === "team" && view.approvals.some(a => a.status === "pending") ? ` (${view.approvals.filter(a => a.status === "pending").length})` : ""}</span></button>)}</nav></>}
+      {!rolePicker && view && <><div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4 shadow-2xs"><div className="flex items-center gap-3.5"><Avatar name={view.self?.employee.name[lang] ?? "IRIS"} size="lg" /><div><h1 className="text-xl font-bold">{view.self?.employee.name[lang] ?? (th ? "ภาพรวมการเรียนรู้" : "Learning overview")}</h1><p className="mt-0.5 text-xs text-ink-3">{role === "manager" ? (th ? "หัวหน้า · เห็นเฉพาะลูกทีมของคุณ" : "Manager · your direct reports only") : role === "leader" ? (th ? "HR และผู้บริหาร · ภาพรวมกลุ่มเท่านั้น ไม่มีข้อมูลรายบุคคล" : "HR and leaders · group totals only, no individual records") : (th ? "พนักงาน · ข้อมูลการเรียนของคุณเอง" : "Employee · your own learning record")}</p></div></div><Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "อัปเดตข้อมูล" : "Refresh"}</Button></div><nav aria-label={th ? "เมนูหลัก" : "Main navigation"} className="mb-5 flex gap-2 overflow-x-auto pb-1">{tabs.map(([id, label, icon]) => <button key={id} type="button" onClick={() => setTab(id)} aria-current={actualTab === id ? "page" : undefined} className={cx("inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-medium transition cursor-pointer", actualTab === id ? "bg-brand text-white shadow-xs" : "border border-line bg-surface text-ink-2 hover:bg-surface-2")}><Icon name={icon} className="h-4 w-4 shrink-0" /><span>{label}{id === "team" && view.approvals.some(a => a.status === "pending") ? ` (${view.approvals.filter(a => a.status === "pending").length})` : ""}</span></button>)}</nav></>}
       {error != null && <div role="alert" className="mb-5 rounded-2xl border border-danger/25 bg-danger-soft p-4"><p className="text-sm text-danger">{apiErrorMessage(error, th)}</p><div className="mt-3 flex flex-wrap gap-2">{canRetry && <Button variant="outline" disabled={busy || loading} onClick={() => pending && void perform(pending)}>{th ? "ลองอีกครั้ง" : "Try again"}</Button>}<Button variant="outline" disabled={busy || loading} onClick={refresh}>{th ? "อัปเดตข้อมูล" : "Refresh"}</Button></div></div>}
-      {loading && <p role="status" className="py-10 text-center text-sm text-ink-2">{th ? "กำลังโหลดข้อมูลการเรียนของคุณ…" : "Loading your learning…"}</p>}
-      {!loading && view && <>
+      {rolePicker && <RolePicker lang={lang} current={view?.principal.role} busy={busy} onChoose={chooseRole} onCancel={rolePicker === "switch" ? () => setRolePicker(undefined) : undefined} />}
+      {!rolePicker && loading && <p role="status" className="py-10 text-center text-sm text-ink-2">{th ? "กำลังโหลดข้อมูลการเรียนของคุณ…" : "Loading your learning…"}</p>}
+      {!rolePicker && !loading && view && <>
         {actualTab === "learning" && view.self && <EmployeeJourney key={view.self.employee.id} record={view.self} lang={lang} busy={busy} command={command} generate={generate} coach={coach} />}
         {actualTab === "team" && role === "manager" && <ManagerJourney view={view} lang={lang} busy={busy} command={command} />}
         {actualTab === "dashboard" && role === "leader" && <LeaderJourney view={view} lang={lang} />}
         {actualTab === "integrations" && <IntegrationsPanel integrations={view.integrations} lang={lang} />}
       </>}
-      {!loading && !view && !error && <p role="status">{th ? "ไม่พบข้อมูลการเรียนของบัญชีนี้ โปรดติดต่อผู้ดูแลโปรแกรมเพื่อตรวจสอบสิทธิ์ค่ะ" : "We couldn't find a learning record for this account. Ask your programme admin to check your access."}</p>}
+      {!rolePicker && !loading && !view && !error && <p role="status">{th ? "ไม่พบข้อมูลการเรียนของบัญชีนี้ โปรดติดต่อผู้ดูแลโปรแกรมเพื่อตรวจสอบสิทธิ์ค่ะ" : "We couldn't find a learning record for this account. Ask your programme admin to check your access."}</p>}
       <footer className="mt-10 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">{th ? "ต้นแบบสำหรับกรณีศึกษา ใช้ข้อมูลสมมติทั้งหมด ผลประเมินทักษะใช้เพื่อการพัฒนาเท่านั้น ไม่มีผลต่อเงินเดือนหรือการเลื่อนตำแหน่ง การเชื่อมต่อ HR และ LMS เป็นระบบทดสอบ ไม่ใช่ระบบจริงของลูกค้า" : "Case-study prototype with synthetic data. Skill results are for development only and never affect pay or promotion. The HR and LMS connections are test systems, not the client's live systems."}</footer>
     </main>
   </div>;
