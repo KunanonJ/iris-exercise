@@ -13,15 +13,15 @@ export function assertPrincipal(expected: Principal, received: Principal) {
 export function apiErrorMessage(error: unknown, th: boolean): string {
   const status = error instanceof SuiteApiError ? error.status : 0;
   const messages: Record<number, [string, string]> = {
-    0: ["Connection interrupted. Your last action may have reached the server. Retry the same request or refresh before taking another action.", "การเชื่อมต่อขัดข้อง คำสั่งล่าสุดอาจถึงเซิร์ฟเวอร์แล้ว ลองคำสั่งเดิมอีกครั้งหรือโหลดข้อมูลก่อนทำรายการใหม่"],
-    400: ["The request was not accepted. Check the required fields and refresh your record.", "คำขอไม่ผ่านการตรวจสอบ โปรดตรวจช่องข้อมูลที่จำเป็นและโหลดข้อมูลใหม่"],
-    401: ["Your session is unavailable or expired. Sign in again, then refresh.", "เซสชันไม่พร้อมใช้งานหรือหมดอายุ โปรดเข้าสู่ระบบใหม่แล้วโหลดข้อมูล"],
-    403: ["This account has no permission for this action. Ask your programme administrator to check your membership.", "บัญชีนี้ไม่มีสิทธิ์ทำรายการ โปรดให้ผู้ดูแลโปรแกรมตรวจสอบสิทธิ์"],
-    404: ["This record is no longer available. Refresh the latest data.", "ไม่พบรายการนี้แล้ว โปรดโหลดข้อมูลล่าสุด"],
-    409: ["The record changed while you were working. Refresh and review the latest version before submitting again.", "ข้อมูลเปลี่ยนระหว่างทำรายการ โปรดโหลดและตรวจข้อมูลล่าสุดก่อนส่งใหม่"],
-    422: ["Check the required fields and their length limits, then submit the corrected information.", "โปรดตรวจข้อมูลที่จำเป็นและความยาวข้อความ แล้วส่งข้อมูลที่แก้ไขแล้วอีกครั้ง"],
-    429: ["The usage limit has been reached. Wait before retrying; no paid provider is started from this screen.", "ถึงขีดจำกัดการใช้งานแล้ว โปรดรอก่อนลองใหม่ หน้าจอนี้ไม่เรียกใช้ผู้ให้บริการแบบเสียเงิน"],
-    503: ["The service could not finish this action. Your last action may have reached the server. Retry the same request or refresh.", "บริการทำรายการไม่สำเร็จ คำสั่งอาจถึงเซิร์ฟเวอร์แล้ว ลองคำสั่งเดิมอีกครั้งหรือโหลดข้อมูลใหม่"],
+    0: ["Connection lost. Your last action may already be saved. Try again (it won't be saved twice) or refresh to check.", "การเชื่อมต่อขาดหาย รายการล่าสุดอาจบันทึกแล้ว กดลองอีกครั้งได้เลย ระบบจะไม่บันทึกซ้ำ หรืออัปเดตข้อมูลเพื่อตรวจสอบค่ะ"],
+    400: ["Something in this form isn't right. Check the required fields and try again.", "ข้อมูลในฟอร์มยังไม่ถูกต้อง โปรดตรวจช่องที่จำเป็นแล้วลองอีกครั้งค่ะ"],
+    401: ["Your session has expired. Please sign in again.", "เซสชันหมดอายุแล้ว โปรดเข้าสู่ระบบอีกครั้งค่ะ"],
+    403: ["Your account doesn't have access to this. Ask your programme admin to check your role.", "บัญชีของคุณยังไม่มีสิทธิ์ใช้ส่วนนี้ โปรดให้ผู้ดูแลโปรแกรมตรวจสอบบทบาทของคุณค่ะ"],
+    404: ["This item is no longer available. Refresh to see the latest.", "ไม่พบรายการนี้แล้ว โปรดอัปเดตข้อมูลค่ะ"],
+    409: ["This was updated while you were working. Refresh, check the latest version, then send it again.", "ข้อมูลนี้ถูกอัปเดตระหว่างที่คุณทำรายการ โปรดอัปเดตข้อมูล ตรวจสอบอีกครั้ง แล้วส่งใหม่ค่ะ"],
+    422: ["Some required fields are empty or too long. Fix them and send again.", "บางช่องยังว่างหรือยาวเกินไป โปรดตรวจข้อมูลแล้วส่งอีกครั้งค่ะ"],
+    429: ["You've reached the usage limit. Please wait a moment, then try again.", "ใช้งานถึงขีดจำกัดแล้ว โปรดรอสักครู่แล้วลองอีกครั้งค่ะ"],
+    503: ["Something went wrong on our side. Try again (it won't be saved twice) or refresh.", "ระบบขัดข้องชั่วคราว กดลองอีกครั้งได้เลย ระบบจะไม่บันทึกซ้ำ หรืออัปเดตข้อมูลค่ะ"],
   };
   return (messages[status] ?? messages[503])[th ? 1 : 0];
 }

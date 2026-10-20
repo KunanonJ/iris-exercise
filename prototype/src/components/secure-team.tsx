@@ -20,22 +20,22 @@ const SIM_METRICS = metricsData as unknown as {
 
 const labels: Record<string, Bilingual> = {
   not_started: { en: "Not started", th: "ยังไม่เริ่ม" },
-  submitted: { en: "Awaiting approval", th: "รอการอนุมัติ" },
+  submitted: { en: "Awaiting approval", th: "รออนุมัติ" },
   approved: { en: "Approved", th: "อนุมัติแล้ว" },
-  changes_requested: { en: "Changes requested", th: "ขอแก้ไข" },
+  changes_requested: { en: "Changes requested", th: "ขอให้แก้ไข" },
   draft: { en: "Draft", th: "ฉบับร่าง" },
-  pending: { en: "Awaiting approval", th: "รอการอนุมัติ" },
+  pending: { en: "Awaiting approval", th: "รออนุมัติ" },
   todo: { en: "To do", th: "ยังไม่เริ่ม" },
   in_progress: { en: "In progress", th: "กำลังเรียน" },
-  done: { en: "Verified complete", th: "ยืนยันสำเร็จแล้ว" },
+  done: { en: "Completed", th: "เรียนจบแล้ว" },
   video: { en: "Video / lesson", th: "วิดีโอ / บทเรียน" },
   workshop: { en: "Workshop", th: "เวิร์กช็อป" },
   project: { en: "Work project", th: "โปรเจกต์หน้างาน" },
-  assessment: { en: "Skill assessment", th: "ผลประเมินทักษะ" },
+  assessment: { en: "Skill check", th: "ผลประเมินทักษะ" },
   plan: { en: "Learning plan", th: "แผนการเรียน" },
-  unconfigured: { en: "Not configured", th: "ยังไม่ตั้งค่า" },
-  configured: { en: "Configured, not proven", th: "ตั้งค่าแล้ว ยังไม่ยืนยัน" },
-  verified: { en: "Sandbox proof recorded", th: "มีหลักฐาน Sandbox" },
+  unconfigured: { en: "Not set up", th: "ยังไม่ได้ตั้งค่า" },
+  configured: { en: "Set up, not yet tested", th: "ตั้งค่าแล้ว ยังไม่ได้ทดสอบ" },
+  verified: { en: "Tested in sandbox", th: "ทดสอบใน Sandbox แล้ว" },
   error: { en: "Connection error", th: "การเชื่อมต่อขัดข้อง" },
 };
 
@@ -184,9 +184,7 @@ function ApprovalCard({
           {approval.status === "pending" && (
             <Badge tone={daysLeft < 0 ? "danger" : "neutral"}>
               {daysLeft < 0
-                ? th
-                  ? "เกินกำหนด SLA"
-                  : "Overdue"
+                ? th ? "เกินกำหนด" : "Overdue"
                 : th
                   ? `เหลือ ${daysLeft} วัน`
                   : `Due in ${daysLeft}d`}
@@ -200,7 +198,7 @@ function ApprovalCard({
         <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="grid grid-cols-[1fr_48px_56px_108px] items-center gap-1 border-b border-line bg-surface-2 px-3 py-2 text-[11px] font-semibold text-ink-3">
             <span>{th ? "ทักษะ" : "Skill"}</span>
-            <span className="text-center">{th ? "ตนเอง" : "Self"}</span>
+            <span className="text-center">{th ? "ประเมินตนเอง" : "Self"}</span>
             <span className="text-center">{th ? "สถานการณ์" : "Scenario"}</span>
             <span className="text-center">{th ? "ระดับที่อนุมัติ" : "Final level"}</span>
           </div>
@@ -223,7 +221,7 @@ function ApprovalCard({
                     {skillById(id)?.name[lang] ?? id}
                     {differs && (
                       <span className="ml-1.5 inline-block rounded bg-gap-soft px-1.5 py-0.5 text-[10px] font-semibold text-gap">
-                        {th ? "ปรับเทียบ" : "Calibrated"}
+                        {th ? "ปรับแล้ว" : "Adjusted"}
                       </span>
                     )}
                   </span>
@@ -305,11 +303,11 @@ function ApprovalCard({
       {approval.kind === "project" && (
         <div className="mt-4 rounded-xl bg-surface-2 p-3.5 ring-1 ring-inset ring-line">
           <p className="text-xs font-semibold text-ink-3">
-            {th ? "หลักฐานที่พนักงานส่ง" : "Employee-submitted evidence"}
+            {th ? "หลักฐานจากพนักงาน" : "Evidence from employee"}
           </p>
           <p className="mt-2 whitespace-pre-wrap break-words text-sm text-ink">
             {evidence ||
-              (th ? "ไม่พบหลักฐาน โปรดโหลดข้อมูลล่าสุดก่อนตัดสินใจ" : "Evidence is unavailable. Refresh before deciding.")}
+              (th ? "โหลดหลักฐานไม่ได้ โปรดอัปเดตข้อมูลก่อนตัดสินใจ" : "Couldn't load the evidence. Refresh before you decide.")}
           </p>
         </div>
       )}
@@ -318,15 +316,11 @@ function ApprovalCard({
         <div className="mt-4 space-y-3">
           {isCalibrated && (
             <p className="rounded-xl bg-gap-soft px-3 py-2 text-xs font-medium text-gap">
-              {th
-                ? "คุณได้ปรับเทียบระดับทักษะ กรุณาระบุเหตุผลประกอบก่อนกดอนุมัติ"
-                : "You calibrated one or more skill levels. Please provide a reason note below before approving."}
+              {th ? "คุณปรับระดับทักษะแล้ว โปรดใส่เหตุผลสั้นๆ ด้านล่างก่อนอนุมัติ" : "You changed a skill level. Add a short reason below before approving."}
             </p>
           )}
           <label className="block text-sm font-medium" htmlFor={`approval-note-${approval.id}`}>
-            {th
-              ? "หมายเหตุ (จำเป็นเมื่อขอแก้ไขหรือปรับเทียบคะแนน)"
-              : "Review note (required for changes or calibration)"}
+            {th ? "หมายเหตุ (จำเป็นเมื่อปรับระดับหรือขอให้แก้ไข)" : "Note (required if you adjust a level or request changes)"}
           </label>
           <textarea
             id={`approval-note-${approval.id}`}
@@ -401,21 +395,21 @@ export function ManagerJourney({
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Card className="p-3.5">
-          <p className="text-xs text-ink-3">{th ? "ลูกทีมโดยตรง" : "Direct reports"}</p>
+          <p className="text-xs text-ink-3">{th ? "ลูกทีม" : "Direct reports"}</p>
           <p className="font-display mt-1 text-2xl font-bold tabular-nums text-ink">{team.length}</p>
         </Card>
         <Card className="p-3.5">
-          <p className="text-xs text-ink-3">{th ? "รอการอนุมัติ" : "Pending reviews"}</p>
+          <p className="text-xs text-ink-3">{th ? "รอคุณอนุมัติ" : "Waiting for you"}</p>
           <p className="font-display mt-1 text-2xl font-bold tabular-nums text-brand">
             {pendingApprovals.length}
           </p>
         </Card>
         <Card className="p-3.5">
-          <p className="text-xs text-ink-3">{th ? "อยู่ในเกณฑ์ SLA" : "Within SLA"}</p>
+          <p className="text-xs text-ink-3">{th ? "ทันกำหนด" : "On time"}</p>
           <p className="font-display mt-1 text-2xl font-bold tabular-nums text-ok">{withinSla}</p>
         </Card>
         <Card className="p-3.5">
-          <p className="text-xs text-ink-3">{th ? "เกินกำหนด SLA" : "Overdue"}</p>
+          <p className="text-xs text-ink-3">{th ? "เกินกำหนด" : "Overdue"}</p>
           <p className="font-display mt-1 text-2xl font-bold tabular-nums text-danger">{overdueCount}</p>
         </Card>
       </div>
@@ -423,16 +417,14 @@ export function ManagerJourney({
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-bold">{th ? "ทีมของฉัน" : "My direct reports"}</h2>
+            <h2 className="text-lg font-bold">{th ? "ทีมของฉัน" : "My team"}</h2>
             <p className="mt-1 text-sm text-ink-2">
-              {th
-                ? "แสดงเฉพาะผู้ใต้บังคับบัญชาปัจจุบันที่เซิร์ฟเวอร์อนุญาต บทสนทนาส่วนตัวกับโค้ชไม่รวมในมุมมองนี้"
-                : "Only current direct reports permitted by the server are shown. Private coach conversations are excluded."}
+              {th ? "คุณเห็นเฉพาะลูกทีมปัจจุบัน แชตกับโค้ชของลูกทีมเป็นความลับและไม่แสดงที่นี่" : "You see only your current direct reports. Their coach chats stay private."}
             </p>
           </div>
           <Badge tone="neutral">
             <Icon name="lock" className="h-3 w-3" />
-            {th ? "ไม่รวมแชตส่วนตัว" : "Private chats excluded"}
+            {th ? "แชตโค้ชเป็นความลับ" : "Coach chats stay private"}
           </Badge>
         </div>
 
@@ -467,16 +459,16 @@ export function ManagerJourney({
 
         {team.length === 0 && (
           <p className="mt-4 text-sm text-ink-3">
-            {th ? "ยังไม่มีผู้ใต้บังคับบัญชาในขอบเขตของคุณ" : "You have no direct reports in your current scope."}
+            {th ? "ยังไม่มีลูกทีม รายชื่อจะแสดงเมื่อ HR เชื่อมลูกทีมกับคุณแล้ว" : "No direct reports yet. Your team appears here once HR links them to you."}
           </p>
         )}
       </Card>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-bold">{th ? "รายการอนุมัติ" : "Review queue"}</h2>
+        <h2 className="text-lg font-bold">{th ? "รายการรออนุมัติ" : "To review"}</h2>
         <div className="flex gap-2">
           <Button variant={filter === "pending" ? "soft" : "ghost"} onClick={() => setFilter("pending")}>
-            {th ? "รอตรวจสอบ" : "Pending"}
+            {th ? "รออนุมัติ" : "Pending"}
           </Button>
           <Button variant={filter === "all" ? "soft" : "ghost"} onClick={() => setFilter("all")}>
             {th ? "ทั้งหมด" : "All"}
@@ -502,7 +494,7 @@ export function ManagerJourney({
 
       {approvals.length === 0 && (
         <Card>
-          <p className="text-sm text-ink-2">{th ? "ไม่มีรายการในมุมมองนี้" : "No reviews in this view."}</p>
+          <p className="text-sm text-ink-2">{th ? "ไม่มีรายการให้อนุมัติ" : "Nothing to review here."}</p>
         </Card>
       )}
     </div>
@@ -528,14 +520,10 @@ function Wave1SimulationPreview({ lang }: { lang: Lang }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <Badge tone="warn">
-            {th
-              ? "ข้อมูลจำลองสำหรับการวางแผน Wave 1 (12,000 คน) · ไม่ใช่ข้อมูลจริงจาก D1"
-              : "Illustrative Wave-1 planning model (12,000 staff) · not live D1 data"}
+            {th ? "แบบจำลองการวางแผน Wave 1 (12,000 คน) · ข้อมูลจำลอง ไม่ใช่ข้อมูลจริง" : "Wave 1 planning model (12,000 staff) · simulated, not live data"}
           </Badge>
           <h3 className="mt-2 text-base font-bold text-ink">
-            {th
-              ? "ภาพจำลองเป้าหมายสัปดาห์ที่ 8 สำหรับการประชุมผู้บริหาร"
-              : "Week-8 forum target simulation (Adoption & BU capability heatmap)"}
+            {th ? "เป้าหมายสัปดาห์ที่ 8 สำหรับการประชุมผู้บริหาร (จำลอง)" : "Week 8 targets for the leadership forum (simulated)"}
           </h3>
         </div>
         <div className="flex gap-1.5">
@@ -552,12 +540,8 @@ function Wave1SimulationPreview({ lang }: { lang: Lang }) {
               )}
             >
               {v === "now"
-                ? th
-                  ? "จำลองสัปดาห์ 8"
-                  : "Simulated W8"
-                : th
-                  ? "ค่าตั้งต้นสัปดาห์ 0"
-                  : "Baseline W0"}
+                ? th ? "สัปดาห์ 8 (จำลอง)" : "Week 8 (simulated)"
+                : th ? "จุดเริ่มต้น สัปดาห์ 0" : "Week 0 baseline"}
             </button>
           ))}
         </div>
@@ -566,12 +550,12 @@ function Wave1SimulationPreview({ lang }: { lang: Lang }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl border border-line bg-surface-2/60 p-3.5">
           <p className="text-xs font-semibold text-ink">
-            {th ? "เป้าหมาย Funnel สัปดาห์ที่ 8 (12,000 คน)" : "Simulated Week-8 funnel (12,000 cohort)"}
+            {th ? "การใช้งานถึงสัปดาห์ที่ 8 (12,000 คน, จำลอง)" : "Week 8 adoption funnel (12,000 staff, simulated)"}
           </p>
           <div className="mt-3 space-y-2.5 text-xs">
             {(
               [
-                [th ? "เข้าใช้งานระบบ" : "Logged in", last.activated, "#0c6368"],
+                [th ? "เข้าสู่ระบบแล้ว" : "Signed in", last.activated, "#0c6368"],
                 [th ? "ประเมินทักษะแล้ว" : "Assessed", last.assessed, "#c2501f"],
                 [th ? "หัวหน้าอนุมัติแล้ว" : "Manager-approved", last.approved, "#156d49"],
                 [th ? "เรียนตามแผน" : "Learning on a plan", last.planActive, "#a15807"],
@@ -600,7 +584,7 @@ function Wave1SimulationPreview({ lang }: { lang: Lang }) {
 
         <div className="rounded-xl border border-line bg-surface-2/60 p-3.5">
           <p className="mb-2 text-xs font-semibold text-ink">
-            {th ? "สัดส่วนทักษะถึงเกณฑ์แยกตามหน่วยธุรกิจ (จำลอง)" : "Simulated skill readiness by BU & category"}
+            {th ? "สัดส่วนทักษะถึงเกณฑ์แยกตามหน่วยธุรกิจ (จำลอง)" : "Skill readiness by business unit and category (simulated)"}
           </p>
           <div className="grid grid-cols-[minmax(100px,1.3fr)_repeat(3,1fr)] gap-1 text-xs">
             <div />
@@ -661,9 +645,7 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
     return (
       <Card>
         <p>
-          {th
-            ? "ยังไม่มีข้อมูลสรุปองค์กรที่แสดงได้ ระบบซ่อนข้อมูลเมื่อมีพนักงานต่ำกว่า 10 คนเพื่อปกป้องความเป็นส่วนตัว"
-            : "Organisation metrics are unavailable. Cohorts with fewer than 10 employees are suppressed for privacy."}
+          {th ? "ยังไม่มีตัวเลขภาพรวมที่แสดงได้ กลุ่มที่มีน้อยกว่า 10 คนจะถูกซ่อนเพื่อปกป้องความเป็นส่วนตัว" : "No organisation figures to show yet. Groups under 10 people are hidden to protect privacy."}
         </p>
       </Card>
     );
@@ -674,37 +656,37 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
     {
       name: th ? "พนักงาน" : "Employees",
       value: metrics.employees,
-      sub: th ? `${unassessed} คนยังไม่ได้รับการประเมิน` : `${unassessed} not yet assessed`,
+      sub: th ? `${unassessed} คนยังไม่ได้ประเมิน` : `${unassessed} not yet assessed`,
       bar: 1,
     },
     {
-      name: th ? "ส่งผลประเมิน" : "Assessed",
+      name: th ? "ประเมินแล้ว" : "Assessed",
       value: metrics.assessed,
-      sub: `${Math.round((metrics.assessed / total) * 100)}% ${th ? "ของพนักงานทั้งหมด" : "of enabled staff"}`,
+      sub: `${Math.round((metrics.assessed / total) * 100)}% ${th ? "ของพนักงานที่มีสิทธิ์ใช้งาน" : "of staff with access"}`,
       bar: metrics.assessed / total,
     },
     {
       name: th ? "อนุมัติผลประเมิน" : "Assessments approved",
       value: metrics.approved,
-      sub: `${Math.round((metrics.approved / total) * 100)}% ${th ? "ผ่านการอนุมัติจากหัวหน้า" : "calibrated by manager"}`,
+      sub: `${Math.round((metrics.approved / total) * 100)}% ${th ? "อนุมัติโดยหัวหน้า" : "approved by managers"}`,
       bar: metrics.approved / total,
     },
     {
-      name: th ? "แผนที่อนุมัติ" : "Active plans",
+      name: th ? "แผนที่กำลังเรียน" : "Active plans",
       value: metrics.plansActive,
-      sub: `${Math.round((metrics.plansActive / total) * 100)}% ${th ? "มีแผนการเรียนที่อนุมัติ" : "learning on an approved path"}`,
+      sub: `${Math.round((metrics.plansActive / total) * 100)}% ${th ? "เรียนตามแผนที่อนุมัติแล้ว" : "learning on an approved plan"}`,
       bar: metrics.plansActive / total,
     },
     {
-      name: th ? "กิจกรรมที่ยืนยันแล้ว" : "Verified completed steps",
+      name: th ? "กิจกรรมที่เรียนจบ (ยืนยันแล้ว)" : "Completed steps (verified)",
       value: metrics.completedSteps,
-      sub: th ? "ซิงค์จาก Moodle หรืออนุมัติหลักฐานแล้ว" : "Moodle reconciled or manager-signed",
+      sub: th ? "ยืนยันโดย Moodle หรือหัวหน้า" : "confirmed by Moodle or a manager",
       bar: Math.min(1, metrics.completedSteps / 10),
     },
     {
-      name: th ? "รอการอนุมัติ" : "Pending approvals",
+      name: th ? "รออนุมัติ" : "Pending approvals",
       value: metrics.pendingApprovals,
-      sub: th ? "รายการที่อยู่ในคิวหัวหน้างาน" : "Awaiting manager decision",
+      sub: th ? "รอหัวหน้าตัดสินใจ" : "waiting for a manager decision",
       bar: Math.min(1, metrics.pendingApprovals / 10),
     },
   ] as const;
@@ -717,19 +699,13 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
             {th ? "ความก้าวหน้าการเรียนรู้ขององค์กร" : "Organisation learning progress"}
           </h2>
           <p className="mt-1.5 text-sm text-ink-2">
-            {th
-              ? "ตัวเลขคำนวณจากข้อมูลสมมติที่จัดเก็บบนเซิร์ฟเวอร์ ไม่มีข้อมูลรายบุคคลในมุมมองผู้บริหาร"
-              : "Calculated from server-held synthetic records. This leadership view contains no individual employee records."}
+            {th ? "คำนวณจากข้อมูลสมมติ ผู้บริหารเห็นเฉพาะภาพรวมกลุ่ม ไม่เห็นข้อมูลรายบุคคล" : "Calculated from synthetic data. Leaders see group totals only, never individual records."}
           </p>
         </div>
         <Button variant="outline" onClick={() => setShowSim((v) => !v)}>
           {showSim
-            ? th
-              ? "ซ่อนแบบจำลองเป้าหมาย Wave 1"
-              : "Hide Wave-1 target simulation"
-            : th
-              ? "ดูแบบจำลองเป้าหมาย Wave 1 (จำลอง)"
-              : "View Wave-1 target simulation"}
+            ? th ? "ซ่อนเป้าหมาย Wave 1 (จำลอง)" : "Hide Wave 1 targets (simulated)"
+            : th ? "ดูเป้าหมาย Wave 1 (จำลอง)" : "Show Wave 1 targets (simulated)"}
         </Button>
       </div>
 
@@ -758,11 +734,9 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
               {th ? "ความพร้อมแยกตามหน่วยธุรกิจ" : "Readiness by business unit"}
             </h3>
             <p className="mt-1 text-xs text-ink-3">
-              {th
-                ? "ซ่อนกลุ่มที่มีพนักงานต่ำกว่า 10 คนเพื่อปกป้องความเป็นส่วนตัว"
-                : "Groups with fewer than 10 employees are suppressed for privacy."}{" "}
+              {th ? "กลุ่มที่มีน้อยกว่า 10 คนจะถูกซ่อนเพื่อปกป้องความเป็นส่วนตัว" : "Groups under 10 people are hidden to protect privacy."}{" "}
               {metrics.suppressedGroups > 0 &&
-                `${th ? "กลุ่มที่ซ่อน" : "Groups suppressed"}: ${metrics.suppressedGroups}`}
+                `${th ? "กลุ่มที่ซ่อนไว้" : "Groups hidden"}: ${metrics.suppressedGroups}`}
             </p>
           </div>
           <Badge tone="brand">
@@ -799,7 +773,7 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
 
         {metrics.groups.length === 0 && (
           <p className="mt-4 text-sm text-ink-3">
-            {th ? "ยังไม่มีกลุ่มที่ผ่านเกณฑ์ความเป็นส่วนตัว" : "No groups meet the privacy threshold yet."}
+            {th ? "ยังไม่มีกลุ่มที่มีตั้งแต่ 10 คนขึ้นไป จึงยังไม่แสดงข้อมูล" : "No group has 10 or more people yet, so nothing is shown."}
           </p>
         )}
       </Card>
@@ -808,20 +782,50 @@ export function LeaderJourney({ view, lang }: { view: SuiteView; lang: Lang }) {
 
       <Card>
         <Badge tone="neutral">
-          {th ? "กรอบการวัดผล · ไม่ใช่ผลลัพธ์ที่พิสูจน์แล้ว" : "Measurement framework · not proven business impact"}
+          {th ? "วิธีวัดผลต่อธุรกิจ · ยังไม่ได้พิสูจน์" : "How we'll measure impact · not yet proven"}
         </Badge>
         <h3 className="mt-3 font-semibold text-ink">
           {th ? "เชื่อมการเรียนกับผลลัพธ์งาน" : "Connect learning to work outcomes"}
         </h3>
         <p className="mt-2 text-sm text-ink-2">
-          {th
-            ? "กำหนดค่าตั้งต้นและกลุ่มเปรียบเทียบ แล้วติดตามคุณภาพบริการ ข้อผิดพลาด และเวลาสู่ความพร้อม ตัวเลขการเรียนด้านบนไม่ใช่หลักฐานว่าเกิดผลลัพธ์เชิงสาเหตุแล้ว"
-            : "Establish a baseline and comparison group, then track service quality, errors and time to proficiency. Learning metrics above do not establish a causal business improvement."}
+          {th ? "กำหนดค่าตั้งต้นและกลุ่มเปรียบเทียบ แล้วติดตามคุณภาพบริการ ความผิดพลาด และเวลาที่ใช้จนทำงานได้คล่อง ตัวเลขการเรียนด้านบนยังไม่ใช่หลักฐานว่าธุรกิจดีขึ้นเพราะการเรียน" : "Set a baseline and a comparison group, then track service quality, errors and time to proficiency. The learning numbers above don't prove business impact on their own."}
         </p>
       </Card>
     </div>
   );
 }
+
+// Reader-facing names and descriptions for the seeded connection ids; stored labels are technical.
+const CONNECTION_COPY: Record<string, { label: Bilingual; detail: Bilingual }> = {
+  clerk: {
+    label: { en: "Sign-in (Clerk)", th: "การเข้าสู่ระบบ (Clerk)" },
+    detail: {
+      en: "Confirms who you are with Google or a case-study email. What you can see comes from the role given to your account, not from Google.",
+      th: "ยืนยันตัวตนด้วย Google หรืออีเมลกรณีศึกษา สิ่งที่คุณเห็นขึ้นอยู่กับบทบาทของบัญชี ไม่ได้มาจาก Google",
+    },
+  },
+  hr: {
+    label: { en: "HR data (test service)", th: "ข้อมูล HR (ระบบทดสอบ)" },
+    detail: {
+      en: "Sends new joiners, manager changes and leavers. A synthetic test service, not the client's HR system.",
+      th: "ส่งข้อมูลพนักงานใหม่ การเปลี่ยนหัวหน้า และพนักงานที่ลาออก เป็นระบบทดสอบที่ใช้ข้อมูลสมมติ ไม่ใช่ระบบ HR จริงของลูกค้า",
+    },
+  },
+  "moodle-a": {
+    label: { en: "LMS A (Moodle test site)", th: "LMS A (Moodle ทดสอบ)" },
+    detail: {
+      en: "Course catalogue, enrolment and completions. A local test site, not the client's LMS.",
+      th: "รายการหลักสูตร การลงทะเบียน และผลการเรียนจบ เป็นระบบทดสอบ ไม่ใช่ LMS จริงของลูกค้า",
+    },
+  },
+  "moodle-b": {
+    label: { en: "LMS B (Moodle test site)", th: "LMS B (Moodle ทดสอบ)" },
+    detail: {
+      en: "Course catalogue, enrolment and completions. A local test site, not the client's LMS.",
+      th: "รายการหลักสูตร การลงทะเบียน และผลการเรียนจบ เป็นระบบทดสอบ ไม่ใช่ LMS จริงของลูกค้า",
+    },
+  },
+};
 
 export function IntegrationsPanel({
   integrations,
@@ -836,17 +840,17 @@ export function IntegrationsPanel({
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold">
-            {th ? "สถานะการเชื่อมต่อจริงของสภาพแวดล้อมนี้" : "Connections in this environment"}
+            {th ? "ระบบที่เชื่อมต่อ" : "Connected systems"}
           </h2>
           <Badge tone="brand">
             <Icon name="shield" className="h-3 w-3" />
-            {th ? "ตรวจสอบสิทธิ์ฝั่งเซิร์ฟเวอร์" : "Server-verified"}
+            {th ? "สถานะจากเซิร์ฟเวอร์" : "Live from the server"}
           </Badge>
         </div>
         <p className="mt-2 text-sm text-ink-2">
           {th
-            ? "สถานะมาจากเซิร์ฟเวอร์ Clerk พัฒนาเปิด Google และ LINE Login แล้ว แต่สิทธิ์ยังมาจากรายการสมาชิก Suite หลักฐาน Sandbox ไม่ยืนยัน HR/LMS ของลูกค้าจริง การเข้าสู่ระบบ Suite และ Moodle แยกจากกัน"
-            : "Statuses come from the server. Clerk development has Google and LINE Login enabled; Suite permissions still come from memberships. Sandbox proof does not verify client HR/LMS production. Suite and Moodle sign-in remain separate."}
+            ? "สถานะล่าสุดของแต่ละระบบ การเชื่อมต่อ HR และ Moodle เป็นระบบทดสอบ ไม่ใช่ระบบจริงของลูกค้า และ Moodle ใช้การเข้าสู่ระบบแยกต่างหาก"
+            : "The latest status of each system. The HR and Moodle connections are test systems, not the client's live systems, and Moodle has its own sign-in."}
         </p>
       </Card>
       <div className="grid gap-4 md:grid-cols-2">
@@ -860,14 +864,17 @@ export function IntegrationsPanel({
                     className="h-4 w-4"
                   />
                 </span>
-                <h3 className="font-semibold text-ink">{integration.label}</h3>
+                <h3 className="font-semibold text-ink">{CONNECTION_COPY[integration.id]?.label[lang] ?? integration.label}</h3>
               </div>
               <Status value={integration.status} lang={lang} />
             </div>
-            <p className="mt-3 text-sm text-ink-2">{integration.detail}</p>
+            <p className="mt-3 text-sm text-ink-2">{CONNECTION_COPY[integration.id]?.detail[lang] ?? integration.detail}</p>
+            {integration.status === "error" && CONNECTION_COPY[integration.id] && (
+              <p className="mt-2 text-xs text-danger">{integration.detail}</p>
+            )}
             {integration.lastSuccess && (
               <p className="mt-3 text-xs text-ink-3">
-                {th ? "สำเร็จล่าสุด" : "Last recorded success"}:{" "}
+                {th ? "ตรวจสอบสำเร็จล่าสุด" : "Last successful check"}:{" "}
                 {new Date(integration.lastSuccess).toLocaleString(lang === "th" ? "th-TH" : "en-GB")}
               </p>
             )}
@@ -877,7 +884,7 @@ export function IntegrationsPanel({
       {integrations.length === 0 && (
         <Card>
           <p className="text-sm text-ink-3">
-            {th ? "ยังไม่มีข้อมูลการเชื่อมต่อ" : "No connection status has been supplied."}
+            {th ? "ยังไม่มีข้อมูลสถานะการเชื่อมต่อ" : "No connection status yet."}
           </p>
         </Card>
       )}

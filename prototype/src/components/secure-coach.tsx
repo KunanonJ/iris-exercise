@@ -17,33 +17,33 @@ type Source = { n: number; sourceId: string; title: string; kind: "lesson" | "po
 
 const GUARDRAIL_LABELS: Record<string, { en: string; th: string; tone: "warn" | "danger" | "brand" }> = {
   other_person_data: {
-    en: "Guardrail · Colleague data blocked",
-    th: "เกราะความปลอดภัย · ปิดกั้นข้อมูลของผู้อื่น",
+    en: "Guardrail · Colleagues' data stays private",
+    th: "เกราะความปลอดภัย · ไม่เปิดเผยข้อมูลของเพื่อนร่วมงาน",
     tone: "warn",
   },
   hr_decision: {
-    en: "Guardrail · Pay & promotion referred to HR",
-    th: "เกราะความปลอดภัย · เรื่องเงินเดือน/เลื่อนตำแหน่งส่งต่อ HR",
+    en: "Guardrail · Pay and promotion questions go to HR",
+    th: "เกราะความปลอดภัย · เรื่องเงินเดือนและการเลื่อนตำแหน่งให้ติดต่อ HR",
     tone: "warn",
   },
   wellbeing: {
-    en: "Guardrail · Wellbeing referred to EAP",
-    th: "เกราะความปลอดภัย · เรื่องความเครียดส่งต่อ EAP",
+    en: "Guardrail · Wellbeing support offered (EAP)",
+    th: "เกราะความปลอดภัย · แนะนำบริการดูแลใจ (EAP)",
     tone: "brand",
   },
   crisis: {
-    en: "Guardrail · Crisis hotline 1323 / 1669 shown",
-    th: "เกราะความปลอดภัย · แสดงสายด่วนสุขภาพจิต 1323 / 1669",
+    en: "Guardrail · Crisis lines shown: 1323 / 1669",
+    th: "เกราะความปลอดภัย · แสดงสายด่วน 1323 / 1669",
     tone: "danger",
   },
   off_topic: {
-    en: "Guardrail · Scoped to workplace learning",
-    th: "เกราะความปลอดภัย · จำกัดเฉพาะเรื่องการเรียนรู้ในงาน",
+    en: "Guardrail · Work learning topics only",
+    th: "เกราะความปลอดภัย · ตอบเฉพาะเรื่องการเรียนรู้ในงาน",
     tone: "warn",
   },
   injection: {
-    en: "Guardrail · Prompt injection blocked",
-    th: "เกราะความปลอดภัย · ปิดกั้นคำสั่งแทรกแซงระบบ",
+    en: "Guardrail · Attempt to change coach rules blocked",
+    th: "เกราะความปลอดภัย · ปิดกั้นคำสั่งที่พยายามเปลี่ยนกฎของโค้ช",
     tone: "danger",
   },
 };
@@ -78,12 +78,12 @@ function ProvenanceStrip({ meta, lang }: { meta?: Record<string, unknown>; lang:
   const category = typeof meta?.category === "string" ? meta.category : undefined;
   const pii = Array.isArray(meta?.pii) ? (meta.pii.filter((x): x is string => typeof x === "string")) : [];
   const labels: Record<string, [string, string]> = {
-    model: ["Live model answer", "คำตอบจากโมเดลสด"],
-    safety_template: ["Safety response", "คำตอบด้านความปลอดภัย"],
-    no_source: ["No supported source", "ไม่มีแหล่งข้อมูลรองรับ"],
-    demo: ["Scripted demo answer", "คำตอบเดโมตามกฎ"],
-    provider_fallback: ["Provider fallback · not a live-model pass", "คำตอบสำรอง · ไม่ใช่ผลผ่านจากโมเดลสด"],
-    unknown: ["Answer provenance not verified", "ยังไม่ยืนยันแหล่งกำเนิดคำตอบ"],
+    model: ["AI model answer", "คำตอบจาก AI"],
+    safety_template: ["Safety reply", "คำตอบเพื่อความปลอดภัย"],
+    no_source: ["No approved source found", "ไม่พบแหล่งข้อมูลที่อนุมัติ"],
+    demo: ["Demo answer (scripted)", "คำตอบเดโม (ตั้งไว้ล่วงหน้า)"],
+    provider_fallback: ["Backup answer · AI model unavailable", "คำตอบสำรอง · AI ไม่พร้อมใช้งาน"],
+    unknown: ["Answer source not confirmed", "ยังไม่ยืนยันที่มาของคำตอบ"],
   };
   const guardrail = category && category !== "in_scope" ? GUARDRAIL_LABELS[category] : undefined;
 
@@ -109,7 +109,7 @@ function ProvenanceStrip({ meta, lang }: { meta?: Record<string, unknown>; lang:
       {pii.length > 0 && (
         <Badge tone="ok">
           <Icon name="lock" className="h-3 w-3" />
-          {th ? `ปกปิด PII แล้ว (${pii.join(", ")})` : `PII masked (${pii.join(", ")})`}
+          {th ? `ซ่อนข้อมูลส่วนตัวแล้ว (${pii.join(", ")})` : `Personal details hidden (${pii.join(", ")})`}
         </Badge>
       )}
       {provenance === "model" && typeof meta?.model === "string" && (
@@ -138,9 +138,7 @@ function SourceBottomSheet({
   const passage = lesson
     ? (lesson.content?.[lang] ?? lesson.summary[lang])
     : (policy?.content[lang] ??
-      (th
-        ? "ไม่มีเนื้อหาแหล่งอ้างอิงในคลังสาธารณะ โปรดตรวจสอบกับผู้ดูแลโปรแกรม"
-        : "Source text is unavailable in the public catalogue. Ask the programme administrator to verify it."));
+      (th ? "ไม่มีข้อความของแหล่งอ้างอิงนี้ในระบบ หากต้องการ โปรดติดต่อผู้ดูแลโปรแกรมค่ะ" : "The source text isn't available here. Ask your programme admin if you need it."));
   const canOpenLesson = Boolean(onOpenLesson && lesson && lesson.id !== currentLessonId);
 
   return (
@@ -161,9 +159,7 @@ function SourceBottomSheet({
             <Badge tone="brand">[S{source.n}]</Badge>
             <Badge tone="neutral">
               {source.kind === "policy"
-                ? th
-                  ? "นโยบายโปรแกรม"
-                  : "Programme Policy"
+                ? th ? "นโยบายโปรแกรม" : "Programme policy"
                 : `${lesson?.source ?? "LMS"} · ${lesson?.minutes ?? ""} ${th ? "นาที" : "min"}`}
             </Badge>
             <span className="font-display text-xs font-semibold text-ink-3">{source.sourceId}</span>
@@ -264,7 +260,7 @@ function Reply({
               key={index}
               onClick={() => openRef(reference)}
               className="mx-0.5 inline-flex min-h-5 min-w-[24px] items-center justify-center rounded-md bg-brand-soft px-1.5 align-baseline text-[11px] font-bold tabular-nums text-brand ring-1 ring-inset ring-brand/25 transition hover:bg-brand hover:text-white cursor-pointer"
-              aria-label={`${th ? "เปิดแหล่งอ้างอิง" : "Open source"} ${reference.n}: ${reference.title}`}
+              aria-label={`${th ? "ดูแหล่งอ้างอิง" : "View source"} ${reference.n}: ${reference.title}`}
             >
               {piece}
             </button>
@@ -319,9 +315,7 @@ function Reply({
             {inlineSource && "summary" in inlineSource
               ? (inlineSource.content?.[lang] ?? inlineSource.summary[lang])
               : (inlineSource?.content[lang] ??
-                (th
-                  ? "ไม่มีเนื้อหาแหล่งอ้างอิงในคลังสาธารณะ โปรดตรวจสอบกับผู้ดูแลโปรแกรม"
-                  : "Source text is unavailable in the public catalogue. Ask the programme administrator to verify it."))}
+                (th ? "ไม่มีข้อความของแหล่งอ้างอิงนี้ในระบบ หากต้องการ โปรดติดต่อผู้ดูแลโปรแกรมค่ะ" : "The source text isn't available here. Ask your programme admin if you need it."))}
           </p>
         </section>
       )}
@@ -425,9 +419,7 @@ export function SecureCoach({
             <div>
               <h2 className="text-base font-bold leading-tight">{th ? "โค้ช AI" : "AI coach"}</h2>
               <p className="text-[11px] text-ink-3">
-                {th
-                  ? "อ้างอิงเฉพาะเนื้อหาที่อนุมัติและข้อมูลของคุณ"
-                  : "Grounded in approved content & your record"}
+                {th ? "ตอบจากบทเรียนที่อนุมัติและข้อมูลของคุณเท่านั้น" : "Answers only from approved lessons and your own record"}
               </p>
             </div>
           </div>
@@ -451,9 +443,7 @@ export function SecureCoach({
           <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-xl bg-surface-2 px-3 py-1.5 text-[11px] text-ink-2 ring-1 ring-inset ring-line">
             <Icon name="lock" className="h-3.5 w-3.5 shrink-0 text-brand" />
             <span>
-              {th
-                ? "บทสนทนานี้เป็นส่วนตัวเฉพาะคุณ หัวหน้างานไม่สามารถดูแชตนี้ได้ · ใช้เฉพาะข้อมูลสมมติ ห้ามใส่ข้อมูลส่วนบุคคล"
-                : "Private to your learning record; managers cannot view this chat · Use synthetic details only."}
+              {th ? "แชตนี้เป็นความลับ หัวหน้าของคุณมองไม่เห็น โปรดอย่าใส่ข้อมูลส่วนตัวนะคะ" : "This chat is private. Your manager can't see it. Please don't share personal details."}
             </span>
           </div>
         )}
@@ -471,16 +461,12 @@ export function SecureCoach({
         {messages.length === 0 && !question && (
           <div className="rounded-2xl border border-dashed border-line-strong bg-surface-2/70 p-4 text-sm text-ink-2">
             <p className="font-semibold text-ink">
-              {th ? "สวัสดีค่ะ อยากเริ่มฝึกหรือถามเรื่องไหนดีคะ?" : "Ready when you are — what would you like to practise?"}
+              {th ? "สวัสดีค่ะ วันนี้อยากเรียนหรือฝึกเรื่องไหนดีคะ" : "Hi! What would you like to learn or practise today?"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-ink-3">
               {lessonId
-                ? th
-                  ? "เลือกคำถามแนะนำด้านล่างเพื่อสรุปบทเรียน ยกตัวอย่างในงานจริง หรือจำลองสถานการณ์"
-                  : "Pick a suggested prompt below to summarise this lesson, see a job example, or role-play a scenario."
-                : th
-                  ? "เลือกคำถามด้านล่างเพื่อดูผลประเมิน วางแผนขั้นตอนถัดไป หรือทดสอบเกราะความปลอดภัยของโค้ช"
-                  : "Pick a prompt below to review your skill gaps, plan your next step, or test guardrail boundaries."}
+                ? th ? "แตะคำถามแนะนำด้านล่าง หรือพิมพ์คำถามเกี่ยวกับบทเรียนนี้ได้เลยค่ะ" : "Tap a suggestion below, or ask your own question about this lesson."
+                : th ? "แตะคำถามแนะนำด้านล่างเพื่อดูผลประเมิน วางแผนขั้นถัดไป หรือดูว่าโค้ชรับมือคำถามนอกขอบเขตอย่างไรค่ะ" : "Tap a suggestion below to review your results, plan your next step, or see how the coach handles off-limits questions."}
             </p>
           </div>
         )}
@@ -499,12 +485,8 @@ export function SecureCoach({
             <p>{question}</p>
             <p className="mt-1.5 text-[11px] font-medium text-ink-3">
               {streaming
-                ? th
-                  ? "กำลังประมวลผล…"
-                  : "Processing…"
-                : th
-                  ? "ยังไม่ยืนยันการบันทึก — โหลดข้อมูลก่อนส่งซ้ำ"
-                  : "Persistence not confirmed — refresh before resending"}
+                ? th ? "กำลังส่ง…" : "Sending…"
+                : th ? "ยังไม่แน่ใจว่าบันทึกแล้ว โปรดอัปเดตข้อมูลก่อนส่งอีกครั้ง" : "Not sure this was saved. Refresh before sending again."}
             </p>
           </div>
         )}
@@ -513,9 +495,7 @@ export function SecureCoach({
           <div className="mr-4 whitespace-pre-wrap break-words rounded-2xl border border-line bg-surface p-3.5 text-sm text-ink-2">
             {partial}
             <p className="mt-2 text-xs text-warn">
-              {th
-                ? "คำตอบยังไม่ยืนยัน จนกว่าจะได้รับสถานะสุดท้ายและโหลดบันทึกสำเร็จ"
-                : "Response unverified until final metadata and the saved conversation are received."}
+              {th ? "กำลังตรวจสอบคำตอบนี้ จะยืนยันเมื่อบันทึกแชตเรียบร้อยแล้ว" : "Checking this answer. It's confirmed once the chat is saved."}
             </p>
           </div>
         )}
@@ -525,7 +505,7 @@ export function SecureCoach({
             <span className="typing font-bold text-brand">
               <span>●</span> <span>●</span> <span>●</span>
             </span>
-            <span>{th ? "โค้ชกำลังตอบ…" : "Coach is responding…"}</span>
+            <span>{th ? "โค้ชกำลังพิมพ์…" : "Coach is typing…"}</span>
           </div>
         )}
       </div>
@@ -539,7 +519,7 @@ export function SecureCoach({
       {/* Perplexity / Mindvalley Follow-up Prompt Chips */}
       <div className="mt-4 border-t border-line pt-3">
         <p className="mb-2 text-[11px] font-semibold text-ink-3">
-          {th ? "คำถามแนะนำถัดไป" : "Suggested prompts"}
+          {th ? "คำถามแนะนำ" : "Suggestions"}
         </p>
         <div className="flex flex-wrap gap-1.5">
           {suggestions.map((suggestion) => (
@@ -568,7 +548,7 @@ export function SecureCoach({
         }}
       >
         <label className="min-w-0 flex-1">
-          <span className="sr-only">{th ? "ข้อความถึงโค้ช" : "Message the coach"}</span>
+          <span className="sr-only">{th ? "พิมพ์ข้อความถึงโค้ช" : "Message the coach"}</span>
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
@@ -583,7 +563,7 @@ export function SecureCoach({
             required
             disabled={busy || streaming}
             placeholder={
-              th ? "อยากเรียนรู้หรือฝึกอะไร… (กด Enter เพื่อส่ง)" : "What would you like to learn or practise? (Enter to send)"
+              th ? "ถามเรื่องบทเรียน ผลประเมิน หรือแผนการเรียนได้เลย" : "Ask about a lesson, your results or your plan"
             }
             className="w-full resize-none rounded-2xl border border-line bg-surface px-3.5 py-2.5 text-sm outline-none transition focus:border-brand"
           />
