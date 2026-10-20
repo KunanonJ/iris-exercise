@@ -1,6 +1,6 @@
 # IRIS case submission — draft and final checks
 
-**Status: DRAFT. Do not send until the hosted login works** (20 Oct: Clerk accepts the test accounts, but `/api/session` returns 401 because the Vercel Clerk issuer/JWT key still point to the old Clerk app). Then confirm recipient/deadline and send it yourself.
+**Status: DRAFT, ready to send** once you confirm recipient/deadline. Hosted login verified on 20 Oct for all three test accounts. Send it yourself.
 
 **Candidate:** Kunanon Jarat  
 **Role:** Digital & AI Solution Product Manager  
@@ -42,7 +42,7 @@ Sending remains a separate authorised action.
 |---|---|
 | Why this cohort? | Eighteen shared frameworks cover the proposed 12,000 RD/PK employees while testing frontline mobile constraints. Headcounts and SME capacity are case assumptions to confirm in week 1. |
 | What does week 12 prove? | All 12,000 can access the five thin capabilities; target at least 30% assessed by the forum, 70% within eight weeks. Show coverage and missing records, not a complete 12,000-person measured baseline. |
-| What authenticates users? | Clerk verifies issuer, authorised party, subject, session and status; `suite_v2_memberships` (Prisma/Supabase on host) supply permissions. Hosted app live. Google + LINE Login **enabled**; Google OAuth redirect proven from host; mapped Google/LINE membership completion still operator-interactive. |
+| What authenticates users? | Clerk verifies issuer, authorised party, subject, session and status; `suite_v2_memberships` (Prisma/Supabase on host) supply permissions. Hosted app live; email-code login verified for employee, manager and leader on 20 Oct. Google Login shown; LINE Login enabled in Clerk but hidden on the sign-in screen for now (frontline LINE sign-in remains the production design on slide 7). A new Google identity still needs a membership mapping before it can load data. |
 | What can each role see? | Employees and managers learn on their own records. Managers review current direct reports without private coach chats; no self-approval. Leaders get aggregates with groups below 10 suppressed. |
 | What integration proof exists? | Two local Moodle 4.5.15 instances: catalogue, enrol, completion, replay, partial outage. Synthetic HR: joiner, manager transfer, leaver. Suite/Moodle logins remain separate; hosted LMS/HRIS connectors unconfigured. |
 | What prevents invented courses? | Path generator uses approved shortlist + ID validation. Live grounding still empirical; no prompt guarantees the model never hallucinates. |
@@ -71,8 +71,9 @@ Sending remains a separate authorised action.
 ## Before submission
 
 - [ ] Confirm recipient, deadline and attachment rules from the original email.
-- [ ] Hosted login works end to end with the three `+clerk_test` accounts (code 424242). On 20 Oct Clerk sign-in succeeded but `/api/session` returned 401: set Vercel `CLERK_ISSUER_URL` and `CLERK_JWT_KEY` to the current Clerk app (`literate-magpie-5641`), confirm `APP_ORIGINS` includes the Vercel URL, then redeploy.
-- [ ] Production branch promoted to `main` (PR #6 security fixes live).
+- [x] Hosted login works end to end with the three `+clerk_test` accounts (code 424242): employee, manager and leader views load, `/api/session` and `/api/state` return 200. Fixed on 20 Oct by pointing Vercel `CLERK_ISSUER_URL` and `CLERK_JWT_KEY` (production + preview) at the current Clerk app (`literate-magpie-5641`) and redeploying.
+- [x] Production branch promoted to `main` (PR #6 security fixes live).
+- [x] LINE Login hidden on the sign-in screen for the submission (still enabled in Clerk).
 - [x] Slide 6 states the full live-run result (4 of 7 checks failed), not only groundedness.
 - [x] Tools disclosure matches between deck slide 12 and the email.
 - [x] Export the updated deck and verify **12 pages** at 1920×1080.
