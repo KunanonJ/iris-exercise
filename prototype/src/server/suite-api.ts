@@ -3,6 +3,7 @@ import { setAIBinding } from "../lib/ai";
 import { prepareCoach } from "../lib/coach/coach";
 import { aiPlan } from "../lib/path";
 import {
+  chooseDemoRole,
   commitTenant,
   fingerprint,
   loadTenant,
@@ -10,7 +11,8 @@ import {
   reserveQuota,
 } from "../lib/suite-repository-prisma";
 import { applyCommand, commandSchema, HttpError, scopedView, storeGeneratedPlan } from "../lib/suite-domain";
-import { authenticateNext } from "./authenticate-next";
+import { authenticateNext, verifyClerkUser } from "./authenticate-next";
+import { DEMO_PERSONAS, DEMO_TENANT_ID, demoRolePickerEnabled, demoRoleSchema } from "./demo-roles";
 import { clerkEnv, errorResponse, json, requestKey } from "./env";
 import { readJson } from "./request";
 import { requireOrigin } from "./auth";
@@ -73,12 +75,24 @@ export async function handleSuiteApi(req: Request, path: string): Promise<Respon
 
     const env = clerkEnv();
     const db = getPrisma();
-    const p = await authenticateNext(req, env);
+
+    if (path === "/api/demo/role") {
+      if (!demoRolePickerEnabled() || req.method !== "POST") throw new HttpError(404, "Endpoint not found");
+      requireOrigin(req, env);
+      const userId = await verifyClerkUser(req, env);
+      const parsed = demoRoleSchema.safeParse(await readJson(req));
+      if (!parsed.success) throw new HttpError(422, "Choose employee, manager or leader");
+      await reserveQuota(db, `${DEMO_TENANT_ID}:demo-role:${userId}`, 30);
+      const { role } = parsed.data;
+      return json({ principal: await chooseDemoRole(db, userId, DEMO_TENANT_ID, DEMO_PERSONAS[role], role) });
+    }
+
+    const p = await authenticateNext(req, env, { allowRoleChoice: demoRolePickerEnabled() });
     const { state, revision } = await loadTenant(db, p.tenantId);
     const view = scopedView(state, p, revision);
 
     if (req.method === "GET") {
-      if (path === "/api/session") return json({ principal: p });
+      if (path === "/api/session") return json({ principal: p, demoRoles: demoRolePickerEnabled() });
       if (path === "/api/state") return json(view);
       if (path === "/api/integrations") return json({ integrations: view.integrations });
     }

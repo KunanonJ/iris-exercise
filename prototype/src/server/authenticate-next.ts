@@ -4,7 +4,12 @@ import { lookupPrincipal } from "../lib/suite-repository-prisma";
 import { allowedOrigins, type AuthEnvironment } from "./auth";
 import { getPrisma } from "./prisma";
 
-export async function authenticateNext(req: Request, env: AuthEnvironment = {}) {
+export async function authenticateNext(req: Request, env: AuthEnvironment = {}, options: { allowRoleChoice?: boolean } = {}) {
+  return lookupPrincipal(getPrisma(), await verifyClerkUser(req, env), options);
+}
+
+/** Verifies the Clerk session token and returns its user id, without requiring a membership. */
+export async function verifyClerkUser(req: Request, env: AuthEnvironment = {}): Promise<string> {
   if (!/^Bearer [A-Za-z0-9_.-]+$/.test(req.headers.get("authorization") ?? "")) {
     throw new HttpError(401, "Sign in with Clerk");
   }
@@ -33,5 +38,5 @@ export async function authenticateNext(req: Request, env: AuthEnvironment = {}) 
   } catch {
     throw new HttpError(401, "Invalid or expired Clerk session");
   }
-  return lookupPrincipal(getPrisma(), userId);
+  return userId;
 }

@@ -6,7 +6,7 @@ Add components with `npx shadcn@latest add <name>`.
 
 ## Authentication and permissions
 
-Clerk supplies session identity. The Next.js API (or Worker) verifies the public-key JWT and expected issuer, authorised party, user/session claims and session status. Supabase (or local D1) membership records map the verified user to one tenant, employee and role; the browser cannot choose a persona or grant itself a role.
+Clerk supplies session identity. The Next.js API (or Worker) verifies the public-key JWT and expected issuer, authorised party, user/session claims and session status. Supabase (or local D1) membership records map the verified user to one tenant, employee and role. The browser cannot grant itself a role or pick an arbitrary employee. Demo exception: with `DEMO_ROLE_PICKER=1`, a signed-in account that has no membership sees a role picker and `POST /api/demo/role` binds it to one of three synthetic personas (E0001 employee, E0002 manager, E9001 leader). The choice is audited and rate-limited, and every request still checks the stored role. Leave the flag unset to require administrator-assigned memberships.
 
 - Employees access their own learning record.
 - Managers can learn on their own record and review their current direct reports. Team views exclude private coach conversations; self-approval is blocked.

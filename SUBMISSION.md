@@ -21,11 +21,7 @@
 >
 > There is also an optional working prototype with synthetic data: https://iris-learning-suite.vercel.app
 >
-> - Employee: iris.e0001+clerk_test@example.com
-> - Manager: iris.e0002+clerk_test@example.com
-> - Leader: iris.e9001+clerk_test@example.com
->
-> Enter one of these emails, choose "Use another method", then "Email code", and enter 424242 (a test code, so no inbox is needed). The accounts are shared, so you may see changes made by other reviewers.
+> Sign in with Google, then choose a role: Employee, Employee + team lead, or HR / Executive. You can switch roles at any time from the top bar. If you'd rather not use Google, sign in with iris.e0001+clerk_test@example.com: choose "Use another method", then "Email code", and enter 424242 (a test code, so no inbox is needed). Each role is a shared demo profile, so you may see changes made by other reviewers.
 >
 > On AI quality: the offline test set passes 55/55, but a live run on a free stand-in model failed 4 of 7 release checks, so the release gate is not passed yet. Slide 6 shows the detail and the next step.
 >
@@ -42,7 +38,7 @@ Sending remains a separate authorised action.
 |---|---|
 | Why this cohort? | Eighteen shared frameworks cover the proposed 12,000 RD/PK employees while testing frontline mobile constraints. Headcounts and SME capacity are case assumptions to confirm in week 1. |
 | What does week 12 prove? | All 12,000 can access the five thin capabilities; target at least 30% assessed by the forum, 70% within eight weeks. Show coverage and missing records, not a complete 12,000-person measured baseline. |
-| What authenticates users? | Clerk verifies issuer, authorised party, subject, session and status; `suite_v2_memberships` (Prisma/Supabase on host) supply permissions. Hosted app live; email-code login verified for employee, manager and leader on 20 Oct. Google Login shown; LINE Login enabled in Clerk but hidden on the sign-in screen for now (frontline LINE sign-in remains the production design on slide 7). A new Google identity still needs a membership mapping before it can load data. |
+| What authenticates users? | Clerk verifies issuer, authorised party, subject, session and status; `suite_v2_memberships` (Prisma/Supabase on host) supply permissions. Hosted app live; email-code login verified for employee, manager and leader on 20 Oct. Google Login shown; LINE Login enabled in Clerk but hidden on the sign-in screen for now (frontline LINE sign-in remains the production design on slide 7). Demo only (`DEMO_ROLE_PICKER=1`): an account with no role picks one of three synthetic personas; the server records it as the membership (audited, rate-limited) and still checks the role on every request. In production, roles come from the HR system and the org chart. |
 | What can each role see? | Employees and managers learn on their own records. Managers review current direct reports without private coach chats; no self-approval. Leaders get aggregates with groups below 10 suppressed. |
 | What integration proof exists? | Two local Moodle 4.5.15 instances: catalogue, enrol, completion, replay, partial outage. Synthetic HR: joiner, manager transfer, leaver. Suite/Moodle logins remain separate; hosted LMS/HRIS connectors unconfigured. |
 | What prevents invented courses? | Path generator uses approved shortlist + ID validation. Live grounding still empirical; no prompt guarantees the model never hallucinates. |
