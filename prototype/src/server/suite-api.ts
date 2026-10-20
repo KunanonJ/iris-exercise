@@ -130,7 +130,10 @@ export async function handleSuiteApi(req: Request, path: string): Promise<Respon
       }
       await reserveQuota(db, `${p.tenantId}:user:${p.userId}`, 20);
       await reserveQuota(db, `${p.tenantId}:ai`, 100);
-      const generated = await aiPlan(r.employee, r.overrides);
+      const generated = await aiPlan(r.employee, r.overrides, {
+        minutesPerMonth: r.assessment.minutesPerMonth,
+        certificates: r.assessment.certificates,
+      });
       for (let attempt = 0; ; attempt++) {
         const current = attempt === 0 ? { state, revision } : await loadTenant(db, p.tenantId);
         const next = storeGeneratedPlan(current.state, p, generated);

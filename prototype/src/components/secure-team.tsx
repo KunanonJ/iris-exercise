@@ -7,6 +7,7 @@ import { BUSINESS_UNITS, roleById, skillById } from "@/data/taxonomy";
 import type { IntegrationStatus, LearningRecord, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
 import type { Approval, Bilingual, Lang, Level, Role } from "@/lib/types";
 import { Avatar, Badge, Button, Card, cx, Icon, LevelDots, Ring } from "./kit";
+import { LearningContextSummary } from "./secure-learning-context";
 
 type Command = (command: SuiteCommand) => Promise<void>;
 type SimPoint = { id: string; readiness: number; kpi: number };
@@ -194,6 +195,7 @@ function ApprovalCard({
         </div>
       </div>
 
+      {approval.kind === "assessment" && <LearningContextSummary lang={lang} assessment={record.assessment} forManager />}
       {approval.kind === "assessment" && (
         <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
           <div className="grid grid-cols-[1fr_48px_56px_108px] items-center gap-1 border-b border-line bg-surface-2 px-3 py-2 text-[11px] font-semibold text-ink-3">

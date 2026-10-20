@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { itemById } from "../data/catalog";
+import { certificateById, DEFAULT_LEARNING_MINUTES, LEARNING_MINUTES } from "../data/certificates";
 import { roleById } from "../data/taxonomy";
 import { profile } from "./skills";
 import type { Approval, Employee, LearningPlan, Level } from "./types";
@@ -8,7 +9,7 @@ import type { CommandRequest, IntegrationStatus, LearningRecord, Principal, Suit
 export class HttpError extends Error { constructor(public status: number, message: string) { super(message); } }
 const levels = z.record(z.string().max(64), z.number().int().min(1).max(4));
 export const commandSchema = z.object({ expectedRevision: z.number().int().nonnegative(), command: z.discriminatedUnion("type", [
-  z.object({ type: z.literal("assessment.submit"), self: levels, answers: z.array(z.number().int().min(0).max(2)).length(3) }).strict(),
+  z.object({ type: z.literal("assessment.submit"), self: levels, answers: z.array(z.number().int().min(0).max(2)).length(3), minutesPerMonth: z.number().int().refine(m => (LEARNING_MINUTES as readonly number[]).includes(m)).optional(), certificates: z.array(z.string().max(32).refine(id => Boolean(certificateById(id)))).max(10).optional() }).strict(),
   z.object({ type: z.literal("plan.submit") }).strict(),
   z.object({ type: z.literal("learning.start"), itemId: z.string().max(64) }).strict(),
   z.object({ type: z.literal("project.submit"), itemId: z.string().max(64), evidence: z.string().trim().min(10).max(4000) }).strict(),
@@ -94,7 +95,7 @@ export function applyCommand(state: TenantState, p: Principal, input: CommandReq
     const ids = skillIds(r); validateLevels(a.self, ids, true);
     const quiz: Record<string,Level> = {}; ["T-CMPL","L-COACH","T-INV"].forEach((id,i) => { if (ids.has(id)) quiz[id] = a.answers[i] === [1,2,1][i] ? 3 : 2; });
     const final = Object.fromEntries([...ids].map(id => [id, Math.min(a.self[id], quiz[id] ?? a.self[id]) as Level]));
-    r.assessment = { status: "submitted", self: a.self, quiz, final };
+    r.assessment = { status: "submitted", self: a.self, quiz, final, minutesPerMonth: a.minutesPerMonth ?? DEFAULT_LEARNING_MINUTES, certificates: [...new Set(a.certificates ?? [])] };
     pending(next,p.employeeId,"assessment",now);
   } else if (a.type === "plan.submit") {
     if (r.assessment.status !== "approved" || !r.plan || !["draft","changes_requested"].includes(r.plan.status)) throw new HttpError(409,"An approved assessment and draft plan are required");
