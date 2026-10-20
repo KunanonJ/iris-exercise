@@ -11,6 +11,7 @@ const levels = z.record(z.string().max(64), z.number().int().min(1).max(4));
 export const commandSchema = z.object({ expectedRevision: z.number().int().nonnegative(), command: z.discriminatedUnion("type", [
   z.object({ type: z.literal("assessment.submit"), self: levels, answers: z.array(z.number().int().min(0).max(2)).length(3), minutesPerMonth: z.number().int().refine(m => (LEARNING_MINUTES as readonly number[]).includes(m)).optional(), certificates: z.array(z.string().max(32).refine(id => Boolean(certificateById(id)))).max(10).optional() }).strict(),
   z.object({ type: z.literal("plan.submit") }).strict(),
+  z.object({ type: z.literal("coach.feedback"), key: z.string().min(1).max(64), index: z.number().int().min(0).max(200), helpful: z.boolean() }).strict(),
   z.object({ type: z.literal("learning.start"), itemId: z.string().max(64) }).strict(),
   z.object({ type: z.literal("project.submit"), itemId: z.string().max(64), evidence: z.string().trim().min(10).max(4000) }).strict(),
   z.object({ type: z.literal("approval.decide"), approvalId: z.string().max(128), approve: z.boolean(), note: z.string().trim().max(1000).optional(), final: levels.optional() }).strict(),
@@ -46,9 +47,14 @@ export function scopedView(state: TenantState, p: Principal, revision: number): 
     if (rs.length < 10) return result;
     const bus = [...new Set(rs.map(r => r.employee.bu))];
     const groups = bus.map(bu => { const members = rs.filter(r => r.employee.bu === bu); return { bu, count: members.length, readiness: members.reduce((n,r) => n + profile(r.employee,r.overrides).currentReadiness,0) / members.length }; });
-    result.metrics = { employees: rs.length, assessed: rs.filter(r => r.assessment.status !== "not_started").length, approved: rs.filter(r => r.assessment.status === "approved").length, plansActive: rs.filter(r => r.plan?.status === "approved").length, completedSteps: rs.reduce((n,r) => n + (r.plan?.steps.filter(s => s.status === "done").length ?? 0),0), pendingApprovals: state.approvals.filter(a => a.status === "pending").length, groups: groups.filter(g => g.count >= 10), suppressedGroups: groups.filter(g => g.count < 10).length };
+    result.metrics = { employees: rs.length, assessed: rs.filter(r => r.assessment.status !== "not_started").length, approved: rs.filter(r => r.assessment.status === "approved").length, plansActive: rs.filter(r => r.plan?.status === "approved").length, completedSteps: rs.reduce((n,r) => n + (r.plan?.steps.filter(s => s.status === "done").length ?? 0),0), pendingApprovals: state.approvals.filter(a => a.status === "pending").length, groups: groups.filter(g => g.count >= 10), suppressedGroups: groups.filter(g => g.count < 10).length, coach: coachStats(rs) };
   }
   return result;
+}
+// Organisation-wide coach quality counts for the leader view; no chat text leaves the record.
+function coachStats(rs: LearningRecord[]) {
+  const answers = rs.flatMap(r => Object.values(r.chats).flat().filter(m => m.role === "assistant"));
+  return { answers: answers.length, rated: answers.filter(m => m.feedback).length, helpful: answers.filter(m => m.feedback === "helpful").length, noSource: answers.filter(m => m.meta?.answerSource === "no_source").length };
 }
 function requireEmployee(p: Principal) { if (p.role === "leader") throw new HttpError(403, "Learning permission required"); }
 function skillIds(r: LearningRecord) { return new Set([r.employee.roleId, r.employee.nextRoleId].filter(Boolean).flatMap(id => roleById(id!).requirements.map(s => s.skillId))); }
@@ -97,6 +103,11 @@ export function applyCommand(state: TenantState, p: Principal, input: CommandReq
     const final = Object.fromEntries([...ids].map(id => [id, Math.min(a.self[id], quiz[id] ?? a.self[id]) as Level]));
     r.assessment = { status: "submitted", self: a.self, quiz, final, minutesPerMonth: a.minutesPerMonth ?? DEFAULT_LEARNING_MINUTES, certificates: [...new Set(a.certificates ?? [])] };
     pending(next,p.employeeId,"assessment",now);
+  } else if (a.type === "coach.feedback") {
+    // Ratings feed the weekly expert review of coach answers; managers never see chats.
+    const message = r.chats[a.key]?.[a.index];
+    if (!message || message.role !== "assistant") throw new HttpError(404, "Coach answer not found");
+    message.feedback = a.helpful ? "helpful" : "not_helpful";
   } else if (a.type === "plan.submit") {
     if (r.assessment.status !== "approved" || !r.plan || !["draft","changes_requested"].includes(r.plan.status)) throw new HttpError(409,"An approved assessment and draft plan are required");
     r.plan.status = "pending"; pending(next,p.employeeId,"plan",now);

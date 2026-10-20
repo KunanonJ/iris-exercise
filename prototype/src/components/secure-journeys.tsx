@@ -290,7 +290,7 @@ function Lesson({ itemId, record, lang, busy, command, coach, onClose, onSelectL
       {item.skills.length > 0 && <div className="mb-3 flex items-start gap-2 rounded-xl bg-brand-soft/65 p-3 text-xs text-ink-2"><Icon name="trendUp" className="mt-0.5 h-4 w-4 shrink-0 text-brand" /><span>{th ? "เมื่อหัวหน้าอนุมัติ ทักษะของคุณจะขึ้นเป็นระดับ: " : "Once your manager approves, your skill moves up to: "}<strong className="text-brand">{item.skills.map(x => `${skillById(x.skillId)?.name[lang] ?? x.skillId} → L${x.targetLevel}`).join(", ")}</strong></span></div>}
       <label className="text-sm font-semibold" htmlFor={`evidence-${itemId}`}>{th ? "หลักฐานโปรเจกต์" : "Project evidence"}</label><p className="mt-1 text-xs text-ink-3">{th ? "เล่าว่าคุณทำอะไร ได้ผลอย่างไร และได้เรียนรู้อะไร โปรดอย่าใส่ข้อมูลลูกค้าหรือข้อมูลส่วนตัวนะคะ" : "What did you do, what changed, and what did you learn? Leave out customer and personal details."}</p><textarea id={`evidence-${itemId}`} value={evidence} onChange={event => setEvidence(event.target.value)} minLength={10} maxLength={4000} required rows={6} disabled={busy || step?.status === "done" || step?.status === "submitted" || record.plan?.status !== "approved"} className="mt-3 w-full rounded-xl border border-line bg-surface p-3 text-sm" /><Button type="submit" disabled={busy || evidence.trim().length < 10 || step?.status === "done" || step?.status === "submitted" || record.plan?.status !== "approved"} className="mt-3">{th ? "ส่งหลักฐานให้หัวหน้าอนุมัติ" : "Send to my manager"}</Button>
     </form>}
-  </Card><SecureCoach key={itemId} messages={record.chats[itemId] ?? []} lessonId={itemId} lang={lang} busy={busy} send={coach} onOpenLesson={onSelectLesson} /></div></div>;
+  </Card><SecureCoach key={itemId} messages={record.chats[itemId] ?? []} lessonId={itemId} lang={lang} busy={busy} send={coach} onOpenLesson={onSelectLesson} onFeedback={(index, helpful) => void command({ type: "coach.feedback", key: itemId, index, helpful })} /></div></div>;
 }
 
 // "Keep going" nudge on the home screen: plan progress and the next step,
@@ -326,7 +326,7 @@ export function EmployeeJourney(props: JourneyProps) {
     {area === "overview" && <><NextStepCard record={props.record} lang={props.lang} onArea={setArea} onOpen={setLessonId} /><Profile {...props} onAskCoach={() => setArea("coach")} /></>}
     {area === "assessment" && <Assessment {...props} />}
     {area === "plan" && <LearningPlan {...props} onOpen={setLessonId} />}
-    {area === "coach" && <SecureCoach messages={props.record.chats.general ?? []} lang={props.lang} busy={props.busy} send={props.coach} onOpenLesson={setLessonId} />}
+    {area === "coach" && <SecureCoach messages={props.record.chats.general ?? []} lang={props.lang} busy={props.busy} send={props.coach} onOpenLesson={setLessonId} onFeedback={(index, helpful) => void props.command({ type: "coach.feedback", key: "general", index, helpful })} />}
   </div></div>;
 }
 

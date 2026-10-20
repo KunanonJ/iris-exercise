@@ -9,6 +9,7 @@ import { employeeById, profileForPrompt } from "../skills";
 import type { Bilingual, Employee, Lang, LearningPlan, Level } from "../types";
 import { continuesActivity, demoAnswer } from "./demo";
 import { assessmentExplainPin, PII_REPLIES, precheck, programmePolicySource, SAFE_REPLIES, stricter, type Category } from "./guardrails";
+import { journeyForPrompt, type CoachJourney } from "./journey";
 import { buildUserTurn, CLASSIFIER_SYSTEM, COACH_SYSTEM } from "./prompt";
 import { hasUnknownOfferTerm, retrieve, type Retrieved } from "./retrieval";
 
@@ -20,6 +21,8 @@ export interface CoachInput {
   lessonId?: string;
   plan?: LearningPlan;
   overrides?: Record<string, Level>;
+  // Skill-check status and plan-sizing answers, so answers fit the employee's stage.
+  journey?: CoachJourney;
   forceDemo?: boolean;
 }
 
@@ -184,7 +187,7 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
 
   // The retrieval-backed answer is the demo-mode reply, and in live mode the
   // fallback if the model provider fails before sending anything.
-  const retrievalAnswer = demoAnswer({ emp, lang, lessonId: input.lessonId, message: verdict.redacted, prevAssistant, sources, plan: input.plan, overrides: input.overrides });
+  const retrievalAnswer = demoAnswer({ emp, lang, lessonId: input.lessonId, message: verdict.redacted, prevAssistant, sources, plan: input.plan, overrides: input.overrides, journey: input.journey });
 
   if (!live) {
     meta.sources = toRefs(retrievalAnswer.sources);
@@ -218,7 +221,7 @@ export async function prepareCoach(input: CoachInput): Promise<Prepared> {
     {
       role: "user",
       content: buildUserTurn({
-        profile: profileForPrompt(emp, input.overrides),
+        profile: profileForPrompt(emp, input.overrides) + journeyForPrompt(input.journey),
         plan: planForPrompt(input.plan, lang),
         lesson: lesson ? `${lesson.id}: ${lesson.title[lang]}` : undefined,
         sources,

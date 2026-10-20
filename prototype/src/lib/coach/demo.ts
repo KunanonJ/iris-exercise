@@ -5,6 +5,7 @@ import { roleById, skillById } from "../../data/taxonomy";
 import { profile } from "../skills";
 import type { Employee, Lang, LearningPlan, Level } from "../types";
 import { programmePolicySource } from "./guardrails";
+import { certificateNames, journeyGuidance, timeNote, type CoachJourney } from "./journey";
 import { nextStep, progressNudge } from "./nudge";
 import { retrieve, tokenize, type Retrieved } from "./retrieval";
 
@@ -14,7 +15,7 @@ const RE = {
   lesson: /(summar|this lesson|example|สรุป|บทเรียนนี้|ยกตัวอย่าง|ตัวอย่าง)/i,
   policy: /(affect|impact|used for|bonus|pay|salary|promot|มีผล|กระทบ|โบนัส|เงินเดือน|เลื่อนตำแหน่ง|นำไปใช้)/i,
   explain: /(result|gap|score|where do i stand|my level|explain my|ผลประเมิน|ผลของ|คะแนน|ช่องว่าง|ขาดอะไร|ระดับของ|จุดที่ต้องพัฒนา|อธิบายผล)/i,
-  next: /(next step|what'?s next|after this (lesson|one|step)|what should i (learn|focus|study)|where (do|should) i start|recommend|ขั้นต่อไป|ทำอะไรต่อ|เรียนอะไรต่อ|เริ่มจาก|ควรทำอะไร|แนะนำ)/i,
+  next: /(next step|what'?s next|after this (lesson|one|step)|what should i (learn|focus|study)|do next|where (do|should) i start|recommend|ขั้นต่อไป|ทำอะไรต่อ|เรียนอะไรต่อ|เริ่มจาก|ควรทำอะไร|แนะนำ)/i,
   nudge: /(how am i doing|my progress|keep (me )?going|motivat|on track|ทำไปถึงไหน|ไปถึงไหนแล้ว|ความคืบหน้า|กำลังใจ)/i,
   yes: /^\s*(yes|yeah|yep|ok|okay|sure|please|go ahead|let'?s|ได้|เอา|โอเค|ค่ะ|ครับ|ลอง|สนใจ)/i,
 };
@@ -41,6 +42,7 @@ interface DemoIn {
   sources: Retrieved[];
   plan?: LearningPlan;
   overrides?: Record<string, Level>;
+  journey?: CoachJourney;
 }
 
 function excerpt(text: string, query: string, lang: Lang) {
@@ -211,6 +213,8 @@ export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
   if (RE.reflect.test(message)) return reflection(d);
 
   if (RE.nudge.test(message) && !RE.policy.test(message)) {
+    const guidance = journeyGuidance(d.journey, d.plan, lang);
+    if (guidance) return { text: guidance, sources: [] };
     const nudge = progressNudge(d.plan, lang);
     const close = nudge.next ? (th ? "\nอยากให้โค้ชช่วยเริ่มขั้นตอนนี้ไหมคะ" : "\nWant help getting started on it?") : "";
     return { text: `${nudge.text}${close}`, sources: [] };
@@ -230,14 +234,34 @@ export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
         : `• ${s.name.en}: L${g.current} → L${g.required}${g.critical ? " (critical)" : ""}. Next level means: "${s.levels[Math.min(3, g.current) as 0 | 1 | 2 | 3].en}"`;
     });
     const next = roleById(emp.nextRoleId ?? emp.roleId);
+    const status = d.journey?.assessment;
+    // Before the manager approves the skill check, the levels are estimates, not results.
+    if (status && status !== "approved") {
+      const intro = {
+        not_started: th ? `คุณยังไม่ได้ทำแบบประเมินทักษะ ตอนนี้จึงมีแค่ค่าประมาณเริ่มต้น ยังไม่ใช่ผลประเมินค่ะ สำหรับตำแหน่ง${next.title.th} ค่าประมาณแนะนำให้พัฒนาก่อน:` : `You haven't done your skill check yet, so these are starting estimates, not results. For ${next.title.en} they suggest focusing on:`,
+        changes_requested: th ? `หัวหน้าขอให้แก้ไขแบบประเมินทักษะ ตัวเลขนี้จึงยังเป็นค่าประมาณค่ะ สำหรับตำแหน่ง${next.title.th} แนะนำให้พัฒนาก่อน:` : `Your manager asked you to update your skill check, so these are still estimates. For ${next.title.en} they suggest focusing on:`,
+        submitted: th ? `แบบประเมินทักษะของคุณรอหัวหน้าอนุมัติ ระดับนี้จึงยังไม่ใช่ผลสุดท้ายค่ะ สำหรับตำแหน่ง${next.title.th} คะแนนของคุณที่ตรวจกับคำถามสถานการณ์แล้วแนะนำให้พัฒนาก่อน:` : `Your skill check is with your manager, so these levels aren't final yet. For ${next.title.en}, your ratings checked against the scenarios suggest focusing on:`,
+      }[status];
+      const close = status === "submitted"
+        ? th ? "เมื่อหัวหน้าอนุมัติแล้ว โค้ชจะอธิบายผลที่ยืนยันแล้วให้ได้ค่ะ" : "Once they approve it, I can explain your confirmed results."
+        : th ? "อยากเริ่มแบบประเมินทักษะ 5 นาทีที่แท็บประเมินทักษะไหมคะ" : "Want to start the 5-minute skill check on the Skill check tab?";
+      const text = th
+        ? `${intro}\n${lines.join("\n")}\nหัวหน้าเป็นผู้ยืนยันผลสุดท้าย และผลใช้เพื่อการพัฒนาเท่านั้น [S1] ${close}`
+        : `${intro}\n${lines.join("\n")}\nYour manager confirms the final results, which are used for development only [S1]. ${close}`;
+      return { text, sources: src };
+    }
+    const certs = certificateNames(d.journey, lang);
+    const certLine = certs.length ? (th ? `\nใบรับรองของคุณ (${certs.join(", ")}) นับรวมแล้ว แผนจะข้ามการอบรมที่ครอบคลุมอยู่แล้วค่ะ` : `\nYour certificates (${certs.join(", ")}) are counted, so your plan skips training they already cover.`) : "";
     const text = th
-      ? `สำหรับตำแหน่ง${next.title.th} คุณผ่านเกณฑ์แล้ว ${met} จาก ${roleGaps.length} ทักษะค่ะ\nควรพัฒนาก่อน:\n${lines.join("\n")}\nผลนี้มาจากการประเมินตนเอง แบบทดสอบ และการอนุมัติของหัวหน้า และใช้เพื่อการพัฒนาเท่านั้น [S1] อยากให้โค้ชแนะนำขั้นตอนแรกไหมคะ`
-      : `For ${next.title.en} you already meet ${met} of ${roleGaps.length} skills.\nFocus first on:\n${lines.join("\n")}\nResults combine your self-assessment, a knowledge check and your manager's approval, and are used for development only [S1]. Want me to suggest a first step?`;
+      ? `สำหรับตำแหน่ง${next.title.th} คุณผ่านเกณฑ์แล้ว ${met} จาก ${roleGaps.length} ทักษะค่ะ\nควรพัฒนาก่อน:\n${lines.join("\n")}\nผลนี้มาจากการประเมินตนเอง แบบทดสอบ และการอนุมัติของหัวหน้า และใช้เพื่อการพัฒนาเท่านั้น [S1]${certLine}\nอยากให้โค้ชแนะนำขั้นตอนแรกไหมคะ`
+      : `For ${next.title.en} you already meet ${met} of ${roleGaps.length} skills.\nFocus first on:\n${lines.join("\n")}\nResults combine your self-assessment, a knowledge check and your manager's approval, and are used for development only [S1].${certLine}\nWant me to suggest a first step?`;
     return { text, sources: src };
   }
 
   if (RE.next.test(message) && !RE.policy.test(message)) {
     // Beside a lesson, "what's next" means the step after this one.
+    const guidance = journeyGuidance(d.journey, d.plan, lang);
+    if (guidance) return { text: guidance, sources: [] };
     const inPlan = d.lessonId && d.plan?.steps.some((s) => s.itemId === d.lessonId);
     const step = nextStep(d.plan, inPlan ? d.lessonId : undefined);
     const item = step && itemById(step.itemId);
@@ -245,14 +269,14 @@ export function demoAnswer(d: DemoIn): { text: string; sources: Retrieved[] } {
       const src = item.content ? retrieve(item.title.en, lang, { pinned: [item.id], k: 1 }) : [];
       const cite = src.length ? " [S1]" : "";
       const text = th
-        ? `ขั้นต่อไปของคุณคือ "${item.title.th}" (${item.minutes} นาที)${cite}\nเหตุผล: ${step.rationale.th}\nถ้าว่างช่วงพัก เริ่มได้เลยจากแท็บแผนการเรียนค่ะ`
-        : `Your next step is "${item.title.en}" (${item.minutes} min)${cite}.\nWhy: ${step.rationale.en}\nIf you have a break today, open it from the Learning path tab.`;
+        ? `ขั้นต่อไปของคุณคือ "${item.title.th}" (${item.minutes} นาที)${cite}\nเหตุผล: ${step.rationale.th}${item.format === "video" ? timeNote(d.journey, item.minutes, lang) : ""}\nถ้าว่างช่วงพัก เริ่มได้เลยจากแท็บแผนการเรียนค่ะ`
+        : `Your next step is "${item.title.en}" (${item.minutes} min)${cite}.\nWhy: ${step.rationale.en}${item.format === "video" ? timeNote(d.journey, item.minutes, lang) : ""}\nIf you have a break today, open it from the Learning plan tab.`;
       return { text, sources: src };
     }
     if (d.plan?.steps.length) return { text: progressNudge(d.plan, lang, inPlan ? d.lessonId : undefined).text, sources: [] };
     const text = th
       ? "คุณยังไม่มีแผนการเรียนรู้ที่อนุมัติแล้วค่ะ ไปที่แท็บแผนการเรียน แล้วกด 'สร้างแผนการเรียน' เพื่อให้ AI จัดแผนจากช่องว่างทักษะของคุณ จากนั้นส่งให้หัวหน้าอนุมัติ"
-      : "You don't have an approved plan yet. Go to the Learning path tab and tap 'Build my learning path' so the AI can sequence learning for your gaps, then send it to your manager.";
+      : "You don't have an approved plan yet. Go to the Learning plan tab and tap 'Build my plan' so the AI can sequence learning for your gaps, then send it to your manager.";
     return { text, sources: [] };
   }
 

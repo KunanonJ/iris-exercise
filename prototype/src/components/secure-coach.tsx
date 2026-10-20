@@ -195,14 +195,62 @@ function SourceBottomSheet({
   );
 }
 
+// "Was this helpful?" on each saved answer; "not helpful" answers go to the weekly expert review.
+function AnswerFeedback({
+  value,
+  lang,
+  busy,
+  onFeedback,
+}: {
+  value?: ConversationMessage["feedback"];
+  lang: Lang;
+  busy: boolean;
+  onFeedback: (helpful: boolean) => void;
+}) {
+  const th = lang === "th";
+  const option = (helpful: boolean, label: string) => {
+    const on = value === (helpful ? "helpful" : "not_helpful");
+    return (
+      <button
+        type="button"
+        aria-pressed={on}
+        disabled={busy}
+        onClick={() => onFeedback(helpful)}
+        className={cx(
+          "min-h-8 cursor-pointer rounded-lg border px-2.5 text-[11px] font-medium transition disabled:cursor-wait",
+          on ? "border-brand bg-brand text-white" : "border-line bg-surface-2 text-ink-2 hover:border-brand/40"
+        )}
+      >
+        {label}
+      </button>
+    );
+  };
+  const prompt = !value
+    ? th ? "คำตอบนี้มีประโยชน์ไหมคะ" : "Was this helpful?"
+    : value === "helpful"
+      ? th ? "ขอบคุณค่ะ" : "Thanks for the feedback."
+      : th ? "ขอบคุณค่ะ คำตอบนี้จะเข้าสู่การตรวจทานรายสัปดาห์โดยผู้เชี่ยวชาญ" : "Thanks. This answer goes to the weekly expert review.";
+  return (
+    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-3">
+      <span className="mr-1">{prompt}</span>
+      {option(true, th ? "มีประโยชน์" : "Helpful")}
+      {option(false, th ? "ไม่มีประโยชน์" : "Not helpful")}
+    </div>
+  );
+}
+
 function Reply({
   message,
   lang,
+  busy,
   onSelectSource,
+  onFeedback,
 }: {
   message: ConversationMessage;
   lang: Lang;
+  busy: boolean;
   onSelectSource: (source: Source) => void;
+  onFeedback?: (helpful: boolean) => void;
 }) {
   const [inlineSourceId, setInlineSourceId] = useState<string>();
   const sources = sourcesFor(message.meta, lang);
@@ -273,6 +321,7 @@ function Reply({
       {message.role === "assistant" && (
         <>
           <ProvenanceStrip meta={message.meta} lang={lang} />
+          {onFeedback && <AnswerFeedback value={message.feedback} lang={lang} busy={busy} onFeedback={onFeedback} />}
           {sources.length > 0 && (
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {sources.map((source) => (
@@ -330,6 +379,7 @@ export function SecureCoach({
   busy,
   send,
   onOpenLesson,
+  onFeedback,
 }: {
   messages: ConversationMessage[];
   lessonId?: string;
@@ -337,6 +387,7 @@ export function SecureCoach({
   busy: boolean;
   send: SendCoach;
   onOpenLesson?: (id: string) => void;
+  onFeedback?: (index: number, helpful: boolean) => void;
 }) {
   const th = lang === "th";
   const [input, setInput] = useState("");
@@ -476,7 +527,9 @@ export function SecureCoach({
             key={`${index}:${message.role}`}
             message={message}
             lang={lang}
+            busy={busy || streaming}
             onSelectSource={setSheetSource}
+            onFeedback={onFeedback && message.role === "assistant" ? (helpful) => onFeedback(index, helpful) : undefined}
           />
         ))}
 

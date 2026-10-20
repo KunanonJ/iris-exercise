@@ -27,7 +27,7 @@ export function progressNudge(plan: LearningPlan | undefined, lang: Lang, afterI
       done: 0, total: 0, awaiting: 0,
       text: th
         ? "คุณยังไม่มีแผนการเรียนค่ะ เมื่อหัวหน้าอนุมัติผลประเมินแล้ว สร้างแผนได้ที่แท็บแผนการเรียนนะคะ"
-        : "You don't have a learning plan yet. Once your assessment is approved, build one from the Learning path tab.",
+        : "You don't have a learning plan yet. Once your skill check is approved, build one from the Learning plan tab.",
     };
   }
   const total = plan.steps.length;
@@ -57,7 +57,7 @@ export function progressNudge(plan: LearningPlan | undefined, lang: Lang, afterI
   if (plan.status === "pending") {
     lines.push(th ? "แผนของคุณรอหัวหน้าอนุมัติอยู่ ระหว่างนี้เปิดดูเนื้อหาล่วงหน้าได้นะคะ" : "Your plan is waiting for your manager's approval, so you can preview it but not start yet.");
   } else if (plan.status !== "approved") {
-    lines.push(th ? "แผนของคุณยังไม่ได้ส่งให้หัวหน้าค่ะ ส่งได้ที่แท็บแผนการเรียนนะคะ" : "Your plan isn't with your manager yet: submit it from the Learning path tab.");
+    lines.push(th ? "แผนของคุณยังไม่ได้ส่งให้หัวหน้าค่ะ ส่งได้ที่แท็บแผนการเรียนนะคะ" : "Your plan isn't with your manager yet: send it from the Learning plan tab.");
   } else if (next.status === "in_progress") {
     lines.push(th ? "คุณเริ่มไว้แล้ว เรียนต่อจากเดิมได้เลยค่ะ" : "You've already started it, so pick up where you left off.");
   } else if (item.format === "video") {
