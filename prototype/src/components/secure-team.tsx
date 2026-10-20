@@ -34,7 +34,7 @@ const labels: Record<string, Bilingual> = {
   assessment: { en: "Skill check", th: "ผลประเมินทักษะ" },
   plan: { en: "Learning plan", th: "แผนการเรียน" },
   unconfigured: { en: "Not set up", th: "ยังไม่ได้ตั้งค่า" },
-  configured: { en: "Set up, not yet tested", th: "ตั้งค่าแล้ว ยังไม่ได้ทดสอบ" },
+  configured: { en: "Set up", th: "ตั้งค่าแล้ว" },
   verified: { en: "Tested in sandbox", th: "ทดสอบใน Sandbox แล้ว" },
   error: { en: "Connection error", th: "การเชื่อมต่อขัดข้อง" },
 };
