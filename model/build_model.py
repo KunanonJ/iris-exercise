@@ -100,7 +100,7 @@ section(A, "AI coach usage")
 inp("mau", "Coach monthly active share", 0.45, "of enrolled", "Assumption; frontline on mobile. Track weekly.", PCT, True)
 inp("msgs", "Coach messages per active user per month", 12, "messages", "Assumption.", NUM, True)
 inp("nudges", "Nudges per enrolled employee per month", 4, "messages", "LINE / in-app; AI-personalised.")
-inp("regen", "Path generations per employee per year", 2, "runs", "Initial + one refresh; overnight Batch API.")
+inp("regen", "Path generations per employee per year", 2, "runs", "Initial + one refresh; generated overnight at off-peak rates.")
 inp("tok_in", "Coach input tokens per message (uncached)", 2800, "tokens", "Profile ~500 + sources ~1,500 + history ~800.")
 inp("tok_cache", "Coach input tokens per message (cached)", 1200, "tokens", "System prompt + framework excerpts, prompt-cached.")
 inp("tok_out", "Coach output tokens per message", 450, "tokens", "~120-word answer + light thinking at low effort.")
@@ -112,16 +112,17 @@ inp("path_in", "Path generation input tokens", 6000, "tokens", "")
 inp("path_out", "Path generation output tokens", 2500, "tokens", "")
 inp("judge_usd", "Eval and judge sampling per month", 150, "USD / month", "Weekly regression eval + sampled live answers.")
 
-section(A, "Model prices (Anthropic list, USD per 1M tokens, Oct 2026)")
-inp("c_in", "Coach model input (Sonnet 5.5)", 2.0, "USD / 1M", "Production coach on Sonnet 5.5 if it passes the eval gate; live prototype runs SEA-LION v4 (Workers AI, free).", USD, True)
-inp("c_out", "Coach model output (Sonnet 5.5)", 10.0, "USD / 1M", "", USD, True)
-inp("c_cache", "Coach model cache read", 0.2, "USD / 1M", "", USD)
-inp("o_in", "Opus 5.5 input (scenario)", 4.0, "USD / 1M", "Used for the Opus scenario on the AI Cost sheet.", USD)
-inp("o_out", "Opus 5.5 output (scenario)", 20.0, "USD / 1M", "", USD)
-inp("h_in", "Haiku 5.5 input (classifier, nudges)", 0.10, "USD / 1M", "", USD)
-inp("h_out", "Haiku 5.5 output", 0.50, "USD / 1M", "", USD)
-inp("batch", "Batch API discount", 0.5, "", "50% off for overnight path generation.", PCT)
-inp("llm_cont", "LLM contingency", 0.3, "", "Partner pricing on Vertex/Bedrock differs from list, plus retries and growth.", PCT)
+section(A, "Model prices (DeepSeek API list, USD per 1M tokens, Oct 2026)")
+inp("c_in", "Coach model input (DeepSeek V4.1 Flash, peak)", 0.30, "USD / 1M", "Production coach on DeepSeek V4.1 Flash (deepseek-flash) if it passes the eval gate. Peak rate: DeepSeek peak hours (01:00-04:00 and 06:00-10:00 UTC, weekdays) are Thai working hours. The live prototype run used SEA-LION v4 (Workers AI, free).", USD, True)
+inp("c_out", "Coach model output (DeepSeek V4.1 Flash, peak)", 1.20, "USD / 1M", "", USD, True)
+inp("c_cache", "Coach model cache read (DeepSeek V4.1 Flash, peak)", 0.006, "USD / 1M", "Cache-hit input price.", USD)
+inp("o_in", "Claude Sonnet 5.5 input (scenario)", 2.0, "USD / 1M", "Comparison scenario on the AI Cost sheet (Anthropic list price); the fallback if Flash fails the Thai quality gate.", USD)
+inp("o_out", "Claude Sonnet 5.5 output (scenario)", 10.0, "USD / 1M", "", USD)
+inp("o_cache", "Claude Sonnet 5.5 cache read (scenario)", 0.20, "USD / 1M", "", USD)
+inp("h_in", "Classifier and nudge model input (DeepSeek Flash, peak)", 0.30, "USD / 1M", "", USD)
+inp("h_out", "Classifier and nudge model output (DeepSeek Flash, peak)", 1.20, "USD / 1M", "", USD)
+inp("batch", "Off-peak discount (overnight path generation)", 0.5, "", "DeepSeek off-peak rates are half the peak rates; paths are generated overnight Bangkok time.", PCT)
+inp("llm_cont", "LLM contingency", 0.3, "", "Retries, growth, price changes, and in-region hosting through a cloud provider priced differently from the DeepSeek API.", PCT)
 
 section(A, "Platform run costs")
 inp("infra_fix", "Cloud infrastructure, fixed", 70000, "THB / month", "Dedicated tenant in a Thailand region: app, Postgres + pgvector, Redis, storage, WAF, logs, non-prod.")
@@ -308,7 +309,7 @@ run_rows = [
     ("coach_usd", "Coach LLM (USD)", lambda c: f"={c}{{msgs}}*({N('tok_in')}*{N('c_in')}+{N('tok_cache')}*{N('c_cache')}+{N('tok_out')}*{N('c_out')})/1000000", USD),
     ("cls_usd", "Guardrail classifier LLM (USD)", lambda c: f"={c}{{msgs}}*({N('cls_in')}*{N('h_in')}+{N('cls_out')}*{N('h_out')})/1000000", USD),
     ("ndg_usd", "Nudges LLM (USD)", lambda c: f"={c}{{enrolled}}*{N('nudges')}*({N('ndg_in')}*{N('h_in')}+{N('ndg_out')}*{N('h_out')})/1000000", USD),
-    ("path_usd", "Path generation LLM, batch (USD)", lambda c: f"={c}{{enrolled}}*{N('regen')}/12*({N('path_in')}*{N('c_in')}+{N('path_out')}*{N('c_out')})/1000000*(1-{N('batch')})", USD),
+    ("path_usd", "Path generation LLM, off-peak (USD)", lambda c: f"={c}{{enrolled}}*{N('regen')}/12*({N('path_in')}*{N('c_in')}+{N('path_out')}*{N('c_out')})/1000000*(1-{N('batch')})", USD),
     ("judge_usd", "Evals and judge (USD)", lambda c: f"=IF({c}{{enrolled}}>0,{N('judge_usd')},0)", USD),
     ("llm_thb", "AI / LLM total incl. contingency", lambda c: f"=SUM({c}{{coach_usd}}:{c}{{judge_usd}})*(1+{N('llm_cont')})*{N('fx')}", THB),
     ("infra", "Cloud infrastructure", lambda c: f"=IF({c}{{enrolled}}>0,{N('infra_fix')}+{N('infra_var')}*{c}{{enrolled}},0)", THB),
@@ -441,9 +442,9 @@ P.freeze_panes = "B5"
 # ---------------------------------------------------------------- AI cost scenarios
 C = wb.create_sheet("AI Cost")
 title(C, "AI cost per message and per user", "Why model choice matters less than people costs. Full scale = 45,000 enrolled.")
-header(C, 4, ["Item", "Sonnet 5.5 coach (base)", "Opus 5.5 coach", "Note"], [44, 22, 22, 60])
+header(C, 4, ["Item", "DeepSeek V4.1 Flash coach (base)", "Claude Sonnet 5.5 coach (scenario)", "Note"], [44, 28, 30, 60])
 crow = [
-    ("Coach cost per message (USD)", f"=({N('tok_in')}*{N('c_in')}+{N('tok_cache')}*{N('c_cache')}+{N('tok_out')}*{N('c_out')})/1000000", f"=({N('tok_in')}*{N('o_in')}+{N('tok_cache')}*{N('c_cache')}+{N('tok_out')}*{N('o_out')})/1000000", USD),
+    ("Coach cost per message (USD)", f"=({N('tok_in')}*{N('c_in')}+{N('tok_cache')}*{N('c_cache')}+{N('tok_out')}*{N('c_out')})/1000000", f"=({N('tok_in')}*{N('o_in')}+{N('tok_cache')}*{N('o_cache')}+{N('tok_out')}*{N('o_out')})/1000000", USD),
     ("Classifier cost per message (USD)", f"=({N('cls_in')}*{N('h_in')}+{N('cls_out')}*{N('h_out')})/1000000", "=B6", USD),
     ("Per coach active user per month (THB, incl. contingency)", f"=(B5+B6)*{N('msgs')}*(1+{N('llm_cont')})*{N('fx')}", f"=(C5+C6)*{N('msgs')}*(1+{N('llm_cont')})*{N('fx')}", NUM),
     ("Coach active users at full scale", f"=({N('w1')}+{N('w2')}+{N('w3')})*{N('mau')}", "=B8", THB),
@@ -531,7 +532,7 @@ notes = [
     "Sheets: Assumptions (all inputs) -> Build (12-week team and fee) -> Run (36-month run cost) -> Pricing & P&L (IRIS view and client spend) -> AI Cost (model choice) -> Value (client value case).",
     "Colour code: blue = input, black = formula, green = link to another sheet, yellow = key lever.",
     "Pricing structure: fixed-fee implementation (milestones 30/30/40) + subscription per enrolled employee per month with a minimum from wave 2 + fixed-fee rollout services per wave + 10% of subscription at risk on adoption KPIs.",
-    "Model prices: Anthropic list prices (Oct 2026). Running on Vertex AI (Singapore) or Bedrock uses partner pricing; the 30% LLM contingency covers the difference.",
+    "Model prices: DeepSeek API list prices (Oct 2026), at peak rates for daytime coaching. Hosting DeepSeek in an approved region through a cloud provider is priced differently; the 30% LLM contingency covers the difference.",
     "Change the yellow levers on Assumptions to test scenarios (price, usage, risk premium, coach model).",
 ]
 for i, t in enumerate(notes):
