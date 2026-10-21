@@ -17,7 +17,7 @@
 >
 > Please find attached my response to the Learning Suite case: a 12-slide PDF, plus the cost model (Excel) behind the build, run and pricing numbers.
 >
-> In short: the date is fixed, so I flex scope and cohort, not quality. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI coach works only from approved content and the employee's own record, and security and PDPA approval start in week 1 because they, not the code, set the critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 35% gross margin for IRIS. At full scale, the value to the client is about twice the subscription.
+> In short: the date is fixed, so I flex scope and cohort, not quality. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI coach works only from approved content and the employee's own record, and security and PDPA approval start in week 1 because they, not the code, set the critical path. I propose a THB 7M fixed build fee, delivered by a six-person squad, plus THB 39 per employee per month, which is THB 72M of client spend over three years at a 32% gross margin for IRIS. At full scale, the value to the client is about twice the subscription.
 >
 > There is also an optional working prototype with synthetic data: https://iris.kunanonj.com
 >
@@ -47,8 +47,8 @@ Sending remains a separate authorised action.
 | Has the AI passed? | Offline 55/55. Live run (SEA-LION v4 on Workers AI, 15 Oct) **failed 4 of 7 checks**: red team 18/19 (R12: ID masked, answer ungrounded), golden 31/36, language 50/55, grounded 27/29 (93.1%); citations 27/27 and Thai 4.94/5 passed. The run predates PRs #5/#6. Next run: DeepSeek V4.1 Flash (the costed model), which needs a DeepSeek API key. Keep FAIL explicit until a complete live pass. |
 | What happens when AI fails? | Provenance distinguishes model, safety template, no-source, demo and provider fallback. Demo/fallback cannot certify live success. |
 | Is PDPA approval complete? | No. Deck proposes controls for client/DPO validation. Not permission to launch while approval is late. |
-| How much staffing? | Model assumes ~16.4 average FTE across ~18 individuals over delivery. |
-| What supports the money? | Seven sheets, 1,244 formulas, 143 controls, four sensitivities. 3-year spend THB 82,342,000; IRIS GP 34.9522%. |
+| How much staffing? | A squad of 6 for the 12-week build: product lead, senior fullstack, fullstack, AI and QA engineers, and a UX/UI designer. The client supplies SMEs, system owners and 60 champions. |
+| What supports the money? | Seven sheets, 1,223 formulas, 143 controls, four sensitivities. 3-year spend THB 71,842,000; IRIS GP 32.3000%. |
 | What is the AI cost basis? | Frozen planning quote in the workbook — not a measured bill. |
 | Wave-1 omissions (judgement) | LINE OA push, workshop seats, batch/SLA automation, client production HRIS/LMS hosting — Phase-2 / architecture only. See `docs/line-oa-phase2.md`. |
 

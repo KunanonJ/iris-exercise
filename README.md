@@ -63,19 +63,19 @@ On Vercel the coach gives deterministic demo answers unless `AI_FREE_ONLY_VERIFI
 
 | Planning measure | Amount |
 |---|---:|
-| Wave-1 implementation fee (fixed, incl. 10% fixed-date premium) | THB 17.50M |
-| IRIS build cost (team, third-party, team software, 15% contingency) | Approximately THB 8.60M |
-| Delivery staffing | 16.4 average FTE; approximately 18 individuals |
+| Wave-1 implementation fee (fixed, incl. 10% fixed-date premium) | THB 7.00M |
+| IRIS build cost (team, third-party, team software, 15% contingency) | Approximately THB 3.67M |
+| Delivery staffing | Squad of 6 for the 12-week build: product lead, senior fullstack engineer, fullstack engineer, AI engineer, QA engineer, UX/UI designer |
 | Subscription | THB 39 per enrolled employee/month |
-| Team software subscriptions (IRIS cost) | Claude Max 5x (the USD 100 plan) for 3 engineers in the build and the 2-3 platform engineers in the run, GitHub for engineers, Jira for everyone, and Figma during the build: THB 0.05M in the build, about THB 9K-13K a month in the run |
+| Team software subscriptions (IRIS cost) | Claude Max 5x (the USD 100 plan) for 3 engineers in the build and the 2-3 platform engineers in the run, GitHub for engineers, Jira for everyone, and Figma during the build: THB 0.04M in the build, about THB 9K-13K a month in the run |
 | Cloud servers | App servers, database, cache, storage and CDN, firewall, logs, backups, non-production, DNS and email: THB 70K a month plus THB 1.8 per employee (THB 151K a month at 45,000) |
 | Run cost | Approximately THB 74 PEPM at 12,000; THB 26 at 45,000 |
-| Three-year client spend | **THB 82,342,000** |
-| Three-year IRIS gross profit | **THB 28,780,305.10 (34.9522%)** |
+| Three-year client spend | **THB 71,842,000** |
+| Three-year IRIS gross profit | **THB 23,204,985.79 (32.3000%)** |
 | Estimated annual value at scale | THB 44.85M (2.1x the subscription); hypothesis requiring a baseline and comparison |
-| Three-year value vs spend | THB 78.5M vs THB 82.3M; payback early in year 4 |
+| Three-year value vs spend | THB 78.5M vs THB 71.8M; payback in year 3 |
 
-Prices exclude VAT. The 21 October revision made the plan realistic: a second integration engineer and more QA and DevSecOps in the build, 15% contingency for a fixed-fee, fixed-date job, a dedicated platform run team (this is the platform's first client), and a 5-point rather than 12-point yearly uplift in internal fills.
+Prices exclude VAT. The build is a lean squad (the product lead plus senior fullstack, fullstack, AI and QA engineers and a UX/UI designer), priced from day rates with 15% contingency for a fixed-fee, fixed-date job; the plan also keeps a dedicated platform run team (this is the platform's first client), and a 5-point rather than 12-point yearly uplift in internal fills.
 
 The AI planning quote prices the coach, safety classifier and nudges on **DeepSeek V4.1 Flash at peak API list rates** (DeepSeek's peak hours are Thai working hours), with off-peak rates for overnight path generation. It uses **2,800 uncached input + 1,200 cached input + 450 output tokens per coach turn**, 45% monthly active users, 12 turns/month and a 30% buffer: about THB 0.9 per coach active user a month, with all AI about 2% of run cost at scale. Claude Sonnet 5.5 is the comparison and fallback scenario (about THB 5.6 per active user). Slide 6 compares speed and cost: Flash answers in about 2.2 s against 5.4 s (Sonnet 5.5) and 8.4 s (Haiku 5.5) at Artificial Analysis' measured low-reasoning settings; Claude Haiku 5.5 is cheaper per answer than Flash at DeepSeek's peak rates. DeepSeek's own API runs in China, so production use needs DPO-approved cross-border safeguards or hosting through a cloud provider in an approved region. Model prices, discounts and production model choice require revalidation before contracting; these assumptions are not live usage or billing evidence. See [`model/README.md`](model/README.md) for recalculation, verification and limitations.
 

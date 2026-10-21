@@ -151,9 +151,9 @@ inp("sub_claude", "Claude Max 5x seat (USD 100 plan, engineers)", 100, "USD / se
 inp("sub_github", "GitHub Team seat (engineering roles)", 4, "USD / seat / mo", "Repositories, Actions CI and code review. Third-party pricing guides (Sep 2026); confirm on github.com/pricing.", USD)
 inp("sub_jira", "Jira Standard seat (all roles)", 7.91, "USD / seat / mo", "Delivery tracking with the product council. Third-party guides citing Atlassian list (Jul 2026).", USD)
 inp("sub_figma", "Figma Professional full seat (build only)", 20, "USD / seat / mo", "Monthly billing. Third-party guides and Figma forum (2026).", USD)
-inp("seats_claude_build", "Build seats, Claude Max (engineers)", 3, "seats", "Lead engineers on the core build. Run: the platform engineers (2 up to 20k employees, 3 above).")
-inp("seats_eng_build", "Build seats, engineering roles", 11, "seats", "GitHub and Jira. Architect, 2 senior engineers, 2 engineers, AI engineer, 2 data engineers, 2 QA, DevSecOps.")
-inp("seats_other_build", "Build seats, other roles", 7, "seats", "Jira. Product lead, designer, skills lead, 2 skills consultants, content analyst, change consultant.")
+inp("seats_claude_build", "Build seats, Claude Max (engineers)", 3, "seats", "Senior fullstack, fullstack and AI engineers. Run: the platform engineers (2 up to 20k employees, 3 above).")
+inp("seats_eng_build", "Build seats, engineering roles", 4, "seats", "GitHub and Jira. Senior fullstack, fullstack, AI and QA engineers.")
+inp("seats_other_build", "Build seats, other roles", 2, "seats", "Jira. Product lead and UX/UI designer.")
 inp("seats_design_build", "Design tool seats during build", 1, "seats", "UX/UI designer.")
 inp("sub_build_months", "Subscription months during build", 3, "months", "12 weeks billed as 3 monthly cycles. Run GitHub and Jira seats follow the run team FTE, rounded up.")
 
@@ -186,8 +186,8 @@ row += 1
 RATES = [
     ("Product & delivery lead", 260000, 28000),
     ("Solution architect", 200000, 22000),
-    ("Senior engineer", 160000, 16000),
-    ("Engineer", 90000, 9500),
+    ("Senior fullstack engineer", 160000, 16000),
+    ("Fullstack engineer", 90000, 9500),
     ("AI engineer", 160000, 16000),
     ("Data & integration engineer", 150000, 16000),
     ("QA engineer", 80000, 8500),
@@ -226,22 +226,15 @@ def RB(role):
 
 # ---------------------------------------------------------------- Build
 B = wb.create_sheet("Build")
-title(B, "Build: 12-week implementation", "IRIS team, cost to IRIS vs price to client. FTE = average over the 12 weeks.")
+title(B, "Build: 12-week implementation", "IRIS squad (product lead + 5), cost to IRIS vs price to client. FTE = average over the 12 weeks.")
 header(B, 4, ["Role", "FTE (avg)", "Person-days", "Cost to IRIS (THB)", "Price (THB)", "Note"], [34, 11, 13, 18, 18, 60])
 TEAM = [
-    ("Product & delivery lead", 1.0, "Owns product, scope and delivery; runs the product council."),
-    ("Solution architect", 1.0, "Architecture, security review pack, integration design."),
-    ("Senior engineer", 2.0, "1 backend + 1 frontend lead."),
-    ("Engineer", 2.0, "1 backend + 1 frontend (mobile web / LINE LIFF)."),
-    ("AI engineer", 1.0, "Coach, path engine, retrieval, eval harness."),
-    ("Data & integration engineer", 2.0, "1 for HR system and sign-in (SSO, LINE Login, OTP); 1 for both LMSs, data model and dashboards."),
-    ("QA engineer", 1.5, "From week 2; Thai and English test passes, automation, UAT and the 500-user pilot."),
-    ("UX/UI designer", 0.7, "Weeks 1-8; frontline and manager journeys."),
-    ("DevSecOps engineer", 1.0, "Week-2 security pack, Thailand landing zone, CI/CD, pen-test fixes, staged go-live."),
-    ("Skills methodology lead", 1.0, "IRIS method: frameworks and assessment design."),
-    ("Skills consultant", 1.4, "Frameworks for ~18 roles; SME validation (weeks 1-8)."),
-    ("Content analyst", 1.0, "Tag ~2 LMS catalogues to skills (AI-assisted, human-checked)."),
-    ("Change & adoption consultant", 0.8, "Weeks 4-12: champions, manager briefings, comms."),
+    ("Product & delivery lead", 1.0, "Owns product, scope, client and delivery; runs the product council; guides client SMEs on the 18 role frameworks and the champions on adoption."),
+    ("Senior fullstack engineer", 1.0, "Architecture, backend and integrations (HR system, both LMSs, SSO, LINE Login); week-2 security pack, CI/CD and staged go-live."),
+    ("Fullstack engineer", 1.0, "Mobile web / LINE LIFF front end, approvals and dashboards."),
+    ("AI engineer", 1.0, "Coach, path engine, retrieval, eval harness; AI-assisted tagging of both LMS catalogues."),
+    ("QA engineer", 1.0, "Thai and English test passes, automation, UAT and the 500-user pilot."),
+    ("UX/UI designer", 1.0, "Frontline and manager journeys, design system, usability tests with shift staff."),
 ]
 r0 = 5
 for i, (role, fte, note) in enumerate(TEAM):
@@ -342,7 +335,7 @@ run_rows = [
     ("subs", "Team software subscriptions (Claude Max, GitHub, Jira)", lambda c: f"=IF({c}{{enrolled}}>0,(ROUNDDOWN(IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')}),0)*{N('sub_claude')}+ROUNDUP(IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')}),0)*({N('sub_github')}+{N('sub_jira')})+ROUNDUP({N('csm_fte')}+{N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')}+MAX(1,{c}{{enrolled}}/{N('support_per')}),0)*{N('sub_jira')})*{N('fx')},0)", THB),
     ("compliance", "Security and compliance", lambda c: f"=IF({c}{{enrolled}}>0,({N('pentest')}+{N('dpia')})/12,0)", THB),
     ("team_ded", "Client-dedicated team", lambda c: f"=IF({c}{{enrolled}}>0,{N('csm_fte')}*{RC('Product & delivery lead')}+({N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')})*{RC('Content analyst')}+MAX(1,{c}{{enrolled}}/{N('support_per')})*{RC('Support analyst')},0)", THB),
-    ("team_plat", "Platform team", lambda c: f"=IF({c}{{enrolled}}>0,IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')})*{RC('Senior engineer')},0)", THB),
+    ("team_plat", "Platform team", lambda c: f"=IF({c}{{enrolled}}>0,IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')})*{RC('Senior fullstack engineer')},0)", THB),
     ("run_total", "Total run cost", lambda c: f"={c}{{llm_thb}}+SUM({c}{{infra}}:{c}{{team_plat}})", THB),
     ("per_emp", "Run cost per enrolled employee", lambda c: f"=IF({c}{{enrolled}}>0,{c}{{run_total}}/{c}{{enrolled}},0)", NUM),
     ("llm_per_mau", "AI cost per coach active user", lambda c: f"=IF({c}{{mau}}>0,{c}{{llm_thb}}/{c}{{mau}},0)", NUM),

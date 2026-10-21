@@ -1,6 +1,6 @@
 # Financial model
 
-`cost-model.xlsx` retains seven worksheets and 1,244 editable formulas. The saved file includes calculated results so previewers and tools that do not calculate Excel formulas can read the outputs. Figures are planning assumptions for the fictional case, not vendor quotations or verified client results.
+`cost-model.xlsx` retains seven worksheets and 1,223 editable formulas. The saved file includes calculated results so previewers and tools that do not calculate Excel formulas can read the outputs. Figures are planning assumptions for the fictional case, not vendor quotations or verified client results.
 
 ## Inputs and financial basis
 
@@ -13,7 +13,7 @@
 - Team software subscriptions are IRIS costs, not passed through: Claude Max 5x (the USD 100 plan) for 3 engineers in the build and the 2-3 platform engineers in the run, GitHub Team (USD 4) for engineers, Jira Standard (USD 7.91) for everyone, and Figma (USD 20) for the designer during the build. GitHub and Jira run seats follow the run team FTE, rounded up. Claude prices are Anthropic's list; the others come from third-party pricing guides, so confirm before purchase. General office software sits in the loaded rate card.
 - Client benefit estimates are illustrative. The workbook's value case does not establish a realised causal return.
 
-The current base case calculates three-year client spend/revenue of THB 82,342,000, IRIS gross profit of THB 28,780,305.10 and gross margin of 34.95%.
+The current base case calculates three-year client spend/revenue of THB 71,842,000, IRIS gross profit of THB 23,204,985.79 and gross margin of 32.30%. The build is a six-person squad (product lead plus five).
 
 ## Recalculate and verify
 

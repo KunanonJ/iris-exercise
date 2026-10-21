@@ -1,6 +1,6 @@
 {
   "status": "PASS",
-  "sha256": "8d5abb2f591d6d217ddca7b74f53022330b560c5604913696aa5872616609835",
+  "sha256": "ddad539731f94e3f0d31dc0468b3b61c0ff65d930059a7a55e4f6d374356d85b",
   "sheets": [
     "README",
     "Assumptions",
@@ -10,7 +10,7 @@
     "AI Cost",
     "Value"
   ],
-  "formula_count": 1244,
+  "formula_count": 1223,
   "missing_cached_results": 0,
   "formula_errors": 0,
   "preservation": {
@@ -38,23 +38,23 @@
   },
   "independent_controls": [
     {
-      "cell": "Build!D18",
-      "actual": 6728571.428571429,
-      "independent": 6728571.428571429,
+      "cell": "Build!D11",
+      "actual": 2457142.857142857,
+      "independent": 2457142.857142857,
       "difference": 0.0,
       "tolerance": 1.0
     },
     {
-      "cell": "Build!D29",
-      "actual": 8599507.902857143,
-      "independent": 8599507.902857142,
-      "difference": 1.862645149230957e-09,
+      "cell": "Build!D22",
+      "actual": 3674827.2057142854,
+      "independent": 3674827.205714285,
+      "difference": 4.656612873077393e-10,
       "tolerance": 1.0
     },
     {
-      "cell": "Build!E32",
-      "actual": 17500000,
-      "independent": 17500000,
+      "cell": "Build!E25",
+      "actual": 7000000,
+      "independent": 7000000,
       "difference": 0.0,
       "tolerance": 1.0
     },
@@ -816,29 +816,29 @@
     },
     {
       "cell": "Pricing & P&L!B8",
-      "actual": 31222000,
-      "independent": 31222000.0,
+      "actual": 20722000,
+      "independent": 20722000.0,
       "difference": 0.0,
       "tolerance": 1.0
     },
     {
       "cell": "Pricing & P&L!B9",
-      "actual": 20569051.673705146,
-      "independent": 20569051.673705146,
+      "actual": 15644370.976562288,
+      "independent": 15644370.976562288,
       "difference": 0.0,
       "tolerance": 1.0
     },
     {
       "cell": "Pricing & P&L!B10",
-      "actual": 10652948.326294854,
-      "independent": 10652948.326294854,
+      "actual": 5077629.023437715,
+      "independent": 5077629.023437715,
       "difference": 0.0,
       "tolerance": 1.0
     },
     {
       "cell": "Pricing & P&L!B11",
-      "actual": 0.3412000616967156,
-      "independent": 0.3412000616967156,
+      "actual": 0.24503566371188665,
+      "independent": 0.24503566371188665,
       "difference": 0.0,
       "tolerance": 0.0001
     },
@@ -900,30 +900,30 @@
     },
     {
       "cell": "Pricing & P&L!E8",
-      "actual": 82342000,
-      "independent": 82342000.0,
+      "actual": 71842000,
+      "independent": 71842000.0,
       "difference": 0.0,
       "tolerance": 1.0
     },
     {
       "cell": "Pricing & P&L!E9",
-      "actual": 53561694.90378515,
-      "independent": 53561694.90378512,
-      "difference": 2.9802322387695312e-08,
+      "actual": 48637014.206642285,
+      "independent": 48637014.20664228,
+      "difference": 7.450580596923828e-09,
       "tolerance": 1.0
     },
     {
       "cell": "Pricing & P&L!E10",
-      "actual": 28780305.09621486,
-      "independent": 28780305.09621482,
-      "difference": 4.0978193283081055e-08,
+      "actual": 23204985.793357722,
+      "independent": 23204985.7933577,
+      "difference": 2.2351741790771484e-08,
       "tolerance": 1.0
     },
     {
       "cell": "Pricing & P&L!E11",
-      "actual": 0.3495215697483042,
-      "independent": 0.3495215697483037,
-      "difference": 4.996003610813204e-16,
+      "actual": 0.32300027551234267,
+      "independent": 0.32300027551234234,
+      "difference": 3.3306690738754696e-16,
       "tolerance": 0.0001
     },
     {
@@ -1040,8 +1040,8 @@
     }
   ],
   "headline": {
-    "three_year_revenue_thb": 82342000,
-    "three_year_gross_profit_thb": 28780305.09621486,
-    "three_year_gross_margin": 0.3495215697483042
+    "three_year_revenue_thb": 71842000,
+    "three_year_gross_profit_thb": 23204985.793357722,
+    "three_year_gross_margin": 0.32300027551234267
   }
 }
