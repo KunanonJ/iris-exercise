@@ -250,7 +250,12 @@ const GENERIC: LearningItem[] = SKILLS.flatMap((s, i) =>
   })),
 );
 
-export const CATALOG: LearningItem[] = [...RICH, ...GENERIC];
+// Video lessons with a transcript get a sample clip per language, rendered by `pnpm videos`.
+const clip = (id: string, ext: "mp4" | "jpg") => ({ th: `/lessons/${id}.th.${ext}`, en: `/lessons/${id}.en.${ext}` });
+const withClip = (item: LearningItem): LearningItem =>
+  item.format === "video" && item.content ? { ...item, video: { src: clip(item.id, "mp4"), poster: clip(item.id, "jpg") } } : item;
+
+export const CATALOG: LearningItem[] = [...RICH.map(withClip), ...GENERIC];
 export const itemById = (id: string) => CATALOG.find((c) => c.id === id);
 
 export const KNOWLEDGE: KnowledgeDoc[] = [
