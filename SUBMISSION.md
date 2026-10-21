@@ -17,7 +17,7 @@
 >
 > Please find attached my response to the Learning Suite case: a 12-slide PDF, plus the cost model (Excel) behind the build, run and pricing numbers.
 >
-> In short: the date is fixed, so scope and cohort are the variables. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI only selects from approved content, and security and PDPA approval start in week 1 because they are the real critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 32.1% gross margin for IRIS.
+> In short: the date is fixed, so I flex scope and cohort, not quality. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI coach works only from approved content and the employee's own record, and security and PDPA approval start in week 1 because they, not the code, set the critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 32% gross margin for IRIS. At full scale, the value to the client is about twice the subscription.
 >
 > There is also an optional working prototype with synthetic data: https://iris-learning-suite.vercel.app
 >
@@ -25,7 +25,9 @@
 >
 > On AI quality: the offline test set passes 55/55, but a live run on a free stand-in model failed 4 of 7 release checks, so the release gate is not passed yet. Slide 6 shows the detail and the next step.
 >
-> AI tools used: Claude Code and Cursor for the original draft; Codex and Cursor for sign-in, security, evaluations, integrations and docs; Claude Code for coach updates, security fixes and the deck. The live evaluation used SEA-LION v4 as the coach with a Qwen3 judge.
+> AI tools used: Claude Code and Cursor for the original draft; Codex and Cursor for sign-in, security, evaluations, integrations and docs; Claude Code for coach updates, security fixes, the deck and the final cost-model revision. The live evaluation used SEA-LION v4 as the coach with a Qwen3 judge.
+>
+> I'd be glad to walk through any part of it, or share the source code.
 >
 > Best regards,  
 > Kunanon Jarat
