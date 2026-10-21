@@ -10,10 +10,10 @@
 - AI planning uses 2,800 uncached input tokens, 1,200 cached input tokens and 450 output tokens per coach message. Production model prices and other vendor figures remain the original frozen case assumptions. Confirm prices, regional availability, taxes and contractual commitments before procurement.
 - Prototype Clerk development authentication and free-tier Workers AI testing are separate from these production estimates. The prototype's current vendor choices do not automatically change commercial numbers. The production authentication and messaging approach, vendor quotation and security approval remain delivery decisions.
 - Cloud infrastructure is itemised into nine planning lines (app servers, managed Postgres + pgvector, Redis, storage and CDN, load balancer and WAF, logs, backups and DR, non-production, DNS/TLS/email) totalling THB 70,000 a month, plus THB 1.8 per employee. These are planning estimates for a Thailand-region tenant, not a cloud quote.
-- Team software subscriptions are IRIS costs, not passed through: Claude Max 20x (USD 200) for engineering roles and 5x (USD 100) for other roles, GitHub Team (USD 4) for engineers, Jira Standard (USD 7.91) for everyone, and Figma (USD 20) for the designer during the build. Run seats follow the run team FTE, rounded up. Claude prices are Anthropic's list; the others come from third-party pricing guides, so confirm before purchase. General office software sits in the loaded rate card.
+- Team software subscriptions are IRIS costs, not passed through: Claude Max 5x (the USD 100 plan) for 3 engineers in the build and the 2-3 platform engineers in the run, GitHub Team (USD 4) for engineers, Jira Standard (USD 7.91) for everyone, and Figma (USD 20) for the designer during the build. GitHub and Jira run seats follow the run team FTE, rounded up. Claude prices are Anthropic's list; the others come from third-party pricing guides, so confirm before purchase. General office software sits in the loaded rate card.
 - Client benefit estimates are illustrative. The workbook's value case does not establish a realised causal return.
 
-The current base case calculates three-year client spend/revenue of THB 82,342,000, IRIS gross profit of THB 27,648,105.10 and gross margin of 33.58%.
+The current base case calculates three-year client spend/revenue of THB 82,342,000, IRIS gross profit of THB 28,780,305.10 and gross margin of 34.95%.
 
 ## Recalculate and verify
 
