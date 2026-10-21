@@ -18,8 +18,8 @@
     "data-privacy",
     "plan",
     "risks",
-    "business",
-    "prototype"
+    "scale",
+    "business"
   ],
   "sections": {
     "s1": {
@@ -27,32 +27,24 @@
       "start": "summary"
     },
     "s2": {
-      "description": "Client: who goes first, what success looks like and the assumptions to confirm",
+      "description": "Product: who goes first, what goes live and what waits, and the employee and manager journeys",
       "start": "cohort"
     },
     "s3": {
-      "description": "Product: scope at week 12 and the key journeys",
-      "start": "scope"
-    },
-    "s4": {
-      "description": "AI: how the coach and path engine work, the quality gate and the running cost",
+      "description": "Product: how the AI coach works, how it is tested and what it costs to run",
       "start": "ai-design"
     },
-    "s5": {
-      "description": "Technology: integration architecture, data model and privacy controls",
+    "s4": {
+      "description": "Technology: architecture, integrations, build/configure/buy, data model, PDPA and security",
       "start": "architecture"
     },
-    "s6": {
-      "description": "Delivery: 12-week plan, risks and scaling to 45,000",
+    "s5": {
+      "description": "Delivery: 12-week plan and critical path, risks to the date, and scaling to 45,000",
       "start": "plan"
     },
-    "s7": {
-      "description": "Commercials: cost, price and value",
+    "s6": {
+      "description": "Business: cost to build and run, and pricing",
       "start": "business"
-    },
-    "s8": {
-      "description": "Next steps: decisions needed, prototype proof and tools used",
-      "start": "prototype"
     }
   },
   "faces": {

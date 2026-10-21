@@ -2,14 +2,14 @@
 
 Each slide title states the slide's conclusion. Every number traces to `model/cost-model.xlsx` or `notes/research.md`.
 
-Format (clean, minimal consulting style): a section label on every slide (Summary · Client · Product · AI · Technology · Delivery · Commercials · Next steps), an action title of at most two lines, at most three content blocks, one "So what" takeaway bar and one source line. Technical choices stay visible in plain words with the term in brackets; implementation specifics live in the speaker notes.
+Format (clean, minimal consulting style): a section label naming the brief question on every slide (Summary · Product · Technology · Delivery · Business), an action title of at most two lines, at most three content blocks, one "So what" takeaway bar and one source line. Technical choices stay visible in plain words with the term in brackets; implementation specifics live in the speaker notes.
 
 1. **Exec summary.** Launch a thin, integrated skills-and-coach layer for 12,000 frontline staff in 12 weeks, then scale to 45,000 within a year.
    - The date is fixed, so scope and cohort are the variables.
    - Nothing is replaced: the HR system and both LMSs stay.
    - The AI chooses from approved content and never invents it.
    - Security and PDPA are the critical path, so they start in week 1.
-   - Price: THB 17.5M fixed + THB 39 per employee per month. Client spend over 3 years: THB 82M. IRIS gross margin: 32%. Value: about THB 45M a year at scale.
+   - Price: THB 17.5M fixed + THB 39 per employee per month. Client spend over 3 years: THB 82M. IRIS gross margin: 36%. Value: about THB 45M a year at scale.
 2. **Client and wave 1.** Start where 18 role frameworks cover 12,000 people and results show within quarters.
    - RD Thailand 8,500 + PK Thailand 3,500, 18 roles, about 85% frontline.
    - Week-12 success criteria for the leadership forum.
@@ -17,13 +17,13 @@ Format (clean, minimal consulting style): a section label on every slide (Summar
 3. **Scope.** Ship all five parts thin rather than three parts deep. Now / Next / Later, plus what we leave out and why.
 4. **Journeys.** Frontline staff get in from LINE in one tap; managers approve three things, in batches. Uses prototype screenshots.
 5. **AI design I.** The AI picks from approved content and the employee's own record. It never invents courses, rules or scores. Covers the path engine, the coach, Thai handling and the two-layer guardrails.
-6. **AI design II.** Every release passes an eval gate. At scale the coach costs about THB 6 per active user per month.
+6. **AI design II.** Every release passes an eval gate. On DeepSeek V4.1 Flash the coach costs about THB 0.9 per active user per month; compared with Claude on cost and speed.
 7. **Architecture.** Integrate, don't replace. HRIS, LMS A/B, SSO, LINE and the LLM, plus build / configure / buy.
 8. **Data and PDPA.** A small core data model, with privacy designed in from week 1.
 9. **Plan.** 12 weeks with a staged go-live from week 10. The critical path runs through security, data and frameworks. Includes the team.
-10. **Risks and scale.** The top risks to the date have weekly owners. Scaling to 45,000 means producing more frameworks, not rebuilding the platform.
-11. **Business.** THB 17.5M to build and about THB 28 per employee per month to run at scale, priced at THB 39 with AI included. Value is about 2x the subscription; payback early in year 4.
-12. **Next steps.** Four decisions this week keep the forum date safe; a compact panel of what the prototype proves today (live link, offline 55/55, live gate not yet passed); the AI tools disclosure.
+10. **Risks.** Four high risks to the date, each with an owner, a decision week and a pre-agreed fallback.
+11. **Scale.** The career flywheel: the coach works until people reach their next role; promotion stories (opt-in) pull the next wave in. Run cost falls from THB 73 to THB 26 per employee.
+12. **Business.** THB 17.5M to build and about THB 26 per employee per month to run at scale, priced at THB 39 with AI included. Value is about 2x the subscription; payback early in year 4.
 
 Key numbers (from the model, verified with zero formula errors):
 
@@ -32,22 +32,22 @@ Key numbers (from the model, verified with zero formula errors):
 - Fee THB 17.5M; margin 51.2%.
 
 **Run cost per enrolled employee per month**
-- Month 4 (12k): about THB 75 (904k / 12k).
-- Month 36 (45k): THB 28.3.
+- Month 4 (12k): about THB 73 (878k / 12k).
+- Month 36 (45k): THB 26.1.
 
 **AI cost per coach active user per month**
-- Sonnet 5.5: THB 6.2.
-- Opus 5.5: THB 10.9.
-- Coach AI at full scale: THB 1.34M a year, 9% of run cost.
+- DeepSeek V4.1 Flash (costed, peak): THB 0.87 coach + classifier; THB 1.35 all AI.
+- Claude Sonnet 5.5 (scenario): THB 5.6 coach + classifier.
+- Coach AI at full scale: THB 0.21M a year, 1.5% of run cost; all AI 2.3%.
 
 **Revenue = client spend (THB)**
 
 | | Total | Implementation | Subscription | Waves | Gross profit |
 |---|---|---|---|---|---|
-| Year 1 | 31.2M | 17.5M | 7.7M | 6.0M | 10.4M (33%) |
-| Year 2 | 30.1M | – | 21.1M | 9.0M | 10.3M (34%) |
-| Year 3 | 21.1M | – | 21.1M | – | 5.8M (27%) |
-| 3 years | 82.3M | | | | 26.4M (32.1%) |
+| Year 1 | 31.2M | 17.5M | 7.7M | 6.0M | 10.8M (35%) |
+| Year 2 | 30.1M | – | 21.1M | 9.0M | 11.5M (38%) |
+| Year 3 | 21.1M | – | 21.1M | – | 7.0M (33%) |
+| 3 years | 82.3M | | | | 29.2M (35.5%) |
 
 **Client spend per employee per year:** Y1 1,156, Y2 668, Y3 468 THB. Y3 is 14% of current L&D spend per head (THB 3,300).
 

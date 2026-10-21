@@ -41,7 +41,7 @@ Commands run from `prototype/` unless stated otherwise. Passing scripted/offline
 | Fresh independent code/content review | PASS within scope | No remaining Critical, High or Medium findings from the reviewed changes after fixing small-cohort totals, incomplete evaluation fingerprints and truncated stream handling. Production review remains separate. |
 | `git diff --check` | PASS | No whitespace errors. |
 
-The workbook SHA-256 is `eaac37bf49f958abf9b67ef0406748600b0dcf6db5a15ec94b1c079212aa35bd`. Three-year revenue is THB 82,342,000; gross profit THB 26,447,633.61; gross margin 32.1193%.
+The workbook SHA-256 is `8313e5bb78f7268391f590385e60833941608059ca14771df28c4310faf16e72`. Three-year revenue is THB 82,342,000; gross profit THB 29,239,592.74; gross margin 35.5099%.
 
 ## External prerequisites and remaining acceptance
 

@@ -1,6 +1,6 @@
 # Learning Suite prototype — implementation and local proof
 
-The Next.js app (UI + `/api`) hosts on **Vercel** with **Supabase Postgres** for `suite_v2_*` state and memberships, accessed through **Prisma 7** (`@prisma/adapter-pg` + transaction pooler) so the API can scale toward tens of thousands of users without exhausting Postgres connections. The UI uses **shadcn/ui** (Radix + Tailwind v4) under `src/components/ui/`, with suite-specific wrappers in `src/components/kit.tsx`. The Cloudflare Worker/D1 path remains available for local Moodle/HR sandbox work (`pnpm dev:worker`) and optional Workers AI. Production URL: [iris-learning-suite.vercel.app](https://iris-learning-suite.vercel.app).
+The Next.js app (UI + `/api`) hosts on **Vercel** with **Supabase Postgres** for `suite_v2_*` state and memberships, accessed through **Prisma 7** (`@prisma/adapter-pg` + transaction pooler) so the API can scale toward tens of thousands of users without exhausting Postgres connections. The UI uses **shadcn/ui** (Radix + Tailwind v4) under `src/components/ui/`, with suite-specific wrappers in `src/components/kit.tsx`. The Cloudflare Worker/D1 path remains available for local Moodle/HR sandbox work (`pnpm dev:worker`) and optional Workers AI. Production URL: [iris.kunanonj.com](https://iris.kunanonj.com).
 
 Add components with `npx shadcn@latest add <name>`.
 

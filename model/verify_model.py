@@ -103,7 +103,10 @@ def controls(values):
         checks.append({"cell": f"{sheet}!{address}", "actual": actual, "independent": expected, "difference": delta, "tolerance": tolerance})
 
     rates = {}
-    for row in assumptions.iter_rows(min_row=72, max_row=85, max_col=3):
+    header = next(r for r in range(1, assumptions.max_row + 1) if assumptions.cell(r, 1).value == "Role")
+    for row in assumptions.iter_rows(min_row=header + 1, max_row=assumptions.max_row, max_col=3):
+        if row[0].value is None:
+            break
         rates[row[0].value] = (float(row[1].value), float(row[2].value))
     build = values["Build"]
     team_cost = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][0] / get("Working days per month") for row in range(5, 18))
@@ -122,10 +125,10 @@ def controls(values):
         people = sum(get(count) for count, start in (("Wave 1 employees (RD + PK, Thailand)", "Wave 1 go-live month"), ("Wave 2 employees (BM + CS + rest of TH)", "Wave 2 go-live month"), ("Wave 3 employees (CH + 3 ASEAN countries)", "Wave 3 go-live month")) if month >= get(start))
         active = people * get("Coach monthly active share")
         messages = active * get("Coach messages per active user per month")
-        coach = messages * (get("Coach input tokens per message (uncached)") * get("Coach model input (Sonnet 5.5)") + get("Coach input tokens per message (cached)") * get("Coach model cache read") + get("Coach output tokens per message") * get("Coach model output (Sonnet 5.5)")) / 1e6
-        classifier = messages * (get("Classifier input tokens per message") * get("Haiku 5.5 input (classifier, nudges)") + get("Classifier output tokens per message") * get("Haiku 5.5 output")) / 1e6
-        nudges = people * get("Nudges per enrolled employee per month") * (get("Nudge input tokens") * get("Haiku 5.5 input (classifier, nudges)") + get("Nudge output tokens") * get("Haiku 5.5 output")) / 1e6
-        paths = people * get("Path generations per employee per year") / 12 * (get("Path generation input tokens") * get("Coach model input (Sonnet 5.5)") + get("Path generation output tokens") * get("Coach model output (Sonnet 5.5)")) / 1e6 * (1 - get("Batch API discount"))
+        coach = messages * (get("Coach input tokens per message (uncached)") * get("Coach model input (DeepSeek V4.1 Flash, peak)") + get("Coach input tokens per message (cached)") * get("Coach model cache read (DeepSeek V4.1 Flash, peak)") + get("Coach output tokens per message") * get("Coach model output (DeepSeek V4.1 Flash, peak)")) / 1e6
+        classifier = messages * (get("Classifier input tokens per message") * get("Classifier and nudge model input (DeepSeek Flash, peak)") + get("Classifier output tokens per message") * get("Classifier and nudge model output (DeepSeek Flash, peak)")) / 1e6
+        nudges = people * get("Nudges per enrolled employee per month") * (get("Nudge input tokens") * get("Classifier and nudge model input (DeepSeek Flash, peak)") + get("Nudge output tokens") * get("Classifier and nudge model output (DeepSeek Flash, peak)")) / 1e6
+        paths = people * get("Path generations per employee per year") / 12 * (get("Path generation input tokens") * get("Coach model input (DeepSeek V4.1 Flash, peak)") + get("Path generation output tokens") * get("Coach model output (DeepSeek V4.1 Flash, peak)")) / 1e6 * (1 - get("Off-peak discount (overnight path generation)"))
         ai = (coach + classifier + nudges + paths + (get("Eval and judge sampling per month") if people else 0)) * (1 + get("LLM contingency")) * get("FX planning rate")
         run = 0
         if people:
@@ -159,9 +162,9 @@ def controls(values):
         check("Pricing & P&L", f"{column}11", p / r if r else 0, MARGIN_TOLERANCE)
     check("Pricing & P&L", "D19", full_run / full_people, MARGIN_TOLERANCE)
     check("Pricing & P&L", "D20", full_ai / (full_people * get("Coach monthly active share")), MARGIN_TOLERANCE)
-    coach_message = (get("Coach input tokens per message (uncached)") * get("Coach model input (Sonnet 5.5)") + get("Coach input tokens per message (cached)") * get("Coach model cache read") + get("Coach output tokens per message") * get("Coach model output (Sonnet 5.5)")) / 1e6
-    opus_message = (get("Coach input tokens per message (uncached)") * get("Opus 5.5 input (scenario)") + get("Coach input tokens per message (cached)") * get("Coach model cache read") + get("Coach output tokens per message") * get("Opus 5.5 output (scenario)")) / 1e6
-    classifier_message = (get("Classifier input tokens per message") * get("Haiku 5.5 input (classifier, nudges)") + get("Classifier output tokens per message") * get("Haiku 5.5 output")) / 1e6
+    coach_message = (get("Coach input tokens per message (uncached)") * get("Coach model input (DeepSeek V4.1 Flash, peak)") + get("Coach input tokens per message (cached)") * get("Coach model cache read (DeepSeek V4.1 Flash, peak)") + get("Coach output tokens per message") * get("Coach model output (DeepSeek V4.1 Flash, peak)")) / 1e6
+    opus_message = (get("Coach input tokens per message (uncached)") * get("Claude Sonnet 5.5 input (scenario)") + get("Coach input tokens per message (cached)") * get("Claude Sonnet 5.5 cache read (scenario)") + get("Coach output tokens per message") * get("Claude Sonnet 5.5 output (scenario)")) / 1e6
+    classifier_message = (get("Classifier input tokens per message") * get("Classifier and nudge model input (DeepSeek Flash, peak)") + get("Classifier output tokens per message") * get("Classifier and nudge model output (DeepSeek Flash, peak)")) / 1e6
     for column, message_cost in (("B", coach_message), ("C", opus_message)):
         per_active = (message_cost + classifier_message) * get("Coach messages per active user per month") * (1 + get("LLM contingency")) * get("FX planning rate")
         annual_coach = per_active * full_people * get("Coach monthly active share") * 12
