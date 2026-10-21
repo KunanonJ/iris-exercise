@@ -43,7 +43,7 @@ It shows the skill check (including monthly lesson time and certificates held), 
 | HR | Synthetic cursor-based joiner, manager-transfer and leaver proof. | No Workday, SuccessFactors or client HRIS connection is claimed. |
 | LMS | Catalogue, enrolment, upstream completion, replay and outage proof against **two real local Moodle 4.5.15 instances**. | Suite and Moodle sign-in are separate. Hosted connectors are unconfigured; no xAPI, LTI or LINE delivery proof is claimed. |
 | AI | 31 original plus 24 held-out bilingual cases; exact-source judging and answer provenance; failed or incomplete runs cannot certify a live release. The 55-case offline evaluation passes in CI on every PR ([latest saved run](prototype/evals/runs/2026-10-17T03-23-33-591Z-adebc68e/)). | The preserved live run `2026-10-15T14-18-58-089Z-f48e1caf` remains **FAIL** (4 of 7 checks). The next live run uses the costed model, DeepSeek V4.1 Flash, and needs a DeepSeek API key (the prototype's OpenAI-compatible provider path is untested against DeepSeek). |
-| Financial model | Seven worksheets; 1,207 formulas recalculated; zero spreadsheet errors; 143 independent checks and four sensitivity scenarios pass. Revised on 21 October for realistic staffing, contingency, run team and value assumptions. | Pricing and operating assumptions are a planning case, not measured live bills or guaranteed client returns. |
+| Financial model | Seven worksheets; 1,244 formulas recalculated; zero spreadsheet errors; 143 independent checks and four sensitivity scenarios pass. Revised on 21 October for realistic staffing, contingency, run team and value assumptions, then for team software subscriptions (Claude Max, GitHub, Jira, Figma) and itemised cloud servers. | Pricing and operating assumptions are a planning case, not measured live bills or guaranteed client returns. |
 
 CI on `main` runs typecheck, lint, the unit/auth/workflow/integration tests, the 55-case offline evaluation, the Next.js build and a client-bundle scan for personnel names and secrets, plus the model verifier, the 12-page PDF check, documentation links and a credential scan.
 
@@ -64,12 +64,14 @@ On Vercel the coach gives deterministic demo answers unless `AI_FREE_ONLY_VERIFI
 | Planning measure | Amount |
 |---|---:|
 | Wave-1 implementation fee (fixed, incl. 10% fixed-date premium) | THB 17.50M |
-| IRIS build cost (team, third-party, 15% contingency) | Approximately THB 8.55M |
+| IRIS build cost (team, third-party, team software, 15% contingency) | Approximately THB 8.86M |
 | Delivery staffing | 16.4 average FTE; approximately 18 individuals |
 | Subscription | THB 39 per enrolled employee/month |
-| Run cost | Approximately THB 73 PEPM at 12,000; THB 26 at 45,000 |
+| Team software subscriptions (IRIS cost) | Claude Max for every team member (20x for engineering roles, 5x for others), GitHub, Jira, and Figma during the build: THB 0.32M in the build, about THB 33K-40K a month in the run |
+| Cloud servers | App servers, database, cache, storage and CDN, firewall, logs, backups, non-production, DNS and email: THB 70K a month plus THB 1.8 per employee (THB 151K a month at 45,000) |
+| Run cost | Approximately THB 76 PEPM at 12,000; THB 27 at 45,000 |
 | Three-year client spend | **THB 82,342,000** |
-| Three-year IRIS gross profit | **THB 29,239,592.74 (35.5099%)** |
+| Three-year IRIS gross profit | **THB 27,648,105.10 (33.5772%)** |
 | Estimated annual value at scale | THB 44.85M (2.1x the subscription); hypothesis requiring a baseline and comparison |
 | Three-year value vs spend | THB 78.5M vs THB 82.3M; payback early in year 4 |
 

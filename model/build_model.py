@@ -124,9 +124,17 @@ inp("h_out", "Classifier and nudge model output (DeepSeek Flash, peak)", 1.20, "
 inp("batch", "Off-peak discount (overnight path generation)", 0.5, "", "DeepSeek off-peak rates are half the peak rates; paths are generated overnight Bangkok time.", PCT)
 inp("llm_cont", "LLM contingency", 0.3, "", "Retries, growth, price changes, and in-region hosting through a cloud provider priced differently from the DeepSeek API.", PCT)
 
-section(A, "Platform run costs")
-inp("infra_fix", "Cloud infrastructure, fixed", 70000, "THB / month", "Dedicated tenant in a Thailand region: app, Postgres + pgvector, Redis, storage, WAF, logs, non-prod.")
-inp("infra_var", "Cloud infrastructure, variable", 1.8, "THB / employee / mo", "Assumption.")
+section(A, "Platform run costs (cloud lines are planning estimates for a Thailand-region tenant)")
+inp("infra_app", "Cloud: app servers (containers, 2 availability zones)", 20000, "THB / month", "Web app, API and background jobs with autoscaling.")
+inp("infra_db", "Cloud: managed Postgres + pgvector (high availability)", 18000, "THB / month", "Primary and standby; learning records, audit log, retrieval index.")
+inp("infra_cache", "Cloud: Redis cache", 4000, "THB / month", "Sessions, rate limits, queues.")
+inp("infra_storage", "Cloud: object storage and CDN", 4000, "THB / month", "Lesson assets, exports; video stays in the client's LMS.")
+inp("infra_edge", "Cloud: load balancer, WAF and DDoS protection", 8000, "THB / month", "")
+inp("infra_logs", "Cloud: logs, metrics and audit-log retention", 4000, "THB / month", "")
+inp("infra_backup", "Cloud: backups and disaster-recovery copy", 4000, "THB / month", "Daily backups, point-in-time recovery, copy in a second zone.")
+inp("infra_nonprod", "Cloud: non-production environments (dev, staging)", 6000, "THB / month", "")
+inp("infra_dns", "Cloud: DNS, TLS certificates and transactional email", 2000, "THB / month", "")
+inp("infra_var", "Cloud infrastructure, variable", 1.8, "THB / employee / mo", "Assumption: compute, storage and traffic that grow with headcount.")
 inp("line_base", "LINE OA Pro plan", 1780, "THB / month", "LINE for Business TH price list (excl. VAT): 35,000 messages included.")
 inp("line_incl", "LINE messages included", 35000, "messages", "")
 inp("line_extra", "LINE extra message", 0.06, "THB / message", "Pro plan extra rate.")
@@ -137,6 +145,17 @@ inp("tool_fix", "Tooling (monitoring, LRS, security scanning)", 30000, "THB / mo
 inp("tool_var", "Tooling, variable", 0.25, "THB / employee / mo", "")
 inp("pentest", "Annual penetration test", 400000, "THB / yr", "Also one at go-live (Build sheet).")
 inp("dpia", "DPIA refresh and compliance audit", 200000, "THB / yr", "PDPA; PDPC AI guidance expects DPIA for high-risk AI.")
+
+section(A, "Team software subscriptions (USD per seat per month; IRIS cost, not passed through)")
+inp("sub_max20", "Claude Max 20x seat (engineering roles)", 200, "USD / seat / mo", "Anthropic list price (support.claude.com, Oct 2026); monthly billing only. Claude Code for build, test and operations work.", USD)
+inp("sub_max5", "Claude Max 5x seat (other roles)", 100, "USD / seat / mo", "Anthropic list price (Oct 2026). Product, design, skills, content, change and support roles.", USD)
+inp("sub_github", "GitHub Team seat (engineering roles)", 4, "USD / seat / mo", "Repositories, Actions CI and code review. Third-party pricing guides (Sep 2026); confirm on github.com/pricing.", USD)
+inp("sub_jira", "Jira Standard seat (all roles)", 7.91, "USD / seat / mo", "Delivery tracking with the product council. Third-party guides citing Atlassian list (Jul 2026).", USD)
+inp("sub_figma", "Figma Professional full seat (build only)", 20, "USD / seat / mo", "Monthly billing. Third-party guides and Figma forum (2026).", USD)
+inp("seats_eng_build", "Build seats, engineering roles", 11, "seats", "Architect, 2 senior engineers, 2 engineers, AI engineer, 2 data engineers, 2 QA, DevSecOps.")
+inp("seats_other_build", "Build seats, other roles", 7, "seats", "Product lead, designer, skills lead, 2 skills consultants, content analyst, change consultant.")
+inp("seats_design_build", "Design tool seats during build", 1, "seats", "UX/UI designer.")
+inp("sub_build_months", "Subscription months during build", 3, "months", "12 weeks billed as 3 monthly cycles. Run seats follow the run team FTE, rounded up.")
 
 section(A, "Run team (client-dedicated + platform)")
 inp("csm_fte", "Customer success / product owner", 0.5, "FTE", "")
@@ -263,28 +282,32 @@ style(B.cell(row=tpt, column=4, value=f"=SUM(D{tp0}:D{tpt-1})"), bold=True, fmt=
 style(B.cell(row=tpt, column=5, value=f"=SUM(E{tp0}:E{tpt-1})"), bold=True, fmt=THB)
 
 r = tpt + 2
+build_subs = (f"=({N('seats_eng_build')}*({N('sub_max20')}+{N('sub_github')}+{N('sub_jira')})"
+              f"+{N('seats_other_build')}*({N('sub_max5')}+{N('sub_jira')})+{N('seats_design_build')}*{N('sub_figma')})"
+              f"*{N('sub_build_months')}*{N('fx')}")
 lines = [
     ("Delivery contingency (15% of team cost)", f"=0.15*D{rt}", None),
-    ("Total cost to IRIS", f"=D{rt}+D{tpt}+D{r}", None),
+    ("Team software subscriptions: Claude Max, GitHub, Jira, Figma (IRIS cost, not passed through)", build_subs, None),
+    ("Total cost to IRIS", f"=D{rt}+D{tpt}+D{r}+D{r+1}", None),
     ("Price before risk premium", None, f"=E{rt}+E{tpt}"),
-    ("Fixed-date risk premium", None, f"=E{r+2}*{N('risk_prem')}"),
-    ("Implementation fee (rounded to 0.5M)", None, f"=ROUND((E{r+2}+E{r+3})/500000,0)*500000"),
-    ("Gross margin on implementation", None, f"=(E{r+4}-D{r+1})/E{r+4}"),
+    ("Fixed-date risk premium", None, f"=E{r+3}*{N('risk_prem')}"),
+    ("Implementation fee (rounded to 0.5M)", None, f"=ROUND((E{r+3}+E{r+4})/500000,0)*500000"),
+    ("Gross margin on implementation", None, f"=(E{r+5}-D{r+2})/E{r+5}"),
 ]
 for i, (lbl, dc, ec) in enumerate(lines):
     rr = r + i
     B.cell(row=rr, column=1, value=lbl)
-    style(B.cell(row=rr, column=1), bold=i in (1, 4, 5))
+    style(B.cell(row=rr, column=1), bold=i in (2, 5, 6))
     if dc:
-        style(B.cell(row=rr, column=4, value=dc), fmt=THB, bold=i == 1)
+        style(B.cell(row=rr, column=4, value=dc), fmt=THB, bold=i == 2)
     if ec:
-        style(B.cell(row=rr, column=5, value=ec), fmt=PCT if i == 5 else THB, bold=i in (4, 5), fill=KEY_FILL if i == 4 else None)
-build_cost_cell = f"Build!$D${r+1}"
-impl_fee_cell = f"Build!$E${r+4}"
-B.cell(row=r + 7, column=1, value="Milestones: 30% at kick-off, 30% at week 6 (integrated demo), 40% at go-live acceptance.")
-style(B.cell(row=r + 7, column=1), color="4A5759")
-B.cell(row=r + 8, column=1, value="Client-side roles (not priced): HRIS owner, 2 LMS admins, IT security, DPO, 2 SMEs per BU, comms lead, ~60 champions.")
+        style(B.cell(row=rr, column=5, value=ec), fmt=PCT if i == 6 else THB, bold=i in (5, 6), fill=KEY_FILL if i == 5 else None)
+build_cost_cell = f"Build!$D${r+2}"
+impl_fee_cell = f"Build!$E${r+5}"
+B.cell(row=r + 8, column=1, value="Milestones: 30% at kick-off, 30% at week 6 (integrated demo), 40% at go-live acceptance.")
 style(B.cell(row=r + 8, column=1), color="4A5759")
+B.cell(row=r + 9, column=1, value="Client-side roles (not priced): HRIS owner, 2 LMS admins, IT security, DPO, 2 SMEs per BU, comms lead, ~60 champions.")
+style(B.cell(row=r + 9, column=1), color="4A5759")
 B.freeze_panes = "A5"
 
 # ---------------------------------------------------------------- Run (monthly, 36 months)
@@ -312,10 +335,11 @@ run_rows = [
     ("path_usd", "Path generation LLM, off-peak (USD)", lambda c: f"={c}{{enrolled}}*{N('regen')}/12*({N('path_in')}*{N('c_in')}+{N('path_out')}*{N('c_out')})/1000000*(1-{N('batch')})", USD),
     ("judge_usd", "Evals and judge (USD)", lambda c: f"=IF({c}{{enrolled}}>0,{N('judge_usd')},0)", USD),
     ("llm_thb", "AI / LLM total incl. contingency", lambda c: f"=SUM({c}{{coach_usd}}:{c}{{judge_usd}})*(1+{N('llm_cont')})*{N('fx')}", THB),
-    ("infra", "Cloud infrastructure", lambda c: f"=IF({c}{{enrolled}}>0,{N('infra_fix')}+{N('infra_var')}*{c}{{enrolled}},0)", THB),
+    ("infra", "Cloud infrastructure (servers, database, storage, security)", lambda c: f"=IF({c}{{enrolled}}>0,SUM({N('infra_app')}:{N('infra_dns').split('!')[1]})+{N('infra_var')}*{c}{{enrolled}},0)", THB),
     ("line", "LINE Official Account", lambda c: f"=IF({c}{{enrolled}}>0,{N('line_base')}+MAX(0,{c}{{enrolled}}*{N('nudges')}-{N('line_incl')})*{N('line_extra')},0)", THB),
     ("sms", "SMS OTP", lambda c: f"={c}{{enrolled}}*{N('frontline')}*{N('otp_share')}*{N('sms')}", THB),
     ("tools", "Tooling", lambda c: f"=IF({c}{{enrolled}}>0,{N('tool_fix')}+{N('tool_var')}*{c}{{enrolled}},0)", THB),
+    ("subs", "Team software subscriptions (Claude Max, GitHub, Jira)", lambda c: f"=IF({c}{{enrolled}}>0,(ROUNDUP(IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')}),0)*({N('sub_max20')}+{N('sub_github')}+{N('sub_jira')})+ROUNDUP({N('csm_fte')}+{N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')}+MAX(1,{c}{{enrolled}}/{N('support_per')}),0)*({N('sub_max5')}+{N('sub_jira')}))*{N('fx')},0)", THB),
     ("compliance", "Security and compliance", lambda c: f"=IF({c}{{enrolled}}>0,({N('pentest')}+{N('dpia')})/12,0)", THB),
     ("team_ded", "Client-dedicated team", lambda c: f"=IF({c}{{enrolled}}>0,{N('csm_fte')}*{RC('Product & delivery lead')}+({N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')})*{RC('Content analyst')}+MAX(1,{c}{{enrolled}}/{N('support_per')})*{RC('Support analyst')},0)", THB),
     ("team_plat", "Platform team", lambda c: f"=IF({c}{{enrolled}}>0,IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')})*{RC('Senior engineer')},0)", THB),
@@ -534,6 +558,7 @@ notes = [
     "Pricing structure: fixed-fee implementation (milestones 30/30/40) + subscription per enrolled employee per month with a minimum from wave 2 + fixed-fee rollout services per wave + 10% of subscription at risk on adoption KPIs.",
     "Model prices: DeepSeek API list prices (Oct 2026), at peak rates for daytime coaching. Hosting DeepSeek in an approved region through a cloud provider is priced differently; the 30% LLM contingency covers the difference.",
     "Change the yellow levers on Assumptions to test scenarios (price, usage, risk premium, coach model).",
+    "Team software subscriptions (Claude Max, GitHub, Jira, Figma) are IRIS costs on the Build and Run sheets and are not passed through. General office software, laptops and email sit in the loaded rate card.",
 ]
 for i, t in enumerate(notes):
     Rd.cell(row=4 + i, column=1, value=t)

@@ -17,7 +17,7 @@
 >
 > Please find attached my response to the Learning Suite case: a 12-slide PDF, plus the cost model (Excel) behind the build, run and pricing numbers.
 >
-> In short: the date is fixed, so I flex scope and cohort, not quality. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI coach works only from approved content and the employee's own record, and security and PDPA approval start in week 1 because they, not the code, set the critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 36% gross margin for IRIS. At full scale, the value to the client is about twice the subscription.
+> In short: the date is fixed, so I flex scope and cohort, not quality. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI coach works only from approved content and the employee's own record, and security and PDPA approval start in week 1 because they, not the code, set the critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 34% gross margin for IRIS. At full scale, the value to the client is about twice the subscription.
 >
 > There is also an optional working prototype with synthetic data: https://iris.kunanonj.com
 >
@@ -48,7 +48,7 @@ Sending remains a separate authorised action.
 | What happens when AI fails? | Provenance distinguishes model, safety template, no-source, demo and provider fallback. Demo/fallback cannot certify live success. |
 | Is PDPA approval complete? | No. Deck proposes controls for client/DPO validation. Not permission to launch while approval is late. |
 | How much staffing? | Model assumes ~16.4 average FTE across ~18 individuals over delivery. |
-| What supports the money? | Seven sheets, 1,207 formulas, 143 controls, four sensitivities. 3-year spend THB 82,342,000; IRIS GP 35.5099%. |
+| What supports the money? | Seven sheets, 1,244 formulas, 143 controls, four sensitivities. 3-year spend THB 82,342,000; IRIS GP 33.5772%. |
 | What is the AI cost basis? | Frozen planning quote in the workbook — not a measured bill. |
 | Wave-1 omissions (judgement) | LINE OA push, workshop seats, batch/SLA automation, client production HRIS/LMS hosting — Phase-2 / architecture only. See `docs/line-oa-phase2.md`. |
 
