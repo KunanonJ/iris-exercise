@@ -17,7 +17,7 @@
 >
 > Please find attached my response to the Learning Suite case: a 12-slide PDF, plus the cost model (Excel) behind the build, run and pricing numbers.
 >
-> In short: the date is fixed, so scope and cohort are the variables. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI only selects from approved content, and security and PDPA approval start in week 1 because they are the real critical path. I propose a THB 15.5M fixed build fee plus THB 39 per employee per month, which is THB 80M of client spend over three years at a 38.5% gross margin for IRIS.
+> In short: the date is fixed, so scope and cohort are the variables. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI only selects from approved content, and security and PDPA approval start in week 1 because they are the real critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 32.1% gross margin for IRIS.
 >
 > There is also an optional working prototype with synthetic data: https://iris-learning-suite.vercel.app
 >
@@ -45,8 +45,8 @@ Sending remains a separate authorised action.
 | Has the AI passed? | Offline 55/55. Live run (SEA-LION v4 on Workers AI, 15 Oct) **failed 4 of 7 checks**: red team 18/19 (R12: ID masked, answer ungrounded), golden 31/36, language 50/55, grounded 27/29 (93.1%); citations 27/27 and Thai 4.94/5 passed. The run predates PRs #5/#6. Next run: Claude Sonnet 5.5 (the costed model, now the Anthropic default), which needs an Anthropic API key. Keep FAIL explicit until a complete live pass. |
 | What happens when AI fails? | Provenance distinguishes model, safety template, no-source, demo and provider fallback. Demo/fallback cannot certify live success. |
 | Is PDPA approval complete? | No. Deck proposes controls for client/DPO validation. Not permission to launch while approval is late. |
-| How much staffing? | Model assumes ~14.2 average FTE across ~17 individuals over delivery. |
-| What supports the money? | Seven sheets, 1,207 formulas, 143 controls, four sensitivities. 3-year spend THB 80,342,000; IRIS GP 38.5389%. |
+| How much staffing? | Model assumes ~16.4 average FTE across ~18 individuals over delivery. |
+| What supports the money? | Seven sheets, 1,207 formulas, 143 controls, four sensitivities. 3-year spend THB 82,342,000; IRIS GP 32.1193%. |
 | What is the AI cost basis? | Frozen planning quote in the workbook — not a measured bill. |
 | Wave-1 omissions (judgement) | LINE OA push, workshop seats, batch/SLA automation, client production HRIS/LMS hosting — Phase-2 / architecture only. See `docs/line-oa-phase2.md`. |
 

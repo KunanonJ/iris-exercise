@@ -7,8 +7,8 @@
       "input": "Assumptions!B11",
       "new_value": 13000.0,
       "revenue_delta_thb": 1287000.0,
-      "cost_delta_thb": 312850.4031999707,
-      "gross_profit_delta_thb": 974149.5968000181,
+      "cost_delta_thb": 312850.4031999782,
+      "gross_profit_delta_thb": 974149.5968000107,
       "status": "PASS"
     },
     {
@@ -25,8 +25,8 @@
       "input": "Assumptions!B19",
       "new_value": 24.0,
       "revenue_delta_thb": 0.0,
-      "cost_delta_thb": 3181494.607199982,
-      "gross_profit_delta_thb": -3181494.607199982,
+      "cost_delta_thb": 3181494.6071999967,
+      "gross_profit_delta_thb": -3181494.607199993,
       "status": "PASS"
     },
     {
@@ -34,8 +34,8 @@
       "input": "Assumptions!B19",
       "new_value": 0,
       "revenue_delta_thb": 0.0,
-      "cost_delta_thb": -3181494.6072000116,
-      "gross_profit_delta_thb": 3181494.607200008,
+      "cost_delta_thb": -3181494.607200004,
+      "gross_profit_delta_thb": 3181494.6072000004,
       "status": "PASS"
     }
   ],
