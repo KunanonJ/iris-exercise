@@ -64,14 +64,14 @@ On Vercel the coach gives deterministic demo answers unless `AI_FREE_ONLY_VERIFI
 | Planning measure | Amount |
 |---|---:|
 | Wave-1 implementation fee (fixed, incl. 10% fixed-date premium) | THB 17.50M |
-| IRIS build cost (team, third-party, team software, 15% contingency) | Approximately THB 8.86M |
+| IRIS build cost (team, third-party, team software, 15% contingency) | Approximately THB 8.60M |
 | Delivery staffing | 16.4 average FTE; approximately 18 individuals |
 | Subscription | THB 39 per enrolled employee/month |
-| Team software subscriptions (IRIS cost) | Claude Max for every team member (20x for engineering roles, 5x for others), GitHub, Jira, and Figma during the build: THB 0.32M in the build, about THB 33K-40K a month in the run |
+| Team software subscriptions (IRIS cost) | Claude Max 5x (the USD 100 plan) for 3 engineers in the build and the 2-3 platform engineers in the run, GitHub for engineers, Jira for everyone, and Figma during the build: THB 0.05M in the build, about THB 9K-13K a month in the run |
 | Cloud servers | App servers, database, cache, storage and CDN, firewall, logs, backups, non-production, DNS and email: THB 70K a month plus THB 1.8 per employee (THB 151K a month at 45,000) |
-| Run cost | Approximately THB 76 PEPM at 12,000; THB 27 at 45,000 |
+| Run cost | Approximately THB 74 PEPM at 12,000; THB 26 at 45,000 |
 | Three-year client spend | **THB 82,342,000** |
-| Three-year IRIS gross profit | **THB 27,648,105.10 (33.5772%)** |
+| Three-year IRIS gross profit | **THB 28,780,305.10 (34.9522%)** |
 | Estimated annual value at scale | THB 44.85M (2.1x the subscription); hypothesis requiring a baseline and comparison |
 | Three-year value vs spend | THB 78.5M vs THB 82.3M; payback early in year 4 |
 

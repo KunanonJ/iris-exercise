@@ -147,15 +147,15 @@ inp("pentest", "Annual penetration test", 400000, "THB / yr", "Also one at go-li
 inp("dpia", "DPIA refresh and compliance audit", 200000, "THB / yr", "PDPA; PDPC AI guidance expects DPIA for high-risk AI.")
 
 section(A, "Team software subscriptions (USD per seat per month; IRIS cost, not passed through)")
-inp("sub_max20", "Claude Max 20x seat (engineering roles)", 200, "USD / seat / mo", "Anthropic list price (support.claude.com, Oct 2026); monthly billing only. Claude Code for build, test and operations work.", USD)
-inp("sub_max5", "Claude Max 5x seat (other roles)", 100, "USD / seat / mo", "Anthropic list price (Oct 2026). Product, design, skills, content, change and support roles.", USD)
+inp("sub_claude", "Claude Max 5x seat (USD 100 plan, engineers)", 100, "USD / seat / mo", "Anthropic list price (support.claude.com, Oct 2026); monthly billing only. Claude Code for the engineers who build and run the platform.", USD)
 inp("sub_github", "GitHub Team seat (engineering roles)", 4, "USD / seat / mo", "Repositories, Actions CI and code review. Third-party pricing guides (Sep 2026); confirm on github.com/pricing.", USD)
 inp("sub_jira", "Jira Standard seat (all roles)", 7.91, "USD / seat / mo", "Delivery tracking with the product council. Third-party guides citing Atlassian list (Jul 2026).", USD)
 inp("sub_figma", "Figma Professional full seat (build only)", 20, "USD / seat / mo", "Monthly billing. Third-party guides and Figma forum (2026).", USD)
-inp("seats_eng_build", "Build seats, engineering roles", 11, "seats", "Architect, 2 senior engineers, 2 engineers, AI engineer, 2 data engineers, 2 QA, DevSecOps.")
-inp("seats_other_build", "Build seats, other roles", 7, "seats", "Product lead, designer, skills lead, 2 skills consultants, content analyst, change consultant.")
+inp("seats_claude_build", "Build seats, Claude Max (engineers)", 3, "seats", "Lead engineers on the core build. Run: the platform engineers (2 up to 20k employees, 3 above).")
+inp("seats_eng_build", "Build seats, engineering roles", 11, "seats", "GitHub and Jira. Architect, 2 senior engineers, 2 engineers, AI engineer, 2 data engineers, 2 QA, DevSecOps.")
+inp("seats_other_build", "Build seats, other roles", 7, "seats", "Jira. Product lead, designer, skills lead, 2 skills consultants, content analyst, change consultant.")
 inp("seats_design_build", "Design tool seats during build", 1, "seats", "UX/UI designer.")
-inp("sub_build_months", "Subscription months during build", 3, "months", "12 weeks billed as 3 monthly cycles. Run seats follow the run team FTE, rounded up.")
+inp("sub_build_months", "Subscription months during build", 3, "months", "12 weeks billed as 3 monthly cycles. Run GitHub and Jira seats follow the run team FTE, rounded up.")
 
 section(A, "Run team (client-dedicated + platform)")
 inp("csm_fte", "Customer success / product owner", 0.5, "FTE", "")
@@ -282,8 +282,8 @@ style(B.cell(row=tpt, column=4, value=f"=SUM(D{tp0}:D{tpt-1})"), bold=True, fmt=
 style(B.cell(row=tpt, column=5, value=f"=SUM(E{tp0}:E{tpt-1})"), bold=True, fmt=THB)
 
 r = tpt + 2
-build_subs = (f"=({N('seats_eng_build')}*({N('sub_max20')}+{N('sub_github')}+{N('sub_jira')})"
-              f"+{N('seats_other_build')}*({N('sub_max5')}+{N('sub_jira')})+{N('seats_design_build')}*{N('sub_figma')})"
+build_subs = (f"=({N('seats_claude_build')}*{N('sub_claude')}+{N('seats_eng_build')}*({N('sub_github')}+{N('sub_jira')})"
+              f"+{N('seats_other_build')}*{N('sub_jira')}+{N('seats_design_build')}*{N('sub_figma')})"
               f"*{N('sub_build_months')}*{N('fx')}")
 lines = [
     ("Delivery contingency (15% of team cost)", f"=0.15*D{rt}", None),
@@ -339,7 +339,7 @@ run_rows = [
     ("line", "LINE Official Account", lambda c: f"=IF({c}{{enrolled}}>0,{N('line_base')}+MAX(0,{c}{{enrolled}}*{N('nudges')}-{N('line_incl')})*{N('line_extra')},0)", THB),
     ("sms", "SMS OTP", lambda c: f"={c}{{enrolled}}*{N('frontline')}*{N('otp_share')}*{N('sms')}", THB),
     ("tools", "Tooling", lambda c: f"=IF({c}{{enrolled}}>0,{N('tool_fix')}+{N('tool_var')}*{c}{{enrolled}},0)", THB),
-    ("subs", "Team software subscriptions (Claude Max, GitHub, Jira)", lambda c: f"=IF({c}{{enrolled}}>0,(ROUNDUP(IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')}),0)*({N('sub_max20')}+{N('sub_github')}+{N('sub_jira')})+ROUNDUP({N('csm_fte')}+{N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')}+MAX(1,{c}{{enrolled}}/{N('support_per')}),0)*({N('sub_max5')}+{N('sub_jira')}))*{N('fx')},0)", THB),
+    ("subs", "Team software subscriptions (Claude Max, GitHub, Jira)", lambda c: f"=IF({c}{{enrolled}}>0,(ROUNDDOWN(IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')}),0)*{N('sub_claude')}+ROUNDUP(IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')}),0)*({N('sub_github')}+{N('sub_jira')})+ROUNDUP({N('csm_fte')}+{N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')}+MAX(1,{c}{{enrolled}}/{N('support_per')}),0)*{N('sub_jira')})*{N('fx')},0)", THB),
     ("compliance", "Security and compliance", lambda c: f"=IF({c}{{enrolled}}>0,({N('pentest')}+{N('dpia')})/12,0)", THB),
     ("team_ded", "Client-dedicated team", lambda c: f"=IF({c}{{enrolled}}>0,{N('csm_fte')}*{RC('Product & delivery lead')}+({N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')})*{RC('Content analyst')}+MAX(1,{c}{{enrolled}}/{N('support_per')})*{RC('Support analyst')},0)", THB),
     ("team_plat", "Platform team", lambda c: f"=IF({c}{{enrolled}}>0,IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')})*{RC('Senior engineer')},0)", THB),
