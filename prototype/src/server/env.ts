@@ -1,12 +1,19 @@
 import { HttpError } from "../lib/suite-domain";
 import type { AuthEnvironment } from "./auth";
 
+// Vercel sets VERCEL_PROJECT_PRODUCTION_URL (no scheme) to the shortest production domain, so the
+// custom domain is trusted as soon as it is assigned, without also editing APP_ORIGINS.
+export function appOrigins(env: Record<string, string | undefined> = process.env): string {
+  const production = env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined;
+  return [env.APP_ORIGINS, production].filter(Boolean).join(",");
+}
+
 export function clerkEnv(): AuthEnvironment {
   return {
     CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     CLERK_JWT_KEY: process.env.CLERK_JWT_KEY,
     CLERK_ISSUER_URL: process.env.CLERK_ISSUER_URL,
-    APP_ORIGINS: process.env.APP_ORIGINS,
+    APP_ORIGINS: appOrigins(),
   };
 }
 
