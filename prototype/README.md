@@ -70,7 +70,7 @@ Vercel project: `iris-learning-suite` (root `prototype`). Git is connected; **Pr
 1. Sign in with the provisioned employee account. Review current/next-role skills, complete self-ratings and the three scenarios, then submit. Scores are calculated on the server.
 2. Sign out and sign in with the assigned manager account. Approve or return the assessment; calibration requires a reason. Other managers and employees cannot make this decision.
 3. Return as the employee, generate a draft path, submit it, then have the manager approve. Rules-based generation is labelled distinctly from an AI-generated path.
-4. Open the video/lesson, workshop or project content. The contextual coach can explain, practise and reflect in Thai/English. Its final answer provenance is visible.
+4. Open the video/lesson, workshop or project content. The contextual coach can explain, practise and reflect in Thai/English. Its final answer provenance is visible. Video lessons with a transcript play a sample clip in the reader's language, rendered from that transcript by `pnpm videos` (needs Chrome and ffmpeg). The clips have no narration, and playing one does not mark the step complete.
 5. Complete a mapped Moodle activity upstream and reconcile through the administrative connector. The browser has no "verified complete" action. Submit project evidence for the manager's separate approval.
 6. Inspect the leader's server-generated aggregates and the environment's connection status. Business impact is a measurement hypothesis, not a demonstrated causal result.
 

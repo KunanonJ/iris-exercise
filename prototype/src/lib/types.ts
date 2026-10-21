@@ -57,6 +57,8 @@ export interface LearningItem {
   sessions?: { date: string; location: Bilingual }[];
   // Lesson text / video transcript, indexed for the coach (RAG)
   content?: Bilingual;
+  // Sample clip per language (demo only); production plays the video from the client's LMS
+  video?: { src: Bilingual; poster: Bilingual };
 }
 
 export interface KnowledgeDoc {
