@@ -112,12 +112,16 @@ def controls(values):
     team_cost = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][0] / get("Working days per month") for row in range(5, 18))
     team_price = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][1] for row in range(5, 18))
     third_party = sum(float(build.cell(row, 4).value) for row in range(21, 25))
-    build_cost = team_cost * 1.15 + third_party
+    engineering_seat = get("Claude Max 20x seat (engineering roles)") + get("GitHub Team seat (engineering roles)") + get("Jira Standard seat (all roles)")
+    other_seat = get("Claude Max 5x seat (other roles)") + get("Jira Standard seat (all roles)")
+    build_subscriptions = (get("Build seats, engineering roles") * engineering_seat + get("Build seats, other roles") * other_seat + get("Design tool seats during build") * get("Figma Professional full seat (build only)")) * get("Subscription months during build") * get("FX planning rate")
+    build_cost = team_cost * 1.15 + third_party + build_subscriptions
     # Positive Excel ROUND rounds half up. This model's fee is nonnegative.
     implementation = math.floor((team_price + third_party) * (1 + get("Fixed-date risk premium on implementation")) / 500000 + 0.5) * 500000
     check("Build", "D18", team_cost)
-    check("Build", "D28", build_cost)
-    check("Build", "E31", implementation)
+    check("Build", "D29", build_cost)
+    check("Build", "E32", implementation)
+    cloud_fixed = sum(float(value) for label, value in inputs.items() if label.startswith("Cloud: "))
 
     revenue, cost, profit = [], [], []
     full_run, full_ai, full_people = 0, 0, 0
@@ -132,10 +136,13 @@ def controls(values):
         ai = (coach + classifier + nudges + paths + (get("Eval and judge sampling per month") if people else 0)) * (1 + get("LLM contingency")) * get("FX planning rate")
         run = 0
         if people:
-            run = ai + get("Cloud infrastructure, fixed") + people * get("Cloud infrastructure, variable")
+            run = ai + cloud_fixed + people * get("Cloud infrastructure, variable")
             run += get("LINE OA Pro plan") + max(0, people * get("Nudges per enrolled employee per month") - get("LINE messages included")) * get("LINE extra message")
             run += people * get("Frontline share") * get("Frontline users needing SMS OTP per month") * get("SMS OTP cost")
             run += get("Tooling (monitoring, LRS, security scanning)") + people * get("Tooling, variable")
+            platform_fte = get("Platform team above 20k employees" if people > 20000 else "Platform team up to 20k employees")
+            client_fte = get("Customer success / product owner") + get("Skills & content analysts, base") + people / get("Employees per extra analyst") + max(1, people / get("Employees per L2 support analyst"))
+            run += (math.ceil(platform_fte) * engineering_seat + math.ceil(client_fte) * other_seat) * get("FX planning rate")
             run += (get("Annual penetration test") + get("DPIA refresh and compliance audit")) / 12
             run += get("Customer success / product owner") * rates["Product & delivery lead"][0]
             run += (get("Skills & content analysts, base") + people / get("Employees per extra analyst")) * rates["Content analyst"][0]
@@ -151,7 +158,7 @@ def controls(values):
         col = openpyxl.utils.get_column_letter(month + 1)
         check("Run", f"{col}5", people, 0)
         check("Run", f"{col}13", ai)
-        check("Run", f"{col}21", run)
+        check("Run", f"{col}22", run)
         if month == 36:
             full_run, full_ai, full_people = run, ai, people
     for column, start, stop in (("B", 0, 12), ("C", 12, 24), ("D", 24, 36), ("E", 0, 36)):
