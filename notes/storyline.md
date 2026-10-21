@@ -9,7 +9,7 @@ Format (clean, minimal consulting style): a section label naming the brief quest
    - Nothing is replaced: the HR system and both LMSs stay.
    - The AI chooses from approved content and never invents it.
    - Security and PDPA are the critical path, so they start in week 1.
-   - Price: THB 17.5M fixed + THB 39 per employee per month. Client spend over 3 years: THB 82M. IRIS gross margin: 35%. Value: about THB 45M a year at scale.
+   - Price: THB 7M fixed (six-person squad) + THB 39 per employee per month. Client spend over 3 years: THB 72M. IRIS gross margin: 32%. Value: about THB 45M a year at scale.
 2. **Client and wave 1.** Start where 18 role frameworks cover 12,000 people and results show within quarters.
    - RD Thailand 8,500 + PK Thailand 3,500, 18 roles, about 85% frontline.
    - Week-12 success criteria for the leadership forum.
@@ -23,13 +23,13 @@ Format (clean, minimal consulting style): a section label naming the brief quest
 9. **Plan.** 12 weeks with a staged go-live from week 10. The critical path runs through security, data and frameworks. Includes the team.
 10. **Risks.** Four high risks to the date, each with an owner, a decision week and a pre-agreed fallback.
 11. **Scale.** The career flywheel: the coach works until people reach their next role; promotion stories (opt-in) pull the next wave in. Run cost falls from THB 74 to THB 26 per employee.
-12. **Business.** THB 17.5M to build and about THB 26 per employee per month to run at scale, priced at THB 39 with AI included. Value is about 2x the subscription; payback early in year 4.
+12. **Business.** THB 7M to build and about THB 26 per employee per month to run at scale, priced at THB 39 with AI included. Value is about 2x the subscription; payback in year 3.
 
 Key numbers (from the model, verified with zero formula errors):
 
 **Build**
-- Team cost THB 6.73M (16.4 FTE); plus third-party 0.81M, contingency (15%) 1.01M and team software (Claude Max for 3 engineers, GitHub, Jira, Figma) 0.05M, for a total cost of THB 8.60M.
-- Fee THB 17.5M; margin 50.9%.
+- Team cost THB 2.46M (squad of 6: product lead, senior fullstack, fullstack, AI and QA engineers, UX/UI designer); plus third-party 0.81M, contingency (15%) 0.37M and team software (Claude Max for 3 engineers, GitHub, Jira, Figma) 0.04M, for a total cost of THB 3.67M.
+- Fee THB 7.0M; margin 47.5%.
 
 **Run cost per enrolled employee per month**
 - Month 4 (12k): about THB 74 (886k / 12k).
@@ -44,11 +44,11 @@ Key numbers (from the model, verified with zero formula errors):
 
 | | Total | Implementation | Subscription | Waves | Gross profit |
 |---|---|---|---|---|---|
-| Year 1 | 31.2M | 17.5M | 7.7M | 6.0M | 10.7M (34%) |
+| Year 1 | 20.7M | 7.0M | 7.7M | 6.0M | 5.1M (25%) |
 | Year 2 | 30.1M | – | 21.1M | 9.0M | 11.3M (38%) |
 | Year 3 | 21.1M | – | 21.1M | – | 6.8M (32%) |
-| 3 years | 82.3M | | | | 28.8M (35.0%) |
+| 3 years | 71.8M | | | | 23.2M (32.3%) |
 
-**Client spend per employee per year:** Y1 1,156, Y2 668, Y3 468 THB. Y3 is 14% of current L&D spend per head (THB 3,300).
+**Client spend per employee per year:** Y1 767, Y2 668, Y3 468 THB. Y3 is 14% of current L&D spend per head (THB 3,300).
 
-**Value (full scale, per year):** L&D redirect 14.85M + internal fills 6.0M (5-point uplift) + shrink 18.0M + OEE 4.0M + admin 2.0M = THB 44.85M. That is 2.13x the subscription. 3-year value is 78.5M, 0.95x spend; payback early in year 4. The shrink lever alone breaks even at a 3.5% relative reduction.
+**Value (full scale, per year):** L&D redirect 14.85M + internal fills 6.0M (5-point uplift) + shrink 18.0M + OEE 4.0M + admin 2.0M = THB 44.85M. That is 2.13x the subscription. 3-year value is 78.5M, 1.09x spend; payback in year 3. The shrink lever alone breaks even at a 3.5% relative reduction.

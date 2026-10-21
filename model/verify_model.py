@@ -109,9 +109,13 @@ def controls(values):
             break
         rates[row[0].value] = (float(row[1].value), float(row[2].value))
     build = values["Build"]
-    team_cost = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][0] / get("Working days per month") for row in range(5, 18))
-    team_price = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][1] for row in range(5, 18))
-    third_party = sum(float(build.cell(row, 4).value) for row in range(21, 25))
+    # Locate rows by label so the team size can change without breaking the controls.
+    at = {build.cell(row, 1).value: row for row in range(1, build.max_row + 1) if build.cell(row, 1).value}
+    team_rows = range(5, at["Team total"])
+    third_rows = range(at["Third-party and one-off"] + 1, at["Third-party total (passed through at cost)"])
+    team_cost = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][0] / get("Working days per month") for row in team_rows)
+    team_price = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][1] for row in team_rows)
+    third_party = sum(float(build.cell(row, 4).value) for row in third_rows)
     claude_seat = get("Claude Max 5x seat (USD 100 plan, engineers)")
     engineering_seat = get("GitHub Team seat (engineering roles)") + get("Jira Standard seat (all roles)")
     other_seat = get("Jira Standard seat (all roles)")
@@ -119,9 +123,9 @@ def controls(values):
     build_cost = team_cost * 1.15 + third_party + build_subscriptions
     # Positive Excel ROUND rounds half up. This model's fee is nonnegative.
     implementation = math.floor((team_price + third_party) * (1 + get("Fixed-date risk premium on implementation")) / 500000 + 0.5) * 500000
-    check("Build", "D18", team_cost)
-    check("Build", "D29", build_cost)
-    check("Build", "E32", implementation)
+    check("Build", f"D{at['Team total']}", team_cost)
+    check("Build", f"D{at['Total cost to IRIS']}", build_cost)
+    check("Build", f"E{at['Implementation fee (rounded to 0.5M)']}", implementation)
     cloud_fixed = sum(float(value) for label, value in inputs.items() if label.startswith("Cloud: "))
 
     revenue, cost, profit = [], [], []
@@ -148,7 +152,7 @@ def controls(values):
             run += get("Customer success / product owner") * rates["Product & delivery lead"][0]
             run += (get("Skills & content analysts, base") + people / get("Employees per extra analyst")) * rates["Content analyst"][0]
             run += max(1, people / get("Employees per L2 support analyst")) * rates["Support analyst"][0]
-            run += get("Platform team above 20k employees" if people > 20000 else "Platform team up to 20k employees") * rates["Senior engineer"][0]
+            run += get("Platform team above 20k employees" if people > 20000 else "Platform team up to 20k employees") * rates["Senior fullstack engineer"][0]
         billed = max(people, get("Minimum committed employees from wave 2") if month >= get("Wave 2 go-live month") else 0) if people else 0
         wave_revenue = (get("Wave 2 rollout services (fixed)") if month == get("Wave 2 go-live month") else 0) + (get("Wave 3 rollout services (fixed, incl. ASEAN localisation)") if month == get("Wave 3 go-live month") else 0)
         monthly_revenue = (implementation * (0.3 if month in (1, 2) else 0.4 if month == 3 else 0)) + billed * get("Subscription price per enrolled employee per month") + wave_revenue
