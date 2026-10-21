@@ -11,7 +11,7 @@
 - Prototype Clerk development authentication and free-tier Workers AI testing are separate from these production estimates. The prototype's current vendor choices do not automatically change commercial numbers. The production authentication and messaging approach, vendor quotation and security approval remain delivery decisions.
 - Client benefit estimates are illustrative. The workbook's value case does not establish a realised causal return.
 
-The current base case calculates three-year client spend/revenue of THB 80,342,000, IRIS gross profit of THB 30,962,919.32 and gross margin of 38.54%.
+The current base case calculates three-year client spend/revenue of THB 82,342,000, IRIS gross profit of THB 26,447,633.61 and gross margin of 32.12%.
 
 ## Recalculate and verify
 

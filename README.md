@@ -44,20 +44,20 @@ Live Worker inference stays disabled by default (`AI_FREE_ONLY_VERIFIED=1` requi
 
 | Planning measure | Amount |
 |---|---:|
-| Wave-1 implementation fee | THB 15.50M |
-| IRIS build cost | Approximately THB 7.31M |
-| Delivery staffing | 14.2 average FTE; approximately 17 individuals |
+| Wave-1 implementation fee | THB 17.50M |
+| IRIS build cost | Approximately THB 8.55M |
+| Delivery staffing | 16.4 average FTE; approximately 18 individuals |
 | Subscription | THB 39 per enrolled employee/month |
-| Run cost | Approximately THB 62 PEPM at 12,000; THB 25 at 45,000 |
-| Three-year client spend | **THB 80,342,000** |
-| Three-year IRIS gross profit | **THB 30,962,919.32 (38.5389%)** |
-| Estimated annual value at scale | THB 53.25M; hypothesis requiring a baseline and comparison |
+| Run cost | Approximately THB 75 PEPM at 12,000; THB 28 at 45,000 |
+| Three-year client spend | **THB 82,342,000** |
+| Three-year IRIS gross profit | **THB 26,447,633.61 (32.1193%)** |
+| Estimated annual value at scale | THB 44.85M; hypothesis requiring a baseline and comparison |
 
 The AI planning quote uses **2,800 uncached input + 1,200 cached input + 450 output tokens per coach turn**, 45% monthly active users, 12 turns/month and a 30% buffer. Model prices, discounts and production model choice require revalidation before contracting; these assumptions are not live usage or billing evidence. See [`model/README.md`](model/README.md) for recalculation, verification and limitations.
 
 ## Review the package
 
-- [`deck/`](deck/) — 12 slide sources in a consulting format: section tracker, action titles, a "So what" bar and a source line on every slide. Slides 1–11 describe the proposed rollout; slide 12 covers next steps, prototype proof and the tools used.
+- [`deck/`](deck/) — 12 slide sources in a clean, minimal consulting format: a section label, action titles, a "So what" line and a source line on every slide. Slides 1–11 describe the proposed rollout; slide 12 covers next steps, prototype proof and the tools used.
 - [`IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf`](IRIS-Learning-Suite-Launch-Plan-Kunanon-Jarat.pdf) — the 12-slide PDF, generated from `deck/` with `python3 deck/export_pdf.py` (text-based, 1920×1080 pt pages).
 - [`prototype/README.md`](prototype/README.md) — local authentication, workflow and verification guide.
 - [`prototype/sandbox/README.md`](prototype/sandbox/README.md) — isolated Moodle/HR lab and proof commands.

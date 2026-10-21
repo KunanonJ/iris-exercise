@@ -109,7 +109,7 @@ def controls(values):
     team_cost = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][0] / get("Working days per month") for row in range(5, 18))
     team_price = sum(float(build.cell(row, 2).value) * get("Build working days (12 weeks)") * rates[build.cell(row, 1).value][1] for row in range(5, 18))
     third_party = sum(float(build.cell(row, 4).value) for row in range(21, 25))
-    build_cost = team_cost * 1.1 + third_party
+    build_cost = team_cost * 1.15 + third_party
     # Positive Excel ROUND rounds half up. This model's fee is nonnegative.
     implementation = math.floor((team_price + third_party) * (1 + get("Fixed-date risk premium on implementation")) / 500000 + 0.5) * 500000
     check("Build", "D18", team_cost)
@@ -137,7 +137,7 @@ def controls(values):
             run += get("Customer success / product owner") * rates["Product & delivery lead"][0]
             run += (get("Skills & content analysts, base") + people / get("Employees per extra analyst")) * rates["Content analyst"][0]
             run += max(1, people / get("Employees per L2 support analyst")) * rates["Support analyst"][0]
-            run += get("Shared platform team allocation above 20k" if people > 20000 else "Shared platform team allocation up to 20k") * rates["Senior engineer"][0]
+            run += get("Platform team above 20k employees" if people > 20000 else "Platform team up to 20k employees") * rates["Senior engineer"][0]
         billed = max(people, get("Minimum committed employees from wave 2") if month >= get("Wave 2 go-live month") else 0) if people else 0
         wave_revenue = (get("Wave 2 rollout services (fixed)") if month == get("Wave 2 go-live month") else 0) + (get("Wave 3 rollout services (fixed, incl. ASEAN localisation)") if month == get("Wave 3 go-live month") else 0)
         monthly_revenue = (implementation * (0.3 if month in (1, 2) else 0.4 if month == 3 else 0)) + billed * get("Subscription price per enrolled employee per month") + wave_revenue

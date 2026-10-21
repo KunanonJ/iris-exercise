@@ -137,13 +137,13 @@ inp("tool_var", "Tooling, variable", 0.25, "THB / employee / mo", "")
 inp("pentest", "Annual penetration test", 400000, "THB / yr", "Also one at go-live (Build sheet).")
 inp("dpia", "DPIA refresh and compliance audit", 200000, "THB / yr", "PDPA; PDPC AI guidance expects DPIA for high-risk AI.")
 
-section(A, "Run team (client-dedicated + shared platform)")
+section(A, "Run team (client-dedicated + platform)")
 inp("csm_fte", "Customer success / product owner", 0.5, "FTE", "")
 inp("analyst_base", "Skills & content analysts, base", 1, "FTE", "Maintain frameworks, tag new content, review flagged answers.")
 inp("analyst_per", "Employees per extra analyst", 30000, "people", "")
 inp("support_per", "Employees per L2 support analyst", 25000, "people", "L1 stays with the client's HR helpdesk.")
-inp("plat_small", "Shared platform team allocation up to 20k", 1.5, "FTE", "Engineering, AI ops, security; shared across IRIS clients.")
-inp("plat_large", "Shared platform team allocation above 20k", 2.0, "FTE", "")
+inp("plat_small", "Platform team up to 20k employees", 2.5, "FTE", "Engineering, AI ops and security on call. Dedicated: this is the platform's first client, so no cost is shared yet.")
+inp("plat_large", "Platform team above 20k employees", 3.0, "FTE", "Adds wave 2-3 integrations and the ASEAN languages.")
 
 section(A, "Pricing (levers)")
 inp("pepm", "Subscription price per enrolled employee per month", 39, "THB", "Includes platform, hosting, AI coach (fair use), L2 support, framework upkeep.", THB, True)
@@ -214,10 +214,10 @@ TEAM = [
     ("Senior engineer", 2.0, "1 backend + 1 frontend lead."),
     ("Engineer", 2.0, "1 backend + 1 frontend (mobile web / LINE LIFF)."),
     ("AI engineer", 1.0, "Coach, path engine, retrieval, eval harness."),
-    ("Data & integration engineer", 1.0, "HRIS, 2 LMS, SSO, data model, dashboards."),
-    ("QA engineer", 0.8, "From week 3; test automation and UAT."),
+    ("Data & integration engineer", 2.0, "1 for HR system and sign-in (SSO, LINE Login, OTP); 1 for both LMSs, data model and dashboards."),
+    ("QA engineer", 1.5, "From week 2; Thai and English test passes, automation, UAT and the 500-user pilot."),
     ("UX/UI designer", 0.7, "Weeks 1-8; frontline and manager journeys."),
-    ("DevSecOps engineer", 0.5, "Environments, CI/CD, security controls, pen-test fixes."),
+    ("DevSecOps engineer", 1.0, "Week-2 security pack, Thailand landing zone, CI/CD, pen-test fixes, staged go-live."),
     ("Skills methodology lead", 1.0, "IRIS method: frameworks and assessment design."),
     ("Skills consultant", 1.4, "Frameworks for ~18 roles; SME validation (weeks 1-8)."),
     ("Content analyst", 1.0, "Tag ~2 LMS catalogues to skills (AI-assisted, human-checked)."),
@@ -263,7 +263,7 @@ style(B.cell(row=tpt, column=5, value=f"=SUM(E{tp0}:E{tpt-1})"), bold=True, fmt=
 
 r = tpt + 2
 lines = [
-    ("Delivery contingency (10% of team cost)", f"=0.1*D{rt}", None),
+    ("Delivery contingency (15% of team cost)", f"=0.15*D{rt}", None),
     ("Total cost to IRIS", f"=D{rt}+D{tpt}+D{r}", None),
     ("Price before risk premium", None, f"=E{rt}+E{tpt}"),
     ("Fixed-date risk premium", None, f"=E{r+2}*{N('risk_prem')}"),
@@ -317,7 +317,7 @@ run_rows = [
     ("tools", "Tooling", lambda c: f"=IF({c}{{enrolled}}>0,{N('tool_fix')}+{N('tool_var')}*{c}{{enrolled}},0)", THB),
     ("compliance", "Security and compliance", lambda c: f"=IF({c}{{enrolled}}>0,({N('pentest')}+{N('dpia')})/12,0)", THB),
     ("team_ded", "Client-dedicated team", lambda c: f"=IF({c}{{enrolled}}>0,{N('csm_fte')}*{RC('Product & delivery lead')}+({N('analyst_base')}+{c}{{enrolled}}/{N('analyst_per')})*{RC('Content analyst')}+MAX(1,{c}{{enrolled}}/{N('support_per')})*{RC('Support analyst')},0)", THB),
-    ("team_plat", "Shared platform team allocation", lambda c: f"=IF({c}{{enrolled}}>0,IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')})*{RC('Senior engineer')},0)", THB),
+    ("team_plat", "Platform team", lambda c: f"=IF({c}{{enrolled}}>0,IF({c}{{enrolled}}>20000,{N('plat_large')},{N('plat_small')})*{RC('Senior engineer')},0)", THB),
     ("run_total", "Total run cost", lambda c: f"={c}{{llm_thb}}+SUM({c}{{infra}}:{c}{{team_plat}})", THB),
     ("per_emp", "Run cost per enrolled employee", lambda c: f"=IF({c}{{enrolled}}>0,{c}{{run_total}}/{c}{{enrolled}},0)", NUM),
     ("llm_per_mau", "AI cost per coach active user", lambda c: f"=IF({c}{{mau}}>0,{c}{{llm_thb}}/{c}{{mau}},0)", NUM),
@@ -468,7 +468,7 @@ vrows = [
     ("Share of L&D spend redirected to skill gaps", 0.10, None, "Low-relevance courses cut or replaced; assumption", PCT, True),
     ("1. L&D spend optimisation", None, "=B5*B6", "THB / yr", THB, False),
     ("Supervisor-level vacancies per year (group)", 1200, None, "people; assumption", THB, True),
-    ("Uplift in internal fill rate", 0.12, None, "percentage points; assumption", PCT, True),
+    ("Uplift in internal fill rate", 0.05, None, "percentage points; conservative assumption", PCT, True),
     ("Cost avoided per external hire", 100000, None, "THB: recruitment, onboarding, ramp-up; assumption", THB, True),
     ("2. Internal fills instead of external hires", None, "=B8*B9*B10", "THB / yr", THB, False),
     ("Retail & Distribution revenue", 40000000000, None, "THB / yr; assumption for the fictional BU", THB, True),
