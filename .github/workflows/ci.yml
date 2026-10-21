@@ -192,7 +192,7 @@ jobs:
             echo "- Branch: \`${{ github.ref_name }}\`"
             echo "- Hosting: **Vercel** project \`iris-learning-suite\` (root \`prototype\`)"
             if [ "${{ github.ref_name }}" = "production" ]; then
-              echo "- Target: **Production** → https://iris-learning-suite.vercel.app"
+              echo "- Target: **Production** → https://iris.kunanonj.com"
             else
               echo "- Target: **Preview** (native Git integration)"
             fi

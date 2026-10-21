@@ -19,7 +19,7 @@
 >
 > In short: the date is fixed, so I flex scope and cohort, not quality. All five parts go live in a thin first version for 12,000 Retail & Distribution and Packaging staff in Thailand (18 roles), on top of the existing HR system and both LMSs. The AI coach works only from approved content and the employee's own record, and security and PDPA approval start in week 1 because they, not the code, set the critical path. I propose a THB 17.5M fixed build fee plus THB 39 per employee per month, which is THB 82M of client spend over three years at a 36% gross margin for IRIS. At full scale, the value to the client is about twice the subscription.
 >
-> There is also an optional working prototype with synthetic data: https://iris-learning-suite.vercel.app
+> There is also an optional working prototype with synthetic data: https://iris.kunanonj.com
 >
 > Sign in with Google, then choose a role: Employee, Employee + team lead, or HR / Executive. You can switch roles at any time from the top bar. If you'd rather not use Google, sign in with iris.e0001+clerk_test@example.com: choose "Use another method", then "Email code", and enter 424242 (a test code, so no inbox is needed). Each role is a shared demo profile, so you may see changes made by other reviewers.
 >
@@ -56,7 +56,7 @@ Sending remains a separate authorised action.
 
 | Item | Location |
 |---|---|
-| Hosted app | https://iris-learning-suite.vercel.app |
+| Hosted app | https://iris.kunanonj.com |
 | `/api/status` | `prisma+supabase` + Clerk + vercel |
 | Hosted SignIn screenshot | `docs/screenshots/hosted-signin-google-line.png` |
 | Google OAuth redirect receipt | `prototype/sandbox/receipts/hosted-sso-2026-10-17T15-40-43.222Z.json` |

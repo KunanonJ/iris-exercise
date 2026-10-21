@@ -16,7 +16,7 @@ PRs targeting `main`, `preview`, or `production` always deploy to **Preview**.
 - Root directory: `prototype`
 - Git: `KunanonJ/iris-exercise` (connected)
 - **Production branch: `production`**
-- Production URL: https://iris-learning-suite.vercel.app
+- Production URL: https://iris.kunanonj.com (custom domain; https://iris-learning-suite.vercel.app still resolves to the same deployment)
 - Env vars are set for Vercel targets `development`, `preview`, and `production` (Clerk, Supabase, Prisma `DATABASE_URL` / `DIRECT_URL`)
 
 Native Git integration deploys on push:
@@ -33,7 +33,7 @@ Native Git integration deploys on push:
 
 CI does **not** deploy. Hosting CD is Vercel Git. Keep the Vercel workflow manual-only so pushes are not double-deployed.
 
-Optional Cloudflare Worker/D1 sandbox (`pnpm deploy:worker`) is separate and not wired into Actions CD.
+The hosted Cloudflare Worker that served `iris.kunanonj.com` was retired on 21 Oct 2026 and the domain moved to Vercel. The Worker/D1 sandbox still runs locally (`pnpm dev:worker`); `pnpm deploy:worker` now targets `workers.dev` only and needs `APP_ORIGINS` set to that origin.
 
 ## Local branch tips
 

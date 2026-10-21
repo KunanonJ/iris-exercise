@@ -1,7 +1,7 @@
 # IRIS Learning Suite — candidate case response
 
 **Candidate:** Kunanon Jarat · Digital & AI Solution Product Manager\
-**Status (21 October 2026):** the deck, cost model and prototype are ready for submission. The prototype is hosted at https://iris-learning-suite.vercel.app. The submission email in [`SUBMISSION.md`](SUBMISSION.md) has not been sent.
+**Status (21 October 2026):** the deck, cost model and prototype are ready for submission. The prototype is hosted at https://iris.kunanonj.com. The submission email in [`SUBMISSION.md`](SUBMISSION.md) has not been sent.
 
 All company, employee, skill and learning data are synthetic. The 12-slide deck proposes a client rollout; it does not describe an existing production deployment. Keep recruitment materials confidential.
 
