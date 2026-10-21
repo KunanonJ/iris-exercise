@@ -77,7 +77,9 @@ function SessionGate() {
               appearance={{
                 elements: {
                   socialButtonsBlockButton: "border border-line bg-paper hover:bg-brand-soft",
-                  // LINE Login stays enabled in Clerk but is hidden for the case submission.
+                  // LINE Login stays enabled in Clerk but is hidden for the case submission. Clerk still
+                  // lays out two columns for two providers, so use one column to give Google the full row.
+                  socialButtons: { gridTemplateColumns: "1fr" },
                   socialButtonsBlockButton__line: { display: "none" },
                   socialButtonsIconButton__line: { display: "none" },
                   formButtonPrimary: "bg-brand hover:bg-brand/90",
