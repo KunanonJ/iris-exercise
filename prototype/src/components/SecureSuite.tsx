@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import type { Principal, SuiteCommand, SuiteView } from "@/lib/suite-contracts";
 import type { Lang } from "@/lib/types";
 import { apiErrorMessage, assertPrincipal, consumeCoachStream, SuiteApiError } from "./secure-client";
-import { EmployeeJourney, LeaderJourney, ManagerJourney, IntegrationsPanel } from "./secure-journeys";
+import { EmployeeJourney, LeaderJourney, ManagerJourney } from "./secure-journeys";
 import { RolePicker } from "./secure-roles";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +13,7 @@ import { Avatar, Badge, Button, Card, cx, Icon } from "./kit";
 
 const subscribe = () => () => {};
 const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-type Tab = "learning" | "team" | "dashboard" | "integrations";
+type Tab = "learning" | "team" | "dashboard";
 type PendingMutation = { path: string; body: string; key: string };
 
 export function SecureSuite() {
@@ -215,7 +215,6 @@ function SessionSuite({ userId, getToken }: { userId: string; getToken: () => Pr
   const tabs: [Tab, string, "home" | "team" | "skills" | "shield"][] = [
     ...(role === "leader" ? [["dashboard", th ? "ภาพรวมองค์กร" : "Organisation", "skills"] as [Tab, string, "skills"]] : [["learning", th ? "การเรียนของฉัน" : "My learning", "home"] as [Tab, string, "home"]]),
     ...(role === "manager" ? [["team", th ? "ทีมและการอนุมัติ" : "Team & approvals", "team"] as [Tab, string, "team"]] : []),
-    ["integrations", th ? "การเชื่อมต่อ" : "Connections", "shield"],
   ];
   const canRetry = pending && (!error || !(error instanceof SuiteApiError) || [0, 429, 500, 502, 503, 504].includes(error.status));
 
@@ -233,7 +232,6 @@ function SessionSuite({ userId, getToken }: { userId: string; getToken: () => Pr
         {actualTab === "learning" && view.self && <EmployeeJourney key={view.self.employee.id} record={view.self} lang={lang} busy={busy} command={command} generate={generate} coach={coach} />}
         {actualTab === "team" && role === "manager" && <ManagerJourney view={view} lang={lang} busy={busy} command={command} />}
         {actualTab === "dashboard" && role === "leader" && <LeaderJourney view={view} lang={lang} />}
-        {actualTab === "integrations" && <IntegrationsPanel integrations={view.integrations} lang={lang} />}
       </>}
       {!rolePicker && !loading && !view && !error && <p role="status">{th ? "ไม่พบข้อมูลการเรียนของบัญชีนี้ โปรดติดต่อผู้ดูแลโปรแกรมเพื่อตรวจสอบสิทธิ์ค่ะ" : "We couldn't find a learning record for this account. Ask your programme admin to check your access."}</p>}
       <footer className="mt-10 border-t border-line pt-4 text-xs leading-relaxed text-ink-3">{th ? "ต้นแบบสำหรับกรณีศึกษา ใช้ข้อมูลสมมติทั้งหมด ผลประเมินทักษะใช้เพื่อการพัฒนาเท่านั้น ไม่มีผลต่อเงินเดือนหรือการเลื่อนตำแหน่ง การเชื่อมต่อ HR และ LMS เป็นระบบทดสอบ ไม่ใช่ระบบจริงของลูกค้า" : "Case-study prototype with synthetic data. Skill results are for development only and never affect pay or promotion. The HR and LMS connections are test systems, not the client's live systems."}</footer>

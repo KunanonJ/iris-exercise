@@ -33,7 +33,7 @@ Native Git integration deploys on push:
 
 CI does **not** deploy. Hosting CD is Vercel Git. Keep the Vercel workflow manual-only so pushes are not double-deployed.
 
-The hosted Cloudflare Worker that served `iris.kunanonj.com` was retired on 21 Oct 2026 and the domain moved to Vercel. The Worker/D1 sandbox still runs locally (`pnpm dev:worker`); `pnpm deploy:worker` now targets `workers.dev` only and needs `APP_ORIGINS` set to that origin.
+The hosted Cloudflare Worker that served `iris.kunanonj.com` and its D1 database were retired on 21 Oct 2026, and the domain moved to Vercel. The Worker/D1 sandbox still runs locally (`pnpm dev:worker`); `pnpm deploy:worker` now targets `workers.dev` only and needs `APP_ORIGINS` set to that origin.
 
 ## Local branch tips
 

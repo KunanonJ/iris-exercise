@@ -72,7 +72,7 @@ Vercel project: `iris-learning-suite` (root `prototype`). Git is connected; **Pr
 3. Return as the employee, generate a draft path, submit it, then have the manager approve. Rules-based generation is labelled distinctly from an AI-generated path.
 4. Open the video/lesson, workshop or project content. The contextual coach can explain, practise and reflect in Thai/English. Its final answer provenance is visible. Video lessons with a transcript play a sample clip in the reader's language, rendered from that transcript by `pnpm videos` (needs Chrome and ffmpeg). The clips have no narration, and playing one does not mark the step complete.
 5. Complete a mapped Moodle activity upstream and reconcile through the administrative connector. The browser has no "verified complete" action. Submit project evidence for the manager's separate approval.
-6. Inspect the leader's server-generated aggregates and the environment's connection status. Business impact is a measurement hypothesis, not a demonstrated causal result.
+6. Inspect the leader's server-generated aggregates. Business impact is a measurement hypothesis, not a demonstrated causal result.
 
 The sandbox has individual reviews and due dates. Batch approval, workshop reservations, LINE reminders and automatic SLA escalation remain production proposals.
 

@@ -15,7 +15,8 @@
   },
   // The hosted Worker on iris.kunanonj.com was retired on 21 Oct 2026; that domain now serves the Vercel app.
   "workers_dev": true,
-  // Cloudflare D1 relational SQLite database (APAC)
+  // Cloudflare D1 relational SQLite database (APAC). The hosted database was deleted with the Worker on
+  // 21 Oct 2026; create a new one (wrangler d1 create) and update database_id before any redeploy.
   "d1_databases": [
     {
       "binding": "DB",
